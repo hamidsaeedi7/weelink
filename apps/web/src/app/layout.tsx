@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: { default: "ویلینک | یک لینک، همه چیز", template: "%s | ویلینک" },
   description: "پلتفرم لینک بیو فارسی برای فروشگاه‌های اینستاگرامی و کسب‌وکارهای ایرانی. بدون کارمزد فروش، با پشتیبانی بله، ایتا و روبیکا.",
   keywords: ["لینک بیو", "فروشگاه اینستاگرام", "بیولینک", "weeelink", "ویلینک"],
-  metadataBase: new URL("https://weeelink.com"),
+  metadataBase: new URL("https://weeelink.ir"),
   openGraph: {
     siteName: "ویلینک",
     locale: "fa_IR",
