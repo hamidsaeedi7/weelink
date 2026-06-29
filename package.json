@@ -1,0 +1,27 @@
+{
+  "name": "weelink",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "db:generate": "pnpm --filter @weelink/db generate",
+    "db:migrate": "pnpm --filter @weelink/db migrate:dev",
+    "db:push": "pnpm --filter @weelink/db push",
+    "db:studio": "pnpm --filter @weelink/db studio",
+    "db:seed": "pnpm --filter @weelink/db seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.5"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

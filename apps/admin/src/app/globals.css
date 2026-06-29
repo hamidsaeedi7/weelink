@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { font-family: 'Vazirmatn', sans-serif; direction: rtl; }
+  body { @apply bg-gray-50 dark:bg-[#0A0A0F] text-gray-900 dark:text-gray-100; }
+
+  .dark {
+    --sidebar-bg: #0D0D18;
+    --card-bg: #111122;
+    --border: rgba(255,255,255,0.06);
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06] rounded-2xl;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-400
+           text-white text-sm font-semibold rounded-xl transition-all active:scale-95
+           shadow-[0_0_15px_rgba(249,115,22,0.25)] hover:shadow-[0_0_25px_rgba(249,115,22,0.4)];
+  }
+  .input-base {
+    @apply w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
+           border border-gray-200 dark:border-white/10 text-sm
+           focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/10 transition-all;
+  }
+  .stat-card {
+    @apply glass-card p-5 hover:border-orange-500/10 transition-all duration-200;
+  }
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.25); border-radius: 3px; }

@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-card: #ffffff;
+    --border: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --accent: #2563EB;
+    --accent-glow: rgba(37, 99, 235, 0.2);
+  }
+
+  .dark {
+    --bg-primary: #0A0A0F;
+    --bg-secondary: #0F0F1A;
+    --bg-card: #111122;
+    --border: rgba(255, 255, 255, 0.06);
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --accent: #F97316;
+    --accent-glow: rgba(249, 115, 22, 0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    font-family: 'Vazirmatn', sans-serif;
+    direction: rtl;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* ─── Glass Card ─── */
+  .glass-card {
+    @apply bg-white/80 dark:bg-white/[0.03] backdrop-blur-xl border border-gray-200/60 dark:border-white/[0.06] rounded-2xl;
+  }
+
+  /* ─── Accent Button — blue in light, orange in dark ─── */
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3
+           text-white font-semibold rounded-xl
+           transition-all duration-200 active:scale-95;
+    background-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           bg-transparent border border-gray-300 dark:border-white/10
+           text-gray-700 dark:text-gray-200 font-medium rounded-xl
+           transition-all duration-200 active:scale-95;
+  }
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2
+           text-gray-600 dark:text-gray-400
+           rounded-lg transition-all duration-200;
+  }
+  .btn-ghost:hover {
+    color: var(--accent);
+  }
+
+  /* ─── Input ─── */
+  .input-base {
+    @apply w-full px-4 py-3 rounded-xl
+           bg-gray-50 dark:bg-white/[0.04]
+           border border-gray-200 dark:border-white/[0.08]
+           text-gray-900 dark:text-gray-100
+           placeholder:text-gray-400 dark:placeholder:text-gray-600
+           transition-all duration-200;
+    outline: none;
+  }
+  .input-base:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* ─── Section ─── */
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-24;
+  }
+
+  /* ─── Gradient Text — blue in light, orange in dark ─── */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(to left, #3B82F6, #1D4ED8);
+  }
+  .dark .gradient-text {
+    background-image: linear-gradient(to left, #FB923C, #F97316);
+  }
+
+  /* ─── Accent dot ─── */
+  .dot-orange {
+    @apply inline-block w-1.5 h-1.5 rounded-full;
+    background-color: var(--accent);
+  }
+
+  /* ─── Noise overlay ─── */
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* ─── Background Dot Pattern ─── */
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, rgba(37,99,235,0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+}
+
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(circle, rgba(249,115,22,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .text-accent { color: var(--accent); }
+  .bg-accent { background-color: var(--accent); }
+  .border-accent { border-color: var(--accent); }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.3); border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.3); }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ─── Selection ─── */
+::selection { background: var(--accent-glow); color: inherit; }
+
+/* ─── Social Media Logo Animations ─── */
+@keyframes float-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+.social-logo-anim {
+  animation: float-in 0.6s ease forwards, float-bob 3s ease-in-out infinite;
+}

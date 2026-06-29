@@ -1,0 +1,40 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFAA50"/>
+      <stop offset="45%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#111111"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB870" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#F97316" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="wave2" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#222222" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#111111" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="roundRect">
+      <rect width="200" height="200" rx="44"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
+
+  <!-- Wave highlight top-left -->
+  <ellipse cx="60" cy="55" rx="120" ry="80" fill="url(#wave1)" clip-path="url(#roundRect)" transform="rotate(-20 60 55)"/>
+
+  <!-- Dark wave bottom-right -->
+  <ellipse cx="155" cy="155" rx="110" ry="80" fill="url(#wave2)" clip-path="url(#roundRect)" transform="rotate(-20 155 155)"/>
+
+  <!-- Chain link icon — upper-right ring -->
+  <rect x="85" y="30" width="55" height="95" rx="27" fill="none" stroke="#1a1a1a" stroke-width="18"
+        transform="rotate(-35 112 77)"/>
+
+  <!-- Chain link icon — lower-left ring -->
+  <rect x="60" y="75" width="55" height="95" rx="27" fill="none" stroke="#1a1a1a" stroke-width="18"
+        transform="rotate(-35 87 122)"/>
+
+  <!-- Center dot -->
+  <circle cx="100" cy="100" r="11" fill="#F97316" stroke="#1a1a1a" stroke-width="3"/>
+</svg>

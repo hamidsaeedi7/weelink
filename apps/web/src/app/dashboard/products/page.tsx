@@ -1,0 +1,249 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Plus, Pencil, Trash2, Loader2, Package, ImagePlus, X, ToggleLeft, ToggleRight } from "lucide-react";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import { formatPrice } from "@/lib/utils";
+import { uploadApi } from "@/lib/api";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+function authHeaders() {
+  const token = localStorage.getItem("access_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  images: string[];
+  stock: number;
+  type: "PHYSICAL" | "DIGITAL";
+  isAvailable: boolean;
+}
+
+const EMPTY: Partial<Product> = { type: "PHYSICAL", images: [], stock: -1, isAvailable: true };
+
+export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [formImages, setFormImages] = useState<string[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm();
+
+  const load = async () => {
+    try {
+      const { data } = await axios.get(`${API}/api/v1/products`, { headers: authHeaders() });
+      setProducts(data.data || data);
+    } catch { toast.error("خطا در بارگذاری"); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => {
+    reset(EMPTY);
+    setFormImages([]);
+    setEditing(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (p: Product) => {
+    reset(p);
+    setFormImages(p.images || []);
+    setEditing(p);
+    setShowForm(true);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const url = await uploadApi.image(file);
+      setFormImages((prev) => [...prev, url]);
+    } catch { toast.error("خطا در آپلود"); }
+    finally { setUploading(false); }
+  };
+
+  const onSubmit = async (form: any) => {
+    const payload = { ...form, images: formImages, price: Number(form.price), stock: Number(form.stock) };
+    try {
+      if (editing) {
+        const { data } = await axios.put(`${API}/api/v1/products/${editing.id}`, payload, { headers: authHeaders() });
+        setProducts((prev) => prev.map((p) => p.id === editing.id ? (data.data || data) : p));
+        toast.success("ویرایش شد");
+      } else {
+        const { data } = await axios.post(`${API}/api/v1/products`, payload, { headers: authHeaders() });
+        setProducts((prev) => [...prev, data.data || data]);
+        toast.success("محصول اضافه شد");
+      }
+      setShowForm(false);
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "خطا");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("محصول حذف شود؟")) return;
+    try {
+      await axios.delete(`${API}/api/v1/products/${id}`, { headers: authHeaders() });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("حذف شد");
+    } catch { toast.error("خطا"); }
+  };
+
+  const toggleAvailable = async (p: Product) => {
+    try {
+      await axios.put(`${API}/api/v1/products/${p.id}`, { isAvailable: !p.isAvailable }, { headers: authHeaders() });
+      setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, isAvailable: !x.isAvailable } : x));
+    } catch { toast.error("خطا"); }
+  };
+
+  if (loading) return <div className="flex justify-center h-48 items-center"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-black text-gray-900 dark:text-white">محصولات</h1>
+          <p className="text-sm text-gray-500">{products.length} محصول</p>
+        </div>
+        <button onClick={openNew}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+          <Plus className="w-4 h-4" />
+          محصول جدید
+        </button>
+      </div>
+
+      {/* Product list */}
+      {products.length === 0 ? (
+        <div className="text-center py-16 text-gray-400 space-y-3">
+          <Package className="w-12 h-12 mx-auto opacity-20" />
+          <p>هنوز محصولی ندارید</p>
+          <button onClick={openNew} className="px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-bold">
+            افزودن اولین محصول
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products.map((p) => (
+            <div key={p.id}
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div className="aspect-video bg-gray-50 dark:bg-white/5 relative">
+                {p.images[0]
+                  ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-gray-300"><Package className="w-8 h-8" /></div>}
+                <span className={`absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full font-bold ${p.isAvailable ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}`}>
+                  {p.isAvailable ? "موجود" : "ناموجود"}
+                </span>
+              </div>
+              <div className="p-4">
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">{p.name}</h3>
+                <p className="text-orange-500 font-black text-sm mb-3">{formatPrice(p.price)}</p>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => openEdit(p)}
+                    className="flex-1 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 text-xs hover:border-orange-500/40 hover:text-orange-500 transition-all flex items-center justify-center gap-1">
+                    <Pencil className="w-3 h-3" />
+                    ویرایش
+                  </button>
+                  <button onClick={() => toggleAvailable(p)}
+                    className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-500 hover:border-orange-500/40 transition-all">
+                    {p.isAvailable ? <ToggleRight className="w-4 h-4 text-green-400" /> : <ToggleLeft className="w-4 h-4" />}
+                  </button>
+                  <button onClick={() => handleDelete(p.id)}
+                    className="p-1.5 rounded-lg border border-gray-200 dark:border-red-500/20 text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60">
+          <div className="w-full max-w-lg bg-white dark:bg-[#111] rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
+              <h2 className="font-black text-gray-900 dark:text-white">
+                {editing ? "ویرایش محصول" : "محصول جدید"}
+              </h2>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-5">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {/* Images */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تصاویر</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {formImages.map((img, i) => (
+                      <div key={i} className="relative w-16 h-16">
+                        <img src={img} alt="" className="w-full h-full object-cover rounded-xl" />
+                        <button type="button"
+                          onClick={() => setFormImages((p) => p.filter((_, j) => j !== i))}
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => fileRef.current?.click()}
+                      className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20
+                                 flex items-center justify-center text-gray-400 hover:border-orange-500/40 transition-all">
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+                    </button>
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} />
+                  </div>
+                </div>
+
+                <input {...register("name", { required: true })}
+                  placeholder="نام محصول *" className="input-base" />
+
+                <textarea {...register("description")} rows={2}
+                  placeholder="توضیحات" className="input-base resize-none" />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <input {...register("price", { required: true, min: 0 })}
+                      type="number" placeholder="قیمت (تومان) *" className="input-base" />
+                  </div>
+                  <div>
+                    <input {...register("stock")}
+                      type="number" placeholder="موجودی (-1 = نامحدود)" className="input-base" />
+                  </div>
+                </div>
+
+                <select {...register("type")} className="input-base">
+                  <option value="PHYSICAL">فیزیکی</option>
+                  <option value="DIGITAL">دیجیتال</option>
+                </select>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowForm(false)}
+                    className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 text-sm font-bold">
+                    انصراف
+                  </button>
+                  <button type="submit" disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {editing ? "ذخیره" : "افزودن"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
