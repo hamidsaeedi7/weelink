@@ -132,11 +132,14 @@ export default function ModirLayout({ children }: { children: React.ReactNode })
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/modir/login";
+
   useEffect(() => {
-    if (!localStorage.getItem("admin_token")) {
+    if (!isLoginPage && !localStorage.getItem("admin_token")) {
       router.replace("/modir/login");
     }
-  }, []);
+  }, [isLoginPage]);
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
@@ -154,6 +157,11 @@ export default function ModirLayout({ children }: { children: React.ReactNode })
       setSearchResults((res.users || res).slice(0, 5));
     } catch { /**/ }
   };
+
+  // Login page: render bare full-screen (no sidebar/header chrome)
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-[#0A0A0F]" dir="rtl">

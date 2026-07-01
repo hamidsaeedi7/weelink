@@ -7,7 +7,36 @@ import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 
+const WEAK_SECRET_VALUES = new Set([
+  "",
+  "change_this_to_a_very_long_random_secret_access",
+  "change_this_to_a_very_long_random_secret_refresh",
+]);
+
+function assertProductionConfig() {
+  if (process.env.NODE_ENV !== "production") return;
+
+  const accessSecret = process.env.JWT_ACCESS_SECRET;
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+  if (!accessSecret || WEAK_SECRET_VALUES.has(accessSecret)) {
+    throw new Error("JWT_ACCESS_SECRET is missing or using the default placeholder value");
+  }
+  if (!refreshSecret || WEAK_SECRET_VALUES.has(refreshSecret)) {
+    throw new Error("JWT_REFRESH_SECRET is missing or using the default placeholder value");
+  }
+  if (accessSecret === refreshSecret) {
+    throw new Error("JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different");
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (!frontendUrl || frontendUrl.includes("localhost")) {
+    throw new Error("FRONTEND_URL must be set to the production domain");
+  }
+}
+
 async function bootstrap() {
+  assertProductionConfig();
+
   const app = await NestFactory.create(AppModule, {
     logger: ["error", "warn", "log"],
   });

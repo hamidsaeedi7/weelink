@@ -3,6 +3,7 @@ import {
   Post, Put, Query, UseGuards,
 } from "@nestjs/common";
 import { AdminService } from "./admin.service";
+import { UpdateUserDto, CreateGlobalCouponDto, SendNotificationDto, ChangeAdminCredentialsDto } from "./dto/admin.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
@@ -32,7 +33,7 @@ export class AdminController {
   updateUser(
     @CurrentUser() user: { id: string },
     @Param("id") id: string,
-    @Body() data: any,
+    @Body() data: UpdateUserDto,
   ) { return this.admin.updateUser(user.id, id, data); }
 
   @Delete("users/:id")
@@ -89,14 +90,14 @@ export class AdminController {
 
   // Notifications
   @Get("notifications") getNotifications() { return this.admin.getNotifications(); }
-  @Post("notifications") sendNotification(@Body() data: any) { return this.admin.sendNotification(data); }
+  @Post("notifications") sendNotification(@Body() data: SendNotificationDto) { return this.admin.sendNotification(data); }
   @Delete("notifications/:id") deleteNotification(@Param("id") id: string) {
     return this.admin.deleteNotification(id);
   }
 
   // Coupons
   @Get("coupons") getAllCoupons() { return this.admin.getAllCoupons(); }
-  @Post("coupons") createGlobalCoupon(@Body() data: any) { return this.admin.createGlobalCoupon(data); }
+  @Post("coupons") createGlobalCoupon(@Body() data: CreateGlobalCouponDto) { return this.admin.createGlobalCoupon(data); }
   @Delete("coupons/:id") deleteCoupon(@Param("id") id: string) { return this.admin.deleteCoupon(id); }
 
   // Settings
@@ -106,7 +107,7 @@ export class AdminController {
     return this.admin.updateSettings(user.id, data);
   }
   @Post("settings/credentials")
-  changeCredentials(@CurrentUser() user: { id: string }, @Body() data: any) {
+  changeCredentials(@CurrentUser() user: { id: string }, @Body() data: ChangeAdminCredentialsDto) {
     return this.admin.changeAdminCredentials(user.id, data);
   }
 

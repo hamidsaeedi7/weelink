@@ -14,7 +14,7 @@ const QUICK_ACTIONS = [
   { href: "/dashboard/blocks", icon: Link2, label: "ویرایش لینک‌ها", desc: "بلوک‌های صفحه بیو" },
   { href: "/dashboard/products", icon: ShoppingBag, label: "مدیریت محصولات", desc: "افزودن و ویرایش" },
   { href: "/dashboard/analytics", icon: BarChart3, label: "آمار و تحلیل", desc: "بازدید و کلیک" },
-  { href: "/dashboard/settings", icon: Settings, label: "تنظیمات", desc: "پروفایل و فروشگاه" },
+  { href: "/dashboard/account", icon: Settings, label: "تنظیمات", desc: "پروفایل و فروشگاه" },
 ];
 
 export default function DashboardPage() {

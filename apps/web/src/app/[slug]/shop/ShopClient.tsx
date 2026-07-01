@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ShoppingCart, Plus, Minus, Package, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/store/cart";
@@ -47,7 +48,7 @@ export default function ShopClient({
       <div className="bg-white dark:bg-black/20 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
           {shop.avatarUrl && (
-            <img src={shop.avatarUrl} alt="" className="w-10 h-10 rounded-xl object-cover" />
+            <Image src={shop.avatarUrl} alt="" width={40} height={40} className="w-10 h-10 rounded-xl object-cover" />
           )}
           <div className="flex-1">
             <h1 className="font-black text-gray-900 dark:text-white text-sm">{shop.name}</h1>
@@ -87,8 +88,8 @@ export default function ShopClient({
                   <div className="relative aspect-square cursor-pointer"
                     onClick={() => setSelected(product)}>
                     {product.images[0] ? (
-                      <img src={product.images[0]} alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <Image src={product.images[0]} alt={product.name} fill sizes="(max-width: 640px) 50vw, 300px"
+                        className="object-cover group-hover:scale-105 transition-transform" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-white/5">
                         <Package className="w-8 h-8 text-gray-300" />
@@ -154,7 +155,9 @@ export default function ShopClient({
           <div className="w-full max-w-sm bg-white dark:bg-[#111] rounded-3xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}>
             {selected.images[0] && (
-              <img src={selected.images[0]} alt="" className="w-full aspect-video object-cover" />
+              <div className="relative w-full aspect-video">
+                <Image src={selected.images[0]} alt="" fill sizes="384px" className="object-cover" />
+              </div>
             )}
             <div className="p-5 space-y-3">
               <h3 className="font-black text-gray-900 dark:text-white">{selected.name}</h3>

@@ -38,8 +38,9 @@ export class AuthService {
       if (exists) throw new ConflictException("این شماره موبایل قبلاً ثبت شده است");
 
       const code = this.sms.generateOtp();
+      const sent = await this.sms.sendOtp(dto.phone, code);
+      if (!sent) throw new BadRequestException("ارسال پیامک ناموفق بود، دوباره تلاش کنید");
       await this.redis.set(`otp:${dto.phone}`, code, 120);
-      await this.sms.sendOtp(dto.phone, code);
 
       return { message: "کد تأیید ارسال شد", phone: dto.phone };
     }
@@ -123,8 +124,9 @@ export class AuthService {
 
   async sendLoginOtp(phone: string) {
     const code = this.sms.generateOtp();
+    const sent = await this.sms.sendOtp(phone, code);
+    if (!sent) throw new BadRequestException("ارسال پیامک ناموفق بود، دوباره تلاش کنید");
     await this.redis.set(`otp:login:${phone}`, code, 120);
-    await this.sms.sendOtp(phone, code);
     return { message: "کد ورود ارسال شد" };
   }
 
@@ -144,8 +146,8 @@ export class AuthService {
       if (!user) return { message: "کد بازیابی ارسال شد" };
 
       const code = this.sms.generateOtp();
-      await this.redis.set(`reset:${dto.phone}`, code, 300);
-      await this.sms.sendOtp(dto.phone, code);
+      const sent = await this.sms.sendOtp(dto.phone, code);
+      if (sent) await this.redis.set(`reset:${dto.phone}`, code, 300);
     }
     return { message: "کد بازیابی ارسال شد" };
   }

@@ -81,7 +81,7 @@ function SidebarContent({
   return (
     <div className={`flex flex-col h-full ${mobile ? "p-3" : "p-3 py-5"}`}>
       <Link href="/" className="flex items-center gap-2.5 mb-6 px-2">
-        <img src="/weeelink.svg" alt="ویلینک" className="w-8 h-8 rounded-xl" />
+        <img src="/weeelink.png" alt="ویلینک" className="w-8 h-8 rounded-xl" />
         <span className="font-black text-gray-900 dark:text-white">
           وی<span className="text-accent">لینک</span>
         </span>

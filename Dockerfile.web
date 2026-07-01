@@ -1,16 +1,19 @@
-﻿# syntax=docker/dockerfile:1
-ARG NEXT_PUBLIC_API_URL
+﻿ARG NEXT_PUBLIC_API_URL
+ARG ADMIN_URL
 
 # ── Stage 1: builder ──────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 WORKDIR /app
 
 ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG ADMIN_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    ADMIN_URL=$ADMIN_URL
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN apk add --no-cache python3 make g++ && \
+    corepack enable && corepack prepare pnpm@latest --activate
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 COPY packages/config ./packages/config
 COPY packages/db    ./packages/db
 COPY apps/web       ./apps/web

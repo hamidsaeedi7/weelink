@@ -20,12 +20,12 @@ export function Footer() {
   return (
     <footer className="border-t border-gray-200 dark:border-white/[0.06] bg-gray-50 dark:bg-[#0A0A0F]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
 
           {/* Col 1 — Brand */}
-          <div className="space-y-4">
+          <div className="col-span-2 md:col-span-1 space-y-4">
             <div className="flex items-center gap-2.5">
-              <img src="/weeelink.svg" alt="ویلینک" className="w-8 h-8 rounded-xl" />
+              <img src="/weeelink.png" alt="ویلینک" className="w-8 h-8 rounded-xl" />
               <span className="font-black text-gray-900 dark:text-white text-lg">
                 وی<span className="text-blue-600">لینک</span>
               </span>
@@ -69,22 +69,21 @@ export function Footer() {
           </div>
 
           {/* Col 4 — اعتماد و امنیت */}
-          <div>
+          <div className="col-span-2 md:col-span-1">
             <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-4">اعتماد و امنیت</h4>
             <div className="flex flex-col gap-3">
               {/* اینماد */}
-              <a href="https://trustseal.enamad.ir" target="_blank" rel="noopener noreferrer"
-                 title="نماد اعتماد الکترونیکی">
-                <div className="w-14 h-14 rounded-xl border border-dashed border-gray-300 dark:border-gray-700
-                                flex flex-col items-center justify-center gap-0.5
-                                hover:border-blue-600/40 transition-colors cursor-pointer">
-                  <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400">اینماد</span>
-                  <div className="w-7 h-7 rounded-md bg-green-600/10 flex items-center justify-center">
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 text-green-600" fill="currentColor">
-                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-                    </svg>
-                  </div>
-                </div>
+              {/* eslint-disable-next-line react/no-unknown-property */}
+              <a referrerPolicy="origin" target="_blank"
+                 href="https://trustseal.enamad.ir/?id=6747774&Code=iFwZfjM8DpuFZMQlmNPlAXgPVngXQO41">
+                {/* eslint-disable-next-line react/no-unknown-property */}
+                <img referrerPolicy="origin"
+                     src="https://trustseal.enamad.ir/logo.aspx?id=6747774&Code=iFwZfjM8DpuFZMQlmNPlAXgPVngXQO41"
+                     alt=""
+                     style={{ cursor: "pointer" }}
+                     // @ts-ignore
+                     code="iFwZfjM8DpuFZMQlmNPlAXgPVngXQO41"
+                />
               </a>
 
               {/* زرین‌پال */}

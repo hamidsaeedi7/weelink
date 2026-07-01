@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { CreateDigitalFileDto, UpdateDigitalFileDto } from "./dto/digital-file.dto";
 
 @Injectable()
 export class DigitalFilesService {
@@ -15,7 +16,7 @@ export class DigitalFilesService {
     return { ...f, price: f.price?.toString() };
   }
 
-  async create(userId: string, dto: any) {
+  async create(userId: string, dto: CreateDigitalFileDto) {
     const shopId = await this.getShopId(userId);
     return this.serialize(
       await this.prisma.digitalFile.create({
@@ -44,7 +45,7 @@ export class DigitalFilesService {
     return files.map(this.serialize);
   }
 
-  async update(userId: string, id: string, dto: any) {
+  async update(userId: string, id: string, dto: UpdateDigitalFileDto) {
     const file = await this.prisma.digitalFile.findUnique({
       where: { id },
       include: { shop: { select: { userId: true } } },

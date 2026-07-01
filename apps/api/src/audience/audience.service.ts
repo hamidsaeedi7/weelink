@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { AddLeadDto } from "./dto/add-lead.dto";
 
 @Injectable()
 export class AudienceService {
@@ -23,7 +24,7 @@ export class AudienceService {
     });
   }
 
-  async addLead(shopSlug: string, dto: any) {
+  async addLead(shopSlug: string, dto: AddLeadDto) {
     const shop = await this.prisma.shop.findUnique({ where: { slug: shopSlug }, select: { id: true } });
     if (!shop) throw new NotFoundException();
     try {

@@ -1,5 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { AppointmentsService } from "./appointments.service";
+import { CreateBookingDto } from "./dto/create-booking.dto";
+import { CreateServiceDto, UpdateServiceDto, UpdateBookingDto } from "./dto/service.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 
@@ -11,7 +14,8 @@ export class AppointmentsPublicController {
   getServicesPublic(@Param("slug") slug: string) { return this.svc.getServicesPublic(slug); }
 
   @Post("book")
-  createBooking(@Body() dto: any) { return this.svc.createBooking(dto); }
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  createBooking(@Body() dto: CreateBookingDto) { return this.svc.createBooking(dto); }
 }
 
 @Controller("appointments")
@@ -23,10 +27,10 @@ export class AppointmentsController {
   getServices(@CurrentUser() user: { id: string }) { return this.svc.getServices(user.id); }
 
   @Post("services")
-  createService(@CurrentUser() user: { id: string }, @Body() dto: any) { return this.svc.createService(user.id, dto); }
+  createService(@CurrentUser() user: { id: string }, @Body() dto: CreateServiceDto) { return this.svc.createService(user.id, dto); }
 
   @Put("services/:id")
-  updateService(@CurrentUser() user: { id: string }, @Param("id") id: string, @Body() dto: any) {
+  updateService(@CurrentUser() user: { id: string }, @Param("id") id: string, @Body() dto: UpdateServiceDto) {
     return this.svc.updateService(user.id, id, dto);
   }
 
@@ -37,7 +41,7 @@ export class AppointmentsController {
   getBookings(@CurrentUser() user: { id: string }) { return this.svc.getBookings(user.id); }
 
   @Put("bookings/:id")
-  updateBooking(@CurrentUser() user: { id: string }, @Param("id") id: string, @Body() dto: any) {
+  updateBooking(@CurrentUser() user: { id: string }, @Param("id") id: string, @Body() dto: UpdateBookingDto) {
     return this.svc.updateBooking(user.id, id, dto);
   }
 }

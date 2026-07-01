@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from "@nestjs/comm
 import { PrismaService } from "../prisma/prisma.service";
 import * as bcrypt from "bcrypt";
 import * as os from "os";
+import { UpdateUserDto, CreateGlobalCouponDto, SendNotificationDto, ChangeAdminCredentialsDto } from "./dto/admin.dto";
 
 @Injectable()
 export class AdminService {
@@ -99,7 +100,7 @@ export class AdminService {
     return user;
   }
 
-  async updateUser(adminId: string, id: string, data: any) {
+  async updateUser(adminId: string, id: string, data: UpdateUserDto) {
     const update: any = {};
     if (data.plan !== undefined) update.plan = data.plan;
     if (data.isBlocked !== undefined) update.isBlocked = data.isBlocked;
@@ -108,7 +109,7 @@ export class AdminService {
 
     const updated = await this.prisma.user.update({ where: { id }, data: update });
     await this.prisma.adminLog.create({
-      data: { adminId, action: "UPDATE_USER", target: id, data },
+      data: { adminId, action: "UPDATE_USER", target: id, data: { ...data } },
     });
     return updated;
   }
@@ -282,7 +283,7 @@ export class AdminService {
     });
   }
 
-  async sendNotification(data: { title: string; body: string; type: string; targetPlan?: string }) {
+  async sendNotification(data: SendNotificationDto) {
     return this.prisma.notification.create({
       data: { ...data, isGlobal: true },
     });
@@ -302,7 +303,7 @@ export class AdminService {
     });
   }
 
-  async createGlobalCoupon(data: any) {
+  async createGlobalCoupon(data: CreateGlobalCouponDto) {
     const code = data.code.toUpperCase();
     const existing = await this.prisma.coupon.findUnique({ where: { code } });
     if (existing) throw new BadRequestException("این کد قبلاً ثبت شده");
@@ -338,13 +339,13 @@ export class AdminService {
     return updated;
   }
 
-  async changeAdminCredentials(adminId: string, data: { username?: string; password?: string; email?: string }) {
+  async changeAdminCredentials(adminId: string, data: ChangeAdminCredentialsDto) {
     const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     if (!admin) throw new NotFoundException();
 
     const updateData: any = {};
     if (data.email) updateData.email = data.email;
-    if (data.password) updateData.passwordHash = await bcrypt.hash(data.password, 10);
+    if (data.password) updateData.passwordHash = await bcrypt.hash(data.password, 12);
 
     await this.prisma.user.update({ where: { id: adminId }, data: updateData });
     if (data.username || data.email) {

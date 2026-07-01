@@ -44,7 +44,7 @@ export function PwaInstallBanner() {
         role="banner"
       >
         <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
-          <img src="/weeelink.svg" alt="ویلینک" className="w-6 h-6 rounded-lg" />
+          <img src="/weeelink.png" alt="ویلینک" className="w-6 h-6 rounded-lg" />
         </div>
 
         <div className="flex-1 min-w-0">

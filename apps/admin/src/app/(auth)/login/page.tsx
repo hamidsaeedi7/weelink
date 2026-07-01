@@ -18,11 +18,15 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ email: form.username, password: form.password }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.message);
-      if (!["ADMIN", "SUPER_ADMIN"].includes(json.data?.user?.role || "")) {
-        throw new Error("دسترسی مجاز نیست");
+      if (!res.ok) throw new Error(json.data?.message || json.message || "خطا در ورود");
+      const token = json.data?.accessToken;
+      if (!token) throw new Error("توکن دریافت نشد");
+      // Decode JWT payload to verify admin role (login API returns no user object)
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (!["ADMIN", "SUPER_ADMIN"].includes(payload.role || "")) {
+        throw new Error("دسترسی مجاز نیست — فقط ادمین‌ها می‌توانند وارد شوند");
       }
-      localStorage.setItem("admin_token", json.data.accessToken);
+      localStorage.setItem("admin_token", token);
       window.location.href = "/modir";
     } catch (e: any) {
       toast.error(e.message || "اطلاعات ورود اشتباه است");

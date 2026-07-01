@@ -44,7 +44,7 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <img src="/weeelink.svg" alt="ویلینک"
+            <img src="/weeelink.png" alt="ویلینک"
               className="w-10 h-10 rounded-2xl group-hover:scale-105 transition-transform" />
             <span className="font-black text-2xl text-gray-900 dark:text-white">
               وی<span className="text-accent">لینک</span>

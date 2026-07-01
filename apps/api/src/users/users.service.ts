@@ -55,7 +55,7 @@ export class UsersService {
     if (!user?.passwordHash) throw new BadRequestException("حساب شما رمز عبور ندارد");
     const valid = await bcrypt.compare(oldPassword, user.passwordHash);
     if (!valid) throw new BadRequestException("رمز عبور فعلی اشتباه است");
-    const hash = await bcrypt.hash(newPassword, 10);
+    const hash = await bcrypt.hash(newPassword, 12);
     await this.prisma.user.update({ where: { id }, data: { passwordHash: hash } });
     return { message: "رمز عبور تغییر یافت" };
   }

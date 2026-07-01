@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { DigitalFilesService } from "./digital-files.service";
+import { CreateDigitalFileDto, UpdateDigitalFileDto } from "./dto/digital-file.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 
@@ -18,10 +19,10 @@ export class DigitalFilesController {
   findAll(@CurrentUser() user: { id: string }) { return this.svc.findAll(user.id); }
 
   @Post()
-  create(@CurrentUser() user: { id: string }, @Body() dto: any) { return this.svc.create(user.id, dto); }
+  create(@CurrentUser() user: { id: string }, @Body() dto: CreateDigitalFileDto) { return this.svc.create(user.id, dto); }
 
   @Put(":id")
-  update(@CurrentUser() user: { id: string }, @Param("id") id: string, @Body() dto: any) {
+  update(@CurrentUser() user: { id: string }, @Param("id") id: string, @Body() dto: UpdateDigitalFileDto) {
     return this.svc.update(user.id, id, dto);
   }
 

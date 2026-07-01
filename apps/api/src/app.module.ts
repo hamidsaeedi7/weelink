@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { PrismaModule } from "./prisma/prisma.module";
@@ -67,5 +68,6 @@ import { FlashSalesModule } from "./flash-sales/flash-sales.module";
     AutoReplyModule,
     FlashSalesModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

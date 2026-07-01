@@ -106,7 +106,7 @@ export default function QrCodePage() {
           resolve();
         };
         logo.onerror = () => resolve();
-        logo.src = "/weeelink.svg";
+        logo.src = "/weeelink.png";
       });
     }
 
@@ -234,7 +234,7 @@ export default function QrCodePage() {
                   padding: 3,
                 }}
               >
-                <img src="/weeelink.svg" alt="logo" className="w-full h-full object-contain rounded-lg" />
+                <img src="/weeelink.png" alt="logo" className="w-full h-full object-contain rounded-lg" />
               </div>
             )}
 

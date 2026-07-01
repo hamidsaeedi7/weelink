@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { CreateBookingDto } from "./dto/create-booking.dto";
+import { CreateServiceDto, UpdateServiceDto, UpdateBookingDto } from "./dto/service.dto";
 
 @Injectable()
 export class AppointmentsService {
@@ -16,7 +18,7 @@ export class AppointmentsService {
   }
 
   // Services
-  async createService(userId: string, dto: any) {
+  async createService(userId: string, dto: CreateServiceDto) {
     const shopId = await this.getShopId(userId);
     return this.serializeService(
       await this.prisma.appointmentService.create({
@@ -45,7 +47,7 @@ export class AppointmentsService {
     return services.map(this.serializeService);
   }
 
-  async updateService(userId: string, id: string, dto: any) {
+  async updateService(userId: string, id: string, dto: UpdateServiceDto) {
     const svc = await this.prisma.appointmentService.findUnique({
       where: { id },
       include: { shop: { select: { userId: true } } },
@@ -83,7 +85,7 @@ export class AppointmentsService {
     });
   }
 
-  async updateBooking(userId: string, id: string, dto: any) {
+  async updateBooking(userId: string, id: string, dto: UpdateBookingDto) {
     const booking = await this.prisma.appointment.findUnique({
       where: { id },
       include: { service: { include: { shop: { select: { userId: true } } } } },
@@ -94,7 +96,7 @@ export class AppointmentsService {
   }
 
   // Public booking creation
-  async createBooking(dto: any) {
+  async createBooking(dto: CreateBookingDto) {
     const svc = await this.prisma.appointmentService.findUnique({ where: { id: dto.serviceId } });
     if (!svc || !svc.isActive) throw new NotFoundException("سرویس یافت نشد");
     return this.prisma.appointment.create({

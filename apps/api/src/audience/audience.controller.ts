@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { AudienceService } from "./audience.service";
+import { AddLeadDto } from "./dto/add-lead.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 
@@ -7,7 +9,8 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 export class AudiencePublicController {
   constructor(private svc: AudienceService) {}
   @Post("subscribe")
-  subscribe(@Param("slug") slug: string, @Body() dto: any) { return this.svc.addLead(slug, dto); }
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  subscribe(@Param("slug") slug: string, @Body() dto: AddLeadDto) { return this.svc.addLead(slug, dto); }
 }
 
 @Controller("audience")

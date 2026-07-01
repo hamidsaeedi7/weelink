@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ExternalLink } from "lucide-react";
 
@@ -34,7 +35,7 @@ export function BioPageClient({ shop }: { shop: Shop }) {
       {/* Banner */}
       {shop.bannerUrl && (
         <div className="w-full max-w-lg h-36 relative overflow-hidden">
-          <img src={shop.bannerUrl} alt="" className="w-full h-full object-cover" />
+          <Image src={shop.bannerUrl} alt="" fill sizes="512px" className="object-cover" />
         </div>
       )}
 
@@ -43,11 +44,11 @@ export function BioPageClient({ shop }: { shop: Shop }) {
         <div className="flex flex-col items-center pt-10 pb-6 space-y-3">
           {/* Avatar */}
           <div
-            className="w-20 h-20 rounded-full overflow-hidden border-2 shadow-xl"
+            className="relative w-20 h-20 rounded-full overflow-hidden border-2 shadow-xl"
             style={{ borderColor: `${primary}60`, boxShadow: `0 0 25px ${primary}30` }}
           >
             {shop.avatarUrl ? (
-              <img src={shop.avatarUrl} alt={shop.name} className="w-full h-full object-cover" />
+              <Image src={shop.avatarUrl} alt={shop.name} fill sizes="80px" className="object-cover" />
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center text-3xl font-black text-white"
