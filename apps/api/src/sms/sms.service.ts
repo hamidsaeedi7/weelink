@@ -34,6 +34,7 @@ export class SmsService {
         this.logger.error(`Kavenegar sendSms failed: ${JSON.stringify(data)}`);
         return false;
       }
+      this.logger.log(`SMS sent to ${phone}`);
       return true;
     } catch (err) {
       this.logger.error(`Kavenegar sendSms error: ${err}`);
@@ -67,6 +68,11 @@ export class SmsService {
       this.logger.error(`Kavenegar OTP error for ${phone}: ${err}`);
       return false;
     }
+  }
+
+  async sendWelcome(phone: string): Promise<boolean> {
+    const message = "به ویلینک خوش اومدی! 🎉\nهمین الان صفحه بیوی خودت رو بساز: weeelink.ir";
+    return this.sendSms(phone, message);
   }
 
   generateOtp(): string {

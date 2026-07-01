@@ -86,6 +86,7 @@ export class AuthService {
     if (isNew) {
       const slug = dto.phone.replace(/\D/g, "").slice(-8);
       await this.createDefaultShop(user.id, slug);
+      this.sms.sendWelcome(dto.phone).catch(() => {});
     }
 
     return this.generateTokens(user.id, user.role);
