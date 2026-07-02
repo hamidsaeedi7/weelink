@@ -29,7 +29,6 @@ export class AbTestsService {
         name: data.name,
         variantA: shop.blocks as any,
         variantB: [] as any,
-        variantBDescription: data.variantBDescription ?? "",
         trafficSplit: 0.5,
         status: "RUNNING",
         winner: null,
