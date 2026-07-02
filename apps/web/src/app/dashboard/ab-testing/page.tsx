@@ -76,7 +76,7 @@ export default function ABTestingPage() {
     try {
       setLoading(true);
       const data = await abTestingApi.getTests();
-      setTests(data as ABTest[]);
+      setTests(data as unknown as ABTest[]);
     } catch {
       setError("خطا در بارگذاری تست‌ها");
     } finally {

@@ -27,7 +27,7 @@ export default function TicketsPage() {
 
   const load = async () => {
     try {
-      const data = await ticketsApi.getAll() as any[];
+      const data = (await ticketsApi.getAll()) as unknown as any[];
       setTickets(data || []);
     } catch { toast.error("خطا"); }
     finally { setLoading(false); }

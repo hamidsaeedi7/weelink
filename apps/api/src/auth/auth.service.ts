@@ -29,35 +29,15 @@ export class AuthService {
   // ─── Register ────────────────────────────────────────────────────────────────
 
   async register(dto: RegisterDto) {
-    if (!dto.phone && !dto.email) {
-      throw new BadRequestException("شماره موبایل یا ایمیل الزامی است");
-    }
+    const exists = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
+    if (exists) throw new ConflictException("این شماره موبایل قبلاً ثبت شده است");
 
-    if (dto.phone) {
-      const exists = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
-      if (exists) throw new ConflictException("این شماره موبایل قبلاً ثبت شده است");
+    const code = this.sms.generateOtp();
+    const sent = await this.sms.sendOtp(dto.phone, code);
+    if (!sent) throw new BadRequestException("ارسال پیامک ناموفق بود، دوباره تلاش کنید");
+    await this.redis.set(`otp:${dto.phone}`, code, 120);
 
-      const code = this.sms.generateOtp();
-      const sent = await this.sms.sendOtp(dto.phone, code);
-      if (!sent) throw new BadRequestException("ارسال پیامک ناموفق بود، دوباره تلاش کنید");
-      await this.redis.set(`otp:${dto.phone}`, code, 120);
-
-      return { message: "کد تأیید ارسال شد", phone: dto.phone };
-    }
-
-    if (dto.email) {
-      const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
-      if (exists) throw new ConflictException("این ایمیل قبلاً ثبت شده است");
-      if (!dto.password) throw new BadRequestException("رمز عبور الزامی است");
-
-      const passwordHash = await bcrypt.hash(dto.password, 12);
-      const user = await this.prisma.user.create({
-        data: { email: dto.email, passwordHash, isVerified: true },
-      });
-
-      await this.createDefaultShop(user.id, dto.email.split("@")[0]);
-      return this.generateTokens(user.id, user.role);
-    }
+    return { message: "کد تأیید ارسال شد", phone: dto.phone };
   }
 
   // ─── Verify OTP ──────────────────────────────────────────────────────────────
@@ -89,7 +69,11 @@ export class AuthService {
       this.sms.sendWelcome(dto.phone).catch(() => {});
     }
 
-    return this.generateTokens(user.id, user.role);
+    return {
+      ...this.generateTokens(user.id, user.role),
+      isNew,
+      hasPassword: !!user.passwordHash,
+    };
   }
 
   // ─── Login ───────────────────────────────────────────────────────────────────
@@ -103,8 +87,13 @@ export class AuthService {
       ? await this.prisma.user.findUnique({ where: { email: dto.email } })
       : await this.prisma.user.findUnique({ where: { phone: dto.phone } });
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
       throw new UnauthorizedException("اطلاعات ورود اشتباه است");
+    }
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        "برای این حساب رمزی تنظیم نشده است؛ با کد یک‌بار مصرف وارد شوید",
+      );
     }
     if (user.isBlocked) {
       throw new UnauthorizedException("حساب کاربری مسدود شده است");
@@ -124,11 +113,26 @@ export class AuthService {
   // ─── Send Phone OTP (for login) ──────────────────────────────────────────────
 
   async sendLoginOtp(phone: string) {
+    const user = await this.prisma.user.findUnique({ where: { phone } });
+    if (user?.isBlocked) throw new UnauthorizedException("حساب کاربری مسدود شده است");
+
     const code = this.sms.generateOtp();
     const sent = await this.sms.sendOtp(phone, code);
     if (!sent) throw new BadRequestException("ارسال پیامک ناموفق بود، دوباره تلاش کنید");
-    await this.redis.set(`otp:login:${phone}`, code, 120);
+    // همان کلید ثبت‌نام تا verify-otp برای ورود و ثبت‌نام یکسان کار کند
+    await this.redis.set(`otp:${phone}`, code, 120);
     return { message: "کد ورود ارسال شد" };
+  }
+
+  // ─── Set Password (پس از ثبت‌نام با OTP) ────────────────────────────────────
+
+  async setPassword(userId: string, password: string) {
+    const passwordHash = await bcrypt.hash(password, 12);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+    return { message: "رمز عبور با موفقیت تنظیم شد" };
   }
 
   // ─── Refresh Token ───────────────────────────────────────────────────────────

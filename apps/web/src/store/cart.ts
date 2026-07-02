@@ -12,7 +12,7 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[];
   shopSlug: string | null;
-  add: (item: CartItem, slug: string) => void;
+  add: (item: Omit<CartItem, "qty">, slug: string) => void;
   remove: (productId: string) => void;
   update: (productId: string, qty: number) => void;
   clear: () => void;

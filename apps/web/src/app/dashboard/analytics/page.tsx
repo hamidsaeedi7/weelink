@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
     setLoading(true);
     Promise.all([
       analyticsApi.getDashboard(period) as Promise<any>,
-      analyticsApi.getReferers() as Promise<any[]>,
+      analyticsApi.getReferers() as unknown as Promise<any[]>,
     ]).then(([dash, refs]) => {
       setData(dash);
       setReferers(refs || []);

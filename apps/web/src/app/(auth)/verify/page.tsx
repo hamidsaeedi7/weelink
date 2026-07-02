@@ -9,6 +9,7 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 function VerifyForm() {
   const params = useSearchParams();
   const phone = params.get("phone") || "";
+  const flow = params.get("flow") || "register";
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(120);
@@ -44,10 +45,12 @@ function VerifyForm() {
         body: JSON.stringify({ phone, code }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.message);
+      if (!res.ok) throw new Error(json.data?.message || json.message);
       localStorage.setItem("access_token", json.data.accessToken);
+      localStorage.setItem("refresh_token", json.data.refreshToken);
       toast.success("تأیید موفق! خوش آمدید.");
-      window.location.href = "/dashboard";
+      // کاربر تازه ثبت‌نام‌شده (یا بدون رمز) → تنظیم رمز عبور برای ورودهای بعدی
+      window.location.href = json.data.hasPassword ? "/dashboard" : "/set-password";
     } catch (e: any) {
       toast.error(e.message || "کد اشتباه است");
       setDigits(["", "", "", "", "", ""]);
@@ -60,11 +63,13 @@ function VerifyForm() {
   const resend = async () => {
     if (resendIn > 0) return;
     try {
-      await fetch("/api/v1/auth/register", {
+      const endpoint = flow === "login" ? "/api/v1/auth/login-otp" : "/api/v1/auth/register";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
       });
+      if (!res.ok) throw new Error();
       setResendIn(120);
       toast.success("کد مجدداً ارسال شد");
     } catch {

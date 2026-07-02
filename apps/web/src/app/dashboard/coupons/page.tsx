@@ -19,7 +19,7 @@ export default function CouponsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
-    defaultValues: { code: "", type: "percent", value: 10, maxUses: -1 },
+    defaultValues: { code: "", type: "percent", value: 10, maxUses: -1, expiresAt: "" },
   });
 
   const load = async () => {

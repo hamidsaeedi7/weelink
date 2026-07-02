@@ -40,7 +40,7 @@ export default function BlocksPage() {
   const load = useCallback(async () => {
     try {
       const [blocksData, shopData] = await Promise.all([
-        blocksApi.getAll() as Promise<any[]>,
+        blocksApi.getAll() as unknown as Promise<any[]>,
         shopsApi.getMine() as Promise<any>,
       ]);
       setBlocks(blocksData || []);

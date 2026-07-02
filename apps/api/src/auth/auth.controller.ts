@@ -4,6 +4,8 @@ import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { LoginOtpDto } from "./dto/login-otp.dto";
+import { SetPasswordDto } from "./dto/set-password.dto";
 import { VerifyOtpDto } from "./dto/verify-otp.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
@@ -30,6 +32,18 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);
+  }
+
+  @Post("login-otp")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  loginOtp(@Body() dto: LoginOtpDto) {
+    return this.auth.sendLoginOtp(dto.phone);
+  }
+
+  @Post("set-password")
+  @UseGuards(JwtAuthGuard)
+  setPassword(@CurrentUser() user: any, @Body() dto: SetPasswordDto) {
+    return this.auth.setPassword(user.sub ?? user.id, dto.password);
   }
 
   @Post("refresh")
