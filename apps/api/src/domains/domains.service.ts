@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { randomBytes } from "crypto";
 import * as dns from "dns";
@@ -8,8 +8,9 @@ export class DomainsService {
   constructor(private prisma: PrismaService) {}
 
   async addDomain(userId: string, domain: string) {
-    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+    const shop = await this.prisma.shop.findUnique({ where: { userId }, include: { user: { select: { plan: true } } } });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    if (shop.user.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
 
     const verificationToken = `weelink-verify-${randomBytes(16).toString("hex")}`;
 

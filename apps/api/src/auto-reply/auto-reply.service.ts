@@ -1,14 +1,12 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-// PRO-only: auto-reply features require PRO plan
+// Free feature (matches public pricing page)
 
 @Injectable()
 export class AutoReplyService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: any) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { plan: true } });
-    if (user?.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
     return this.prisma.autoReply.create({
       data: { userId, platform: dto.platform, keyword: dto.keyword, reply: dto.reply, isActive: dto.isActive ?? true },
     });
