@@ -20,16 +20,35 @@ async function getShop(slug: string) {
   }
 }
 
+const SITE_URL = "https://weeelink.ir";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const shop = await getShop(params.slug);
   if (!shop) return { title: "صفحه یافت نشد" };
+
+  const url = `${SITE_URL}/${params.slug}`;
+  const title = `${shop.name} | ویلینک`;
+  const description = shop.bio || `صفحه بیو ${shop.name} در ویلینک`;
+  const images = shop.avatarUrl ? [{ url: shop.avatarUrl }] : [];
+
   return {
-    title: `${shop.name} | ویلینک`,
-    description: shop.bio || `صفحه بیو ${shop.name}`,
+    title,
+    description,
+    alternates: { canonical: url },
     openGraph: {
       title: shop.name,
-      description: shop.bio || "",
-      images: shop.avatarUrl ? [shop.avatarUrl] : [],
+      description,
+      url,
+      siteName: "ویلینک",
+      locale: "fa_IR",
+      type: "profile",
+      images,
+    },
+    twitter: {
+      card: images.length ? "summary_large_image" : "summary",
+      title: shop.name,
+      description,
+      images: shop.avatarUrl ? [shop.avatarUrl] : undefined,
     },
   };
 }
@@ -37,5 +56,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BioPage({ params }: Props) {
   const shop = await getShop(params.slug);
   if (!shop) notFound();
-  return <BioPageClient shop={shop} />;
+
+  const url = `${SITE_URL}/${params.slug}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    dateModified: shop.updatedAt || undefined,
+    mainEntity: {
+      "@type": "Organization",
+      name: shop.name,
+      description: shop.bio || undefined,
+      url,
+      ...(shop.avatarUrl ? { logo: shop.avatarUrl, image: shop.avatarUrl } : {}),
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BioPageClient shop={shop} />
+    </>
+  );
 }

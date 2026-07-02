@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class CoursesService {
@@ -12,7 +13,7 @@ export class CoursesService {
     });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
     if (requirePro && (shop as any).user.plan !== "PRO")
-      throw new ForbiddenException("این ویژگی برای پلن Pro است");
+      throw new ProRequiredException();
     return shop.id;
   }
 
@@ -21,7 +22,7 @@ export class CoursesService {
   }
 
   async create(userId: string, dto: any) {
-    const shopId = await this.getShopId(userId, true);
+    const shopId = await this.getShopId(userId);
     return this.serialize(
       await this.prisma.course.create({
         data: { shopId, ...dto, price: BigInt(dto.price ?? 0) },

@@ -31,6 +31,7 @@ import { AudienceModule } from "./audience/audience.module";
 import { AffiliateModule } from "./affiliate/affiliate.module";
 import { AutoReplyModule } from "./auto-reply/auto-reply.module";
 import { FlashSalesModule } from "./flash-sales/flash-sales.module";
+import { GrowthModule } from "./growth/growth.module";
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { FlashSalesModule } from "./flash-sales/flash-sales.module";
     AffiliateModule,
     AutoReplyModule,
     FlashSalesModule,
+    GrowthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

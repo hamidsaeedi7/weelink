@@ -7,6 +7,7 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class ShopsService {
@@ -32,10 +33,13 @@ export class ShopsService {
           where: { isActive: true },
           orderBy: { sortOrder: "asc" },
         },
+        user: { select: { plan: true } },
       },
     });
     if (!shop || !shop.isActive) throw new NotFoundException("صفحه بیو یافت نشد");
-    return shop;
+    // Expose only the owner's plan (drives the free "Made with Weelink" badge)
+    const { user, ...rest } = shop as any;
+    return { ...rest, ownerPlan: user?.plan ?? "FREE" };
   }
 
   async findByUser(userId: string) {
@@ -84,7 +88,7 @@ export class ShopsService {
     const proFields = ["avatarVideo", "bgVideoUrl", "gaId", "metaPixel"] as const;
     const hasProField = proFields.some((f) => dto[f] !== undefined && dto[f] !== "");
     if (hasProField && (shop as any).user.plan !== "PRO") {
-      throw new ForbiddenException("این ویژگی برای پلن Pro است");
+      throw new ProRequiredException();
     }
 
     if (dto.slug && dto.slug !== shop.slug) {

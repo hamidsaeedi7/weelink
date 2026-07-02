@@ -11,6 +11,7 @@ import {
   CalendarCheck, Scissors, Users, Handshake, Bot, LayoutTemplate,
   ChevronDown, Store, Flame, Globe,
 } from "lucide-react";
+import { ProUpgradeModal } from "@/components/ProUpgradeModal";
 
 const NAV_GROUPS = [
   {
@@ -48,7 +49,7 @@ const NAV_GROUPS = [
     label: "ابزارها",
     items: [
       { href: "/dashboard/templates",  icon: LayoutTemplate, label: "قالب‌ها" },
-      { href: "/dashboard/ab-testing", icon: FlaskConical,   label: "تست A/B" },
+      { href: "/dashboard/ab-testing", icon: FlaskConical,   label: "تست A/B", pro: true },
       { href: "/dashboard/embed",      icon: Code2,          label: "کد جاسازی" },
     ],
   },
@@ -203,6 +204,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+
+      <ProUpgradeModal />
     </div>
   );
 }

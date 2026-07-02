@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class FlashSalesService {
@@ -12,7 +13,7 @@ export class FlashSalesService {
     });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
     if (requirePro && (shop as any).user.plan !== "PRO")
-      throw new ForbiddenException("این ویژگی برای پلن Pro است");
+      throw new ProRequiredException();
     return shop.id;
   }
 

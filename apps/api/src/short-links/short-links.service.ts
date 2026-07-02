@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, ConflictException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 function randomCode(len = 6) {
   return Math.random().toString(36).substring(2, 2 + len);
@@ -20,7 +21,7 @@ export class ShortLinksService {
 
   async create(userId: string, dto: any) {
     const shop = await this.getShopAndPlan(userId);
-    if (shop.user.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
+    if (shop.user.plan !== "PRO") throw new ProRequiredException();
 
     let shortCode = dto.shortCode || randomCode();
     const existing = await this.prisma.shortLink.findUnique({ where: { shortCode } });
@@ -35,7 +36,7 @@ export class ShortLinksService {
 
   async findAll(userId: string) {
     const shop = await this.getShopAndPlan(userId);
-    if (shop.user.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
+    if (shop.user.plan !== "PRO") throw new ProRequiredException();
     return this.prisma.shortLink.findMany({ where: { shopId: shop.id }, orderBy: { createdAt: "desc" } });
   }
 

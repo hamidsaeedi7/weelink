@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from "../prisma/prisma.service";
 import { randomBytes } from "crypto";
 import * as dns from "dns";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class DomainsService {
@@ -10,7 +11,7 @@ export class DomainsService {
   async addDomain(userId: string, domain: string) {
     const shop = await this.prisma.shop.findUnique({ where: { userId }, include: { user: { select: { plan: true } } } });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
-    if (shop.user.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
+    if (shop.user.plan !== "PRO") throw new ProRequiredException();
 
     const verificationToken = `weelink-verify-${randomBytes(16).toString("hex")}`;
 

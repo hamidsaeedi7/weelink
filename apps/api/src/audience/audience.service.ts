@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { AddLeadDto } from "./dto/add-lead.dto";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class AudienceService {
@@ -17,7 +18,7 @@ export class AudienceService {
 
   async findAll(userId: string) {
     const shop = await this.getShopAndPlan(userId);
-    if (shop.user.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
+    if (shop.user.plan !== "PRO") throw new ProRequiredException();
     return this.prisma.audienceLead.findMany({
       where: { shopId: shop.id },
       orderBy: { createdAt: "desc" },

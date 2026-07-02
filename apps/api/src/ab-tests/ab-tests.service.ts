@@ -4,6 +4,7 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class AbTestsService {
@@ -21,7 +22,7 @@ export class AbTestsService {
   async createTest(userId: string, data: { name: string; variantBDescription?: string }) {
     const shop = await this.getShop(userId);
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { plan: true } });
-    if (user?.plan !== "PRO") throw new ForbiddenException("این ویژگی برای پلن Pro است");
+    if (user?.plan !== "PRO") throw new ProRequiredException();
 
     return (this.prisma as any).aBTest.create({
       data: {

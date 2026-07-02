@@ -19,6 +19,14 @@ api.interceptors.response.use(
       localStorage.removeItem("access_token");
       window.location.href = "/login";
     }
+    // PRO-gated feature hit by a free user → let the UI show an upgrade modal
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.code === "PRO_REQUIRED" &&
+      typeof window !== "undefined"
+    ) {
+      window.dispatchEvent(new CustomEvent("pro-required"));
+    }
     return Promise.reject(error.response?.data || error);
   },
 );

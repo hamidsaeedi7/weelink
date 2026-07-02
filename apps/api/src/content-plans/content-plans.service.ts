@@ -5,6 +5,7 @@
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateContentPlanDto, UpdateContentPlanDto } from './dto/content-plan.dto';
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class ContentPlansService {
@@ -20,7 +21,7 @@ export class ContentPlansService {
     // PRO guard
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.plan !== 'PRO') {
-      throw new ForbiddenException('این قابلیت فقط برای کاربران PRO است');
+      throw new ProRequiredException();
     }
 
     const shopId = await this.getShopId(userId);

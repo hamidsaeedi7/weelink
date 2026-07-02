@@ -16,6 +16,7 @@ interface Shop {
   fontFamily?: string;
   themeId?: string;
   blocks: any[];
+  ownerPlan?: string;
 }
 
 export function BioPageClient({ shop }: { shop: Shop }) {
@@ -77,19 +78,21 @@ export function BioPageClient({ shop }: { shop: Shop }) {
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-center gap-1.5 mt-10 text-xs text-white/20">
-          <span>ساخته شده با</span>
+        {/* "Made with Weelink" badge — free pages only (PRO removes branding) */}
+        {shop.ownerPlan !== "PRO" && (
           <a
-            href="https://weeelink.com"
+            href="https://weeelink.ir?ref=badge"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-white/40 hover:text-orange-400 transition-colors font-bold flex items-center gap-1"
+            className="flex items-center justify-center gap-1.5 mt-10 mx-auto w-fit
+                       px-3.5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm
+                       text-xs text-white/50 hover:text-white hover:border-orange-400/40 transition-all"
           >
-            ویلینک
+            <span>ساخته شده با</span>
+            <span className="font-bold text-white/80">ویلینک</span>
             <ExternalLink className="w-3 h-3" />
           </a>
-        </div>
+        )}
       </div>
     </div>
   );

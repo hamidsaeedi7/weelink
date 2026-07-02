@@ -14,10 +14,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
-      exception instanceof HttpException
-        ? (exception.getResponse() as any)?.message || exception.message
-        : "خطای سرور";
+    const errorResponse =
+      exception instanceof HttpException ? (exception.getResponse() as any) : null;
+
+    const message = errorResponse?.message || (exception as any)?.message || "خطای سرور";
+    const code = errorResponse?.code;
 
     if (!(exception instanceof HttpException)) {
       this.logger.error(exception instanceof Error ? exception.stack : exception);
@@ -27,6 +28,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       success: false,
       statusCode: status,
       message: Array.isArray(message) ? message[0] : message,
+      ...(code ? { code } : {}),
       timestamp: new Date().toISOString(),
     });
   }
