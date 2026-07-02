@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Check, Crown, Loader2, Zap, Star, Infinity, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { accountApi } from "@/lib/api";
+import { accountApi, paymentsApi } from "@/lib/api";
 import { toPersianNumber } from "@/lib/utils";
 
 // ─── Plan data (matches landing page exactly) ────────────────────────────────
@@ -124,13 +124,10 @@ export default function PlansPage() {
   const handleUpgrade = async () => {
     setUpgrading(true);
     try {
-      await accountApi.upgradePlan("PRO", current.months);
-      toast.success("🎉 حساب پرو فعال شد!");
-      const updated = await accountApi.getMe() as any;
-      setUser(updated);
+      const { gatewayUrl } = await paymentsApi.requestPlanPayment(current.months);
+      window.location.href = gatewayUrl;
     } catch (e: any) {
-      toast.error(e?.message || "خطا در ارتقا");
-    } finally {
+      toast.error(e?.message || "خطا در اتصال به درگاه پرداخت");
       setUpgrading(false);
     }
   };

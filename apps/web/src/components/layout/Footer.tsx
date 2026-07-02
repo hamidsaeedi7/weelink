@@ -86,22 +86,10 @@ export function Footer() {
                 />
               </a>
 
-              {/* زرین‌پال */}
-              <a href="https://zarinpal.com" target="_blank" rel="noopener noreferrer"
-                 title="درگاه پرداخت زرین‌پال">
-                <div className="h-14 px-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-700
-                                flex flex-col items-center justify-center gap-0.5
-                                hover:border-blue-600/40 transition-colors cursor-pointer">
-                  <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400">پرداخت امن</span>
-                  <div className="flex items-center gap-1">
-                    <div className="w-5 h-5 rounded-md bg-[#5D9B3F]/10 flex items-center justify-center">
-                      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-[#5D9B3F]" fill="currentColor">
-                        <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
-                      </svg>
-                    </div>
-                    <span className="text-[10px] font-bold text-[#5D9B3F]">زرین‌پال</span>
-                  </div>
-                </div>
+              {/* زیبال */}
+              <a href="https://zibal.ir" target="_blank" rel="noopener noreferrer"
+                 title="درگاه پرداخت زیبال" className="transition-transform hover:scale-105">
+                <img src="/icons/zibal.png" alt="زیبال" style={{ cursor: "pointer", width: 52, height: 52, borderRadius: 12 }} />
               </a>
             </div>
           </div>

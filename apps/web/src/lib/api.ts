@@ -119,8 +119,14 @@ export const accountApi = {
     api.put("/users/me/profile", data),
   changePassword: (oldPassword: string, newPassword: string) =>
     api.post("/users/me/change-password", { oldPassword, newPassword }),
-  upgradePlan: (plan: "PRO", months: number) =>
-    api.post("/users/me/upgrade", { plan, months }),
+};
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+export const paymentsApi = {
+  requestPlanPayment: (months: number): Promise<{ trackId: string; gatewayUrl: string }> =>
+    api.post("/payments/plan/request", { months }),
+  verifyPlanPayment: (trackId: string, success: string) =>
+    api.post("/payments/plan/verify", { trackId, success }),
 };
 
 // ─── Custom Domains ───────────────────────────────────────────────────────────

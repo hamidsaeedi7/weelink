@@ -60,13 +60,13 @@ export class UsersService {
     return { message: "رمز عبور تغییر یافت" };
   }
 
-  async upgradePlan(id: string, plan: "PRO", months: number) {
-    const price = months === 12 ? 990000 : months === 6 ? 540000 : 99000;
+  /** Grants PRO status. Only call this after a payment gateway has verified payment. */
+  async upgradePlan(id: string, months: number, price: number, paymentRef?: string) {
     const expiresAt = new Date(Date.now() + months * 30 * 86400000);
     await Promise.all([
       this.prisma.user.update({ where: { id }, data: { plan: "PRO", planExpiresAt: expiresAt } }),
       this.prisma.subscription.create({
-        data: { userId: id, plan: "PRO", duration: months, price: BigInt(price), expiresAt },
+        data: { userId: id, plan: "PRO", duration: months, price: BigInt(price), expiresAt, paymentRef },
       }),
     ]);
     return { message: "حساب پرو فعال شد", expiresAt };

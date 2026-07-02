@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
-import { IsString, MinLength, IsOptional, IsEmail, IsIn, IsNumber, Min } from "class-validator";
+import { IsString, MinLength, IsOptional, IsEmail } from "class-validator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { UsersService } from "./users.service";
@@ -12,11 +12,6 @@ class UpdateProfileDto {
 class ChangePasswordDto {
   @IsString() oldPassword: string;
   @IsString() @MinLength(6) newPassword: string;
-}
-
-class UpgradePlanDto {
-  @IsIn(["PRO"]) plan: "PRO";
-  @IsNumber() @Min(1) months: number;
 }
 
 @Controller("users")
@@ -37,10 +32,5 @@ export class UsersController {
   @Post("me/change-password")
   changePassword(@CurrentUser() user: { id: string }, @Body() dto: ChangePasswordDto) {
     return this.users.changePassword(user.id, dto.oldPassword, dto.newPassword);
-  }
-
-  @Post("me/upgrade")
-  upgradePlan(@CurrentUser() user: { id: string }, @Body() dto: UpgradePlanDto) {
-    return this.users.upgradePlan(user.id, dto.plan, dto.months);
   }
 }
