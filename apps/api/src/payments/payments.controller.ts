@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, Res, UseGuards } from "@nestjs/common";
-import { IsIn, IsNumber } from "class-validator";
+import { IsIn, IsNumber, IsString } from "class-validator";
 import { Throttle } from "@nestjs/throttler";
 import { PrismaService } from "../prisma/prisma.service";
 import { OrdersService } from "../orders/orders.service";
@@ -16,8 +16,8 @@ class RequestPlanPaymentDto {
 }
 
 class VerifyPlanPaymentDto {
-  trackId: string;
-  success: string;
+  @IsString() trackId: string;
+  @IsString() success: string;
 }
 
 @Controller("payments")

@@ -39,7 +39,8 @@ export class PaymentsService {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         merchant: this.merchantId,
-        amount: price,
+        // Zibal expects the amount in Rial; our plan prices are stored in Toman.
+        amount: price * 10,
         callbackUrl,
         description: `ارتقا پلن PRO ویلینک - ${months} ماه`,
       }),
