@@ -1,10 +1,35 @@
 ﻿import { ImageResponse } from "next/og";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-export const runtime = "edge";
+// nodejs runtime (not edge): edge functions hang in the self-hosted standalone
+// server behind Docker. On nodejs, @vercel/og also needs an explicit font —
+// its bundled default noto-sans .ttf is NOT traced into the standalone output
+// (ENOENT), and it can't render Persian anyway. We supply Vazirmatn from disk.
+export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+// Read the self-hosted Vazirmatn TTFs once. public/ is copied next to the
+// standalone server (cwd = /app, fonts live at apps/web/public/fonts).
+function loadFont(file: string): Buffer | null {
+  for (const base of [
+    join(process.cwd(), "apps/web/public/fonts", file),
+    join(process.cwd(), "public/fonts", file),
+  ]) {
+    try {
+      return readFileSync(base);
+    } catch {
+      /* try next path */
+    }
+  }
+  return null;
+}
+
+const fontRegular = loadFont("Vazirmatn-Regular.ttf");
+const fontBold = loadFont("Vazirmatn-Bold.ttf");
 
 interface ShopData {
   name?: string;
@@ -17,7 +42,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
   let shop: ShopData = {};
 
   try {
-    const res = await fetch(`${API}/api/v1/shops/public/${params.slug}`, {
+    const res = await fetch(`${API}/api/v1/shops/${params.slug}`, {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
@@ -42,7 +67,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
           height: "100%",
           background: "linear-gradient(135deg, #0A0A0F 0%, #111827 100%)",
           padding: "60px",
-          fontFamily: "sans-serif",
+          fontFamily: "Vazirmatn",
           position: "relative",
         }}
       >
@@ -167,6 +192,14 @@ export default async function Image({ params }: { params: { slug: string } }) {
     ),
     {
       ...size,
+      fonts: [
+        ...(fontRegular
+          ? [{ name: "Vazirmatn", data: fontRegular, weight: 400 as const, style: "normal" as const }]
+          : []),
+        ...(fontBold
+          ? [{ name: "Vazirmatn", data: fontBold, weight: 700 as const, style: "normal" as const }]
+          : []),
+      ],
     }
   );
 }

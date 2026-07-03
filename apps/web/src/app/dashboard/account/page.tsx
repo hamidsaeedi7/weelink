@@ -22,10 +22,10 @@ export default function AccountPage() {
   useEffect(() => {
     (accountApi.getMe() as Promise<any>).then((data) => {
       setUser(data);
-      profileForm.reset({ email: data.email || "", phone: data.phone || "" });
+      profileForm.reset({ phone: data.phone || "" });
     }).finally(() => setLoading(false));
     // Load SEO settings from shop
-    fetch(`${API}/api/v1/shops/my`, { headers: authH() }).then(r => r.json()).then(d => {
+    fetch(`${API}/api/v1/me/shop`, { headers: authH() }).then(r => r.json()).then(d => {
       const shop = d.data || d;
       if (shop?.metaTitle || shop?.metaDesc) {
         setSeo({ metaTitle: shop.metaTitle || "", metaDesc: shop.metaDesc || "", ogImage: shop.ogImage || "" });
@@ -66,7 +66,7 @@ export default function AccountPage() {
   const saveSeo = async () => {
     setSeoSaving(true);
     try {
-      await fetch(`${API}/api/v1/shops/my`, {
+      await fetch(`${API}/api/v1/me/shop`, {
         method: "PUT",
         headers: { ...authH(), "Content-Type": "application/json" },
         body: JSON.stringify(seo),
@@ -88,7 +88,7 @@ export default function AccountPage() {
       <div>
         <h1 className="text-xl font-black text-gray-900 dark:text-white">تنظیمات حساب</h1>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm text-gray-500">{user?.email || user?.phone}</span>
+          <span className="text-sm text-gray-500" dir="ltr">{user?.phone}</span>
           {user?.plan === "PRO" && (
             <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-bold">
               <Crown className="w-3 h-3" />
@@ -117,15 +117,6 @@ export default function AccountPage() {
       {tab === "profile" && (
         <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
           <form onSubmit={profileForm.handleSubmit(onProfileSave)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                ایمیل
-              </label>
-              <input {...profileForm.register("email")}
-                type="email" dir="ltr"
-                placeholder="example@email.com"
-                className="input-base" />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 شماره موبایل
@@ -258,9 +249,8 @@ export default function AccountPage() {
             <h2 className="font-bold text-gray-900 dark:text-white">وضعیت امنیتی</h2>
             <div className="space-y-3">
               {[
-                { label: "ایمیل تأیید شده", value: !!user?.email, ok: !!user?.email },
-                { label: "شماره موبایل ثبت شده", value: !!user?.phone, ok: !!user?.phone },
-                { label: "رمز عبور تنظیم شده", value: true, ok: true },
+                { label: "شماره موبایل تأیید شده", value: !!user?.phone, ok: !!user?.phone },
+                { label: "حساب فعال", value: !user?.isBlocked, ok: !user?.isBlocked },
               ].map((item, i) => (
                 <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-white/5 last:border-0">
                   <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
