@@ -7,6 +7,32 @@ import { ReorderBlocksDto } from "./dto/reorder-blocks.dto";
 export class BlocksService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Normalizes incoming block data before it reaches Prisma.
+   * The edit panel always sends scheduleStart/scheduleEnd as strings — often
+   * empty ("") when unset — which Prisma rejects for a DateTime? column and
+   * throws, surfacing to the user as "خطا در ذخیره". Convert empties to null
+   * and valid datetime-local strings to Date. Also drop any stray non-editable
+   * fields (id, shopId, timestamps, counters) the client may echo back.
+   */
+  private sanitize<T extends Record<string, any>>(dto: T): T {
+    const clean: Record<string, any> = { ...dto };
+    for (const key of ["id", "shopId", "clickCount", "createdAt", "updatedAt"]) {
+      delete clean[key];
+    }
+    for (const key of ["scheduleStart", "scheduleEnd"]) {
+      const v = clean[key];
+      if (v === undefined) continue;
+      if (v === "" || v === null) {
+        clean[key] = null;
+      } else if (typeof v === "string") {
+        const d = new Date(v);
+        clean[key] = isNaN(d.getTime()) ? null : d;
+      }
+    }
+    return clean as T;
+  }
+
   private async getShopId(userId: string): Promise<string> {
     let shop = await this.prisma.shop.findUnique({ where: { userId }, select: { id: true } });
     if (!shop) {
@@ -39,7 +65,7 @@ export class BlocksService {
     return this.prisma.block.create({
       data: {
         shopId,
-        ...dto,
+        ...this.sanitize(dto),
         sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
       },
     });
@@ -57,7 +83,7 @@ export class BlocksService {
     const block = await this.prisma.block.findUnique({ where: { id }, include: { shop: true } });
     if (!block) throw new NotFoundException("بلوک یافت نشد");
     if (block.shop.userId !== userId) throw new ForbiddenException();
-    return this.prisma.block.update({ where: { id }, data: dto });
+    return this.prisma.block.update({ where: { id }, data: this.sanitize(dto) });
   }
 
   async remove(userId: string, id: string) {

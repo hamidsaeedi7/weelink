@@ -73,12 +73,21 @@ export default function BlocksPage() {
   };
 
   const handleAddBlock = async (type: BlockType) => {
+    // Optimistic: close the picker and show the new block instantly, then
+    // reconcile with the server-created block (avoids the click→wait delay).
+    setShowAdd(false);
+    const tempId = `temp-${Date.now()}`;
+    const temp = {
+      id: tempId, type, label: "", url: "", icon: "",
+      data: {}, isActive: true, _pending: true,
+    };
+    setBlocks((prev) => [...prev, temp]);
     try {
       const newBlock = await blocksApi.create({ type }) as any;
-      setBlocks((prev) => [...prev, newBlock]);
+      setBlocks((prev) => prev.map((b) => (b.id === tempId ? newBlock : b)));
       setEditBlock(newBlock);
-      toast.success("بلوک اضافه شد");
     } catch {
+      setBlocks((prev) => prev.filter((b) => b.id !== tempId));
       toast.error("خطا در افزودن بلوک");
     }
   };
