@@ -41,6 +41,16 @@ const videoFilter = (_req: any, file: Express.Multer.File, cb: any) => {
   else cb(new BadRequestException("فقط فایل‌های ویدیویی مجاز هستند"), false);
 };
 
+// Digital-product files: archives, documents, design & media files.
+const DIGITAL_FILE_EXTS = [
+  ".zip", ".rar", ".esd", ".ai", ".jpeg", ".jpg", ".mp3", ".fig", ".figma",
+  ".pdf", ".xlsx", ".xls", ".pptx", ".ppt", ".docx", ".doc",
+];
+const digitalFileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
+  if (DIGITAL_FILE_EXTS.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
+  else cb(new BadRequestException("فرمت فایل مجاز نیست"), false);
+};
+
 @Controller("upload")
 @UseGuards(JwtAuthGuard)
 export class UploadController {
@@ -64,5 +74,21 @@ export class UploadController {
   uploadVideo(@UploadedFile() file: Express.Multer.File, @CurrentUser() _u: any) {
     if (!file) throw new BadRequestException("فایلی انتخاب نشده");
     return { url: `/uploads/videos/${file.filename}`, filename: file.filename, size: file.size };
+  }
+
+  @Post("file")
+  @UseInterceptors(FileInterceptor("file", {
+    storage: makeStorage("files"),
+    fileFilter: digitalFileFilter,
+    limits: { fileSize: 100 * 1024 * 1024 },
+  }))
+  uploadFile(@UploadedFile() file: Express.Multer.File, @CurrentUser() _u: any) {
+    if (!file) throw new BadRequestException("فایلی انتخاب نشده");
+    return {
+      url: `/uploads/files/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+    };
   }
 }

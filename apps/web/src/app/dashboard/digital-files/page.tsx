@@ -8,7 +8,10 @@ import { formatPrice } from "@/lib/utils";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
 
-const EMPTY = { title: "", description: "", price: 0, isFree: false, fileUrl: "", coverUrl: "" };
+const EMPTY = { title: "", description: "", price: 0, isFree: false, fileUrl: "", coverUrl: "", fileName: "" };
+
+// پسوندهای مجاز فایل اصلی
+const FILE_ACCEPT = ".zip,.rar,.esd,.ai,.jpeg,.jpg,.mp3,.fig,.figma,.pdf,.xlsx,.xls,.pptx,.ppt,.docx,.doc";
 
 export default function DigitalFilesPage() {
   const [files, setFiles] = useState<any[]>([]);
@@ -25,7 +28,7 @@ export default function DigitalFilesPage() {
     try {
       const r = await fetch(`${API}/api/v1/digital-files`, { headers: auth() });
       const d = await r.json();
-      setFiles(d.data || d || []);
+      setFiles(Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
     } catch { toast.error("خطا در بارگذاری"); }
     finally { setLoading(false); }
   };
@@ -40,12 +43,19 @@ export default function DigitalFilesPage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await fetch(`${API}/api/v1/upload/image`, { method: "POST", headers: auth(), body: fd });
+      // main file → /upload/file (archives/docs/media); cover → /upload/image
+      const endpoint = type === "file" ? "upload/file" : "upload/image";
+      const r = await fetch(`${API}/api/v1/${endpoint}`, { method: "POST", headers: auth(), body: fd });
       const d = await r.json();
+      if (!r.ok) throw new Error(d.message || "خطا در آپلود");
       const url = d.data?.url || d.url;
-      setForm((p: any) => ({ ...p, [type === "file" ? "fileUrl" : "coverUrl"]: url }));
+      if (type === "file") {
+        setForm((p: any) => ({ ...p, fileUrl: url, fileName: d.data?.originalName || file.name }));
+      } else {
+        setForm((p: any) => ({ ...p, coverUrl: url }));
+      }
       toast.success("آپلود شد");
-    } catch { toast.error("خطا در آپلود"); }
+    } catch (e: any) { toast.error(e.message || "خطا در آپلود"); }
     finally { setUploading(null); }
   };
 
@@ -53,7 +63,16 @@ export default function DigitalFilesPage() {
     if (!form.title || (!form.fileUrl && !editing)) { toast.error("عنوان و فایل الزامی است"); return; }
     setSaving(true);
     try {
-      const body = { ...form, price: form.isFree ? 0 : Number(form.price) };
+      // Send only schema-backed fields (fileName is display-only; the
+      // whitelist ValidationPipe would 400 on unknown props).
+      const body = {
+        title: form.title,
+        description: form.description || "",
+        fileUrl: form.fileUrl,
+        coverUrl: form.coverUrl || "",
+        isFree: !!form.isFree,
+        price: form.isFree ? 0 : Number(form.price),
+      };
       const url = editing ? `${API}/api/v1/digital-files/${editing.id}` : `${API}/api/v1/digital-files`;
       const r = await fetch(url, {
         method: editing ? "PUT" : "POST",
@@ -161,7 +180,7 @@ export default function DigitalFilesPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">عنوان فایل *</label>
                 <input value={form.title} onChange={(e) => setForm((p: any) => ({ ...p, title: e.target.value }))}
-                  className="input-base" placeholder="مثال: پکیج طراحی لوگو" />
+                  className="input-base" placeholder="مثال: فایل اکسل حسابداری" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">توضیح</label>
@@ -174,8 +193,8 @@ export default function DigitalFilesPage() {
                 {form.fileUrl ? (
                   <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
                     <FileDown className="w-4 h-4 text-green-500" />
-                    <span className="text-xs text-green-600 dark:text-green-400 truncate flex-1">{form.fileUrl.split("/").pop()}</span>
-                    <button onClick={() => setForm((p: any) => ({ ...p, fileUrl: "" }))} className="text-gray-400 hover:text-red-500">
+                    <span className="text-xs text-green-600 dark:text-green-400 truncate flex-1">{form.fileName || form.fileUrl.split("/").pop()}</span>
+                    <button onClick={() => setForm((p: any) => ({ ...p, fileUrl: "", fileName: "" }))} className="text-gray-400 hover:text-red-500">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -185,8 +204,9 @@ export default function DigitalFilesPage() {
                     {uploading === "file" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "کلیک کنید تا فایل آپلود کنید"}
                   </button>
                 )}
-                <input ref={fileRef} type="file" className="hidden"
+                <input ref={fileRef} type="file" accept={FILE_ACCEPT} className="hidden"
                   onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], "file")} />
+                <p className="mt-1.5 text-[10px] text-gray-400">فرمت‌های مجاز: zip, rar, pdf, ai, figma, mp3, jpeg, excel, word, powerpoint</p>
               </div>
 
               <div>

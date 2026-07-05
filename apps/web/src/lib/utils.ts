@@ -9,8 +9,10 @@ export function toPersianNumber(n: number | string): string {
   return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
 }
 
-export function formatPrice(amount: number): string {
-  return toPersianNumber(amount.toLocaleString("fa-IR")) + " تومان";
+export function formatPrice(amount: number | string | null | undefined): string {
+  const n = typeof amount === "number" ? amount : Number(amount ?? 0);
+  const safe = Number.isFinite(n) ? n : 0;
+  return toPersianNumber(safe.toLocaleString("fa-IR")) + " تومان";
 }
 
 export function timeAgo(date: string | Date): string {

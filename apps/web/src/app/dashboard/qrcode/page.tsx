@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Download, Copy, ExternalLink, QrCode, Loader2, ImageIcon, CreditCard } from "lucide-react";
+import { Download, Copy, ExternalLink, QrCode, Loader2, ImageIcon, CreditCard, Upload, Crown, Type } from "lucide-react";
 import { toast } from "sonner";
-import { shopsApi } from "@/lib/api";
+import { shopsApi, accountApi } from "@/lib/api";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const authH = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
 
 const QR_SIZES = [200, 300, 400, 600];
 
@@ -27,28 +30,53 @@ export default function QrCodePage() {
   const [styleIdx, setStyleIdx]   = useState(0);
   const [size, setSize]           = useState(300);
   const [withLogo, setWithLogo]   = useState(true);
-  const [frame, setFrame]         = useState<"none" | "simple" | "scan">("simple");
+  const [frame, setFrame]         = useState<"none" | "simple" | "scan" | "custom">("simple");
+  const [customText, setCustomText] = useState("");
+  const [customLogo, setCustomLogo] = useState("");   // PRO: uploaded center logo (relative /uploads url)
+  const [isPro, setIsPro]         = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [qrLoaded, setQrLoaded]   = useState(false);
 
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (shopsApi.getMine() as Promise<any>)
       .then((shop) => { setSlug(shop?.slug || ""); setShopName(shop?.name || ""); })
       .finally(() => setLoading(false));
+    (accountApi.getMe() as Promise<any>)
+      .then((u) => setIsPro(u?.plan === "PRO"))
+      .catch(() => {});
   }, []);
 
+  // مرکز QR: لوگوی اختصاصی کاربر (PRO) یا لوگوی ویلینک
+  const logoSrc = isPro && customLogo ? customLogo : "/weeelink.png";
+
+  const uploadCenterLogo = async (file: File) => {
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const r = await fetch(`${API}/api/v1/upload/image`, { method: "POST", headers: authH(), body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.message);
+      setCustomLogo(d.data?.url || d.url);
+      setWithLogo(true); setQrLoaded(false);
+      toast.success("لوگو آپلود شد");
+    } catch { toast.error("خطا در آپلود لوگو"); }
+    finally { setUploadingLogo(false); }
+  };
+
   const style   = QR_STYLES[styleIdx];
-  const pageUrl = `https://weeelink.com/${slug}`;
+  const pageUrl = `https://weeelink.ir/${slug}`;
   const qrUrl   = slug ? buildQrApiUrl(pageUrl, style.fg, style.bg, size) : "";
 
   /* ── Render QR + logo onto canvas ─────────────────────────── */
   const renderToCanvas = useCallback(async (): Promise<HTMLCanvasElement | null> => {
     const canvas = document.createElement("canvas");
     const PADDING = frame !== "none" ? 48 : 0;
-    const FOOTER  = frame === "scan" ? 64 : frame === "simple" ? 40 : 0;
+    const FOOTER  = frame === "scan" ? 64 : (frame === "simple" || frame === "custom") ? 40 : 0;
     canvas.width  = size + PADDING * 2;
     canvas.height = size + PADDING * 2 + FOOTER;
     const ctx = canvas.getContext("2d");
@@ -101,12 +129,13 @@ export default function QrCodePage() {
 
       await new Promise<void>((resolve) => {
         const logo = new Image();
+        logo.crossOrigin = "anonymous";
         logo.onload = () => {
           ctx.drawImage(logo, lx, ly, LOGO_SIZE, LOGO_SIZE);
           resolve();
         };
         logo.onerror = () => resolve();
-        logo.src = "/weeelink.png";
+        logo.src = logoSrc;
       });
     }
 
@@ -122,14 +151,17 @@ export default function QrCodePage() {
         ctx.font = `${size * 0.035}px Vazirmatn, sans-serif`;
         ctx.fillStyle = style.fg + "99";
         ctx.fillText(pageUrl, canvas.width / 2, cy + 16);
+      } else if (frame === "custom") {
+        ctx.font = `bold ${size * 0.045}px Vazirmatn, sans-serif`;
+        ctx.fillText(customText || "متن دلخواه شما", canvas.width / 2, cy);
       } else {
         ctx.font = `bold ${size * 0.04}px Vazirmatn, sans-serif`;
-        ctx.fillText("weeelink.com/" + slug, canvas.width / 2, cy);
+        ctx.fillText("weeelink.ir/" + slug, canvas.width / 2, cy);
       }
     }
 
     return canvas;
-  }, [qrUrl, size, style, withLogo, frame, slug, pageUrl]);
+  }, [qrUrl, size, style, withLogo, frame, slug, pageUrl, customText, logoSrc]);
 
   /* ── Download ──────────────────────────────────────────────── */
   const download = async () => {
@@ -234,7 +266,7 @@ export default function QrCodePage() {
                   padding: 3,
                 }}
               >
-                <img src="/weeelink.png" alt="logo" className="w-full h-full object-contain rounded-lg" />
+                <img src={logoSrc} alt="logo" className="w-full h-full object-contain rounded-lg" />
               </div>
             )}
 
@@ -244,7 +276,15 @@ export default function QrCodePage() {
                 className="text-center text-[11px] font-bold mt-2 pb-1"
                 style={{ color: style.fg }}
               >
-                weeelink.com/{slug}
+                weeelink.ir/{slug}
+              </p>
+            )}
+            {frame === "custom" && (
+              <p
+                className="text-center text-[11px] font-bold mt-2 pb-1"
+                style={{ color: style.fg }}
+              >
+                {customText || "متن دلخواه شما"}
               </p>
             )}
             {frame === "scan" && (
@@ -294,14 +334,14 @@ export default function QrCodePage() {
         {/* ── Settings ─────────────────────────────── */}
         <div className="space-y-4">
 
-          {/* Logo toggle */}
-          <div className="glass-card p-4">
+          {/* Logo */}
+          <div className="glass-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <ImageIcon className="w-4 h-4 text-accent" />
                 <div>
-                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200">لوگوی ویلینک</p>
-                  <p className="text-xs text-gray-500">نمایش لوگو در مرکز QR</p>
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200">لوگوی مرکز QR</p>
+                  <p className="text-xs text-gray-500">نمایش لوگو در مرکز کد</p>
                 </div>
               </div>
               <button
@@ -317,6 +357,34 @@ export default function QrCodePage() {
                 />
               </button>
             </div>
+
+            {withLogo && (
+              <div className="pt-1 border-t border-gray-100 dark:border-white/5">
+                {isPro ? (
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="w-9 h-9 rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden shrink-0 bg-white flex items-center justify-center">
+                      <img src={logoSrc} alt="logo" className="w-full h-full object-contain" />
+                    </div>
+                    <button onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
+                      className="flex items-center gap-1.5 text-xs font-bold text-accent hover:opacity-80 disabled:opacity-50">
+                      {uploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                      {customLogo ? "تغییر لوگوی اختصاصی" : "آپلود لوگوی اختصاصی"}
+                    </button>
+                    {customLogo && (
+                      <button onClick={() => { setCustomLogo(""); setQrLoaded(false); }}
+                        className="text-[11px] text-gray-400 hover:text-red-500 mr-auto">حذف</button>
+                    )}
+                    <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden"
+                      onChange={(e) => e.target.files?.[0] && uploadCenterLogo(e.target.files[0])} />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 pt-2 text-xs text-gray-500">
+                    <Crown className="w-3.5 h-3.5 text-orange-400" />
+                    <span>با ارتقا به <span className="text-orange-400 font-bold">پرو</span> می‌توانید لوگوی اختصاصی خود را در مرکز QR بگذارید</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Style */}
@@ -354,6 +422,7 @@ export default function QrCodePage() {
                 { id: "none",   label: "بدون قاب" },
                 { id: "simple", label: "آدرس ساده" },
                 { id: "scan",   label: "اسکن کن!" },
+                { id: "custom", label: "متن دلخواه" },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -369,6 +438,21 @@ export default function QrCodePage() {
                 </button>
               ))}
             </div>
+            {frame === "custom" && (
+              <div className="pt-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Type className="w-3.5 h-3.5 text-accent" />
+                  <span className="text-xs text-gray-500">متن زیر QR</span>
+                </div>
+                <input
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value.slice(0, 40))}
+                  placeholder="مثلاً: ما را دنبال کنید"
+                  className="input-base text-sm"
+                  maxLength={40}
+                />
+              </div>
+            )}
           </div>
 
           {/* Size */}

@@ -23,11 +23,16 @@ export default function CoursesPage() {
   const coverRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  // Always coerce to an array: an error response ({success:false,...}) has no
+  // `data` array, and setting state to that object made `courses.map` crash the
+  // whole page (white screen / application error).
+  const asArray = (d: any) => (Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
+
   const load = async () => {
     try {
       const r = await fetch(`${API}/api/v1/courses`, { headers: auth() });
       const d = await r.json();
-      setCourses(d.data || d || []);
+      setCourses(asArray(d));
     } catch { setCourses([]); }
     finally { setLoading(false); }
   };
@@ -36,7 +41,7 @@ export default function CoursesPage() {
     try {
       const r = await fetch(`${API}/api/v1/courses/${courseId}/chapters`, { headers: auth() });
       const d = await r.json();
-      setChapters(d.data || d || []);
+      setChapters(asArray(d));
     } catch { setChapters([]); }
   };
 

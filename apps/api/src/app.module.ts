@@ -38,7 +38,11 @@ import { GrowthModule } from "./growth/growth.module";
     ConfigModule.forRoot({ isGlobal: true, envFilePath: "../../.env" }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     ServeStaticModule.forRoot({
-      rootPath: path.join(process.cwd(), "..", "..", "uploads"),
+      // Must match where UploadController actually writes files (UPLOAD_DIR,
+      // default ./uploads relative to cwd). The old "../../uploads" resolved to
+      // the filesystem root in the container (cwd=/app) so NO uploaded image was
+      // ever served → broken previews everywhere.
+      rootPath: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
       serveRoot: "/uploads",
     }),
     PrismaModule,
