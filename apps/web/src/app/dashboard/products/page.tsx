@@ -19,14 +19,33 @@ interface Product {
   id: string;
   name: string;
   description?: string;
+  category?: string;
   price: number;
   images: string[];
   stock: number;
+  weight?: number;
+  prepTime?: string;
   type: "PHYSICAL" | "DIGITAL";
   isAvailable: boolean;
 }
 
-const EMPTY: Partial<Product> = { type: "PHYSICAL", images: [], stock: -1, isAvailable: true };
+// دسته‌بندی‌های محصول فیزیکی
+const CATEGORIES = [
+  "پوشاک و مد",
+  "آرایشی و بهداشتی",
+  "دیجیتال و الکترونیک",
+  "لوازم خانگی",
+  "خوراکی و نوشیدنی",
+  "طلا، نقره و زیورآلات",
+  "کتاب و لوازم‌التحریر",
+  "ورزشی و سفر",
+  "کودک و نوزاد",
+  "لوازم یدکی و ابزار",
+  "پت‌شاپ",
+  "سایر",
+];
+
+const EMPTY: Partial<Product> = { type: "PHYSICAL", images: [], stock: 1, isAvailable: true, category: "" };
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -42,7 +61,7 @@ export default function ProductsPage() {
   const load = async () => {
     try {
       const { data } = await axios.get(`${API}/api/v1/products`, { headers: authHeaders() });
-      setProducts(data.data || data);
+      setProducts(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
     } catch { toast.error("خطا در بارگذاری"); }
     finally { setLoading(false); }
   };
@@ -73,7 +92,19 @@ export default function ProductsPage() {
   };
 
   const onSubmit = async (form: any) => {
-    const payload = { ...form, images: formImages, price: Number(form.price), stock: Number(form.stock) };
+    if (!form.category) { toast.error("دسته محصول را انتخاب کنید"); return; }
+    const payload: any = {
+      name: form.name,
+      description: form.description || "",
+      category: form.category,
+      type: "PHYSICAL",
+      images: formImages,
+      price: Number(form.price),
+      stock: Number(form.stock ?? 1),
+      isAvailable: form.isAvailable ?? true,
+      prepTime: form.prepTime || undefined,
+      weight: form.weight ? Number(form.weight) : undefined,
+    };
     try {
       if (editing) {
         const { data } = await axios.put(`${API}/api/v1/products/${editing.id}`, payload, { headers: authHeaders() });
@@ -201,7 +232,7 @@ export default function ProductsPage() {
                                  flex items-center justify-center text-gray-400 hover:border-orange-500/40 transition-all">
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                     </button>
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                    <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden"
                       onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} />
                   </div>
                 </div>
@@ -212,21 +243,42 @@ export default function ProductsPage() {
                 <textarea {...register("description")} rows={2}
                   placeholder="توضیحات" className="input-base resize-none" />
 
+                {/* دسته محصول (اجباری) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">دسته محصول *</label>
+                  <select {...register("category", { required: true })} className="input-base">
+                    <option value="">انتخاب دسته...</option>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
+                    <label className="block text-xs text-gray-500 mb-1">قیمت (تومان) *</label>
                     <input {...register("price", { required: true, min: 0 })}
-                      type="number" placeholder="قیمت (تومان) *" className="input-base" />
+                      type="number" placeholder="۲۵۰۰۰۰" className="input-base" />
                   </div>
                   <div>
+                    <label className="block text-xs text-gray-500 mb-1">موجودی</label>
                     <input {...register("stock")}
-                      type="number" placeholder="موجودی (-1 = نامحدود)" className="input-base" />
+                      type="number" placeholder="۱" className="input-base" />
                   </div>
                 </div>
 
-                <select {...register("type")} className="input-base">
-                  <option value="PHYSICAL">فیزیکی</option>
-                  <option value="DIGITAL">دیجیتال</option>
-                </select>
+                {/* اطلاعات ارسال */}
+                <div className="rounded-xl border border-gray-200 dark:border-white/10 p-3 space-y-3">
+                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300">اطلاعات ارسال</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">وزن محصول (گرم)</label>
+                      <input {...register("weight")} type="number" placeholder="۵۰۰" className="input-base" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">زمان آماده‌سازی ارسال</label>
+                      <input {...register("prepTime")} type="text" placeholder="۱ تا ۳ روز کاری" className="input-base" />
+                    </div>
+                  </div>
+                </div>
 
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={() => setShowForm(false)}

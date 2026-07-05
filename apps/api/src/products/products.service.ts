@@ -14,9 +14,12 @@ export class ProductsService {
 
   async create(userId: string, dto: CreateProductDto) {
     const shopId = await this.getShopId(userId);
-    return this.prisma.product.create({
-      data: { shopId, ...dto, price: BigInt(dto.price) },
-    });
+    // serialize: price is BigInt and can't be JSON-stringified as-is (would 500).
+    return this.serialize(
+      await this.prisma.product.create({
+        data: { shopId, ...dto, price: BigInt(dto.price) },
+      }),
+    );
   }
 
   async findAllPublic(slug: string) {

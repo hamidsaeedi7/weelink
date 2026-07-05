@@ -13,9 +13,24 @@ export class CreateProductDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  category?: string;
+
   @IsNumber()
   @Min(0)
   price: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  weight?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  prepTime?: string;
 
   @IsOptional()
   @IsEnum(ProductType)
