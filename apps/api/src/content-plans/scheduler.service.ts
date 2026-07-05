@@ -118,13 +118,15 @@ export class ContentSchedulerService implements OnModuleInit {
       }
     }
 
-    if (
-      plan.notifyViaTelegram &&
-      user.telegramConfig?.isActive &&
-      user.telegramConfig?.chatId
-    ) {
+    // Telegram: send whenever the user has connected a bot (their own token) and
+    // an active config — no per-content toggle needed anymore.
+    if (user.telegramConfig?.isActive && user.telegramConfig?.chatId) {
       try {
-        await this.sendTelegramMessage(user.telegramConfig.chatId, message);
+        await this.sendTelegramMessage(
+          user.telegramConfig.chatId,
+          message,
+          user.telegramConfig.botToken,
+        );
       } catch (err: any) {
         this.logger.warn(`Telegram reminder failed: ${err?.message}`);
       }
@@ -135,17 +137,29 @@ export class ContentSchedulerService implements OnModuleInit {
     );
   }
 
-  async sendTelegramMessage(chatId: string, text: string) {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    if (!token) {
-      this.logger.warn('TELEGRAM_BOT_TOKEN not configured — skipping Telegram message');
+  /**
+   * Sends a Telegram message via the user's own bot token when provided, else the
+   * global bot. TELEGRAM_API_BASE lets ops point at a reachable proxy, since
+   * api.telegram.org is filtered on the (Iran) server. Fails soft on timeout.
+   */
+  async sendTelegramMessage(chatId: string, text: string, botToken?: string | null) {
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
+    if (!token || token === 'YOUR_BOT_TOKEN') {
+      this.logger.warn('No Telegram bot token — skipping Telegram message');
       return;
     }
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
-    });
+    const base = (process.env.TELEGRAM_API_BASE || 'https://api.telegram.org').replace(/\/$/, '');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    try {
+      await fetch(`${base}/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
   }
 }

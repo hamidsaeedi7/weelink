@@ -37,6 +37,22 @@ export class TelegramService {
     });
   }
 
+  /**
+   * Per-user bot: the user pastes their own bot token (from @BotFather) and their
+   * numeric chat id (from @userinfobot). Reminders are then sent through their bot.
+   * We don't call Telegram here (setWebhook/getUpdates are outbound-blocked on the
+   * server); the token is validated lazily at send time by the scheduler.
+   */
+  async saveToken(userId: string, botToken: string, chatId: string) {
+    const clean = botToken.trim();
+    const cid = chatId.trim();
+    return this.prisma.telegramConfig.upsert({
+      where: { userId },
+      update: { botToken: clean, chatId: cid, isActive: true },
+      create: { userId, botToken: clean, chatId: cid, isActive: true },
+    });
+  }
+
   async getChatId(userId: string) {
     return this.prisma.telegramConfig.findUnique({ where: { userId } });
   }

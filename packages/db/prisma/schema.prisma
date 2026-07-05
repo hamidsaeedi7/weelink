@@ -477,6 +477,7 @@ model TelegramConfig {
   userId    String   @unique
   chatId    String
   username  String?
+  botToken  String?  // توکن ربات اختصاصی کاربر (ارسال یادآور از طریق ربات خودش)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 

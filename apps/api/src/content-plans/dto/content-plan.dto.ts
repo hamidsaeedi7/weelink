@@ -29,18 +29,24 @@ export class CreateContentPlanDto {
   @IsString()
   color?: string;
 
+  @IsOptional()
   @IsArray()
   @IsInt({ each: true })
-  notifyBefore: number[]; // e.g. [24, 2]
+  notifyBefore?: number[]; // e.g. [24, 2]
 
+  // Channels are optional now — the UI no longer toggles sms/email/telegram;
+  // reminders go in-app and (if a bot is connected) to Telegram automatically.
+  @IsOptional()
   @IsBoolean()
-  notifyViaSms: boolean;
+  notifyViaSms?: boolean;
 
+  @IsOptional()
   @IsBoolean()
-  notifyViaEmail: boolean;
+  notifyViaEmail?: boolean;
 
+  @IsOptional()
   @IsBoolean()
-  notifyViaTelegram: boolean;
+  notifyViaTelegram?: boolean;
 
   @IsOptional()
   @IsString()

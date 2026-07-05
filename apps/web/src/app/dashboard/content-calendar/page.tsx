@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   ChevronRight, ChevronLeft, Plus, X, Bell, Loader2,
-  Instagram, Send, Youtube, Twitter, Globe, CheckCircle2, Clock, XCircle,
+  Send, CheckCircle2, Clock, XCircle,
 } from "lucide-react";
 import {
   toJalali, toGregorian, jalaliMonthDays, jalaliMonthStart,
-  JALALI_MONTHS, WEEK_DAYS, todayJalali, formatJalali, toPersianNum, isSameDay,
+  JALALI_MONTHS, WEEK_DAYS, todayJalali, toPersianNum, isSameDay,
 } from "@/lib/jalali";
+import { BrandLogo, PLATFORM_META } from "@/components/blocks/brand-icons";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ContentPlan {
@@ -41,25 +42,29 @@ interface FormData {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const PLATFORMS = [
-  { value: "instagram", label: "اینستاگرام", icon: Instagram, color: "#E1306C" },
-  { value: "telegram", label: "تلگرام", icon: Send, color: "#2CA5E0" },
-  { value: "youtube", label: "یوتیوب", icon: Youtube, color: "#FF0000" },
-  { value: "twitter", label: "توییتر", icon: Twitter, color: "#1DA1F2" },
-  { value: "other", label: "سایر", icon: Globe, color: "#6B7280" },
+  { value: "instagram", label: "اینستاگرام", color: PLATFORM_META.instagram.color },
+  { value: "youtube", label: "یوتیوب", color: PLATFORM_META.youtube.color },
+  { value: "aparat", label: "آپارات", color: PLATFORM_META.aparat.color },
+  { value: "telegram", label: "تلگرام", color: PLATFORM_META.telegram.color },
+  { value: "bale", label: "بله", color: PLATFORM_META.bale.color },
+  { value: "rubika", label: "روبیکا", color: PLATFORM_META.rubika.color },
+  { value: "eitaa", label: "ایتا", color: PLATFORM_META.eitaa.color },
 ];
 
+// نوع محتوا وابسته به پلتفرم
 const CONTENT_TYPES: Record<string, string[]> = {
   instagram: ["post", "story", "reel"],
-  telegram: ["پست", "پول", "ویدیو"],
-  youtube: ["ویدیو", "short", "لایو"],
-  twitter: ["توییت", "thread", "پول"],
-  other: ["محتوا", "رویداد", "یادداشت"],
+  youtube: ["video", "short"],
+  aparat: ["video", "short"],
+  telegram: ["channel_post"],
+  bale: ["channel_post"],
+  rubika: ["channel_post"],
+  eitaa: ["channel_post"],
 };
 
 const CONTENT_TYPE_LABELS: Record<string, string> = {
-  post: "پست", story: "استوری", reel: "ریلز", "پست": "پست", "پول": "پول",
-  "ویدیو": "ویدیو", "short": "شورت", "لایو": "لایو", "توییت": "توییت",
-  "thread": "ترد", "محتوا": "محتوا", "رویداد": "رویداد", "یادداشت": "یادداشت",
+  post: "پست", story: "استوری", reel: "ریلز",
+  video: "ویدیو", short: "شورت ویدیو", channel_post: "پست کانال",
 };
 
 const COLORS = ["#F97316", "#3B82F6", "#10B981", "#8B5CF6", "#EF4444", "#F59E0B", "#EC4899"];
@@ -101,7 +106,7 @@ export default function ContentCalendarPage() {
   const [selected, setSelected] = useState<{ jy: number; jm: number; jd: number } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editPlan, setEditPlan] = useState<ContentPlan | null>(null);
-  const [telegramStatus, setTelegramStatus] = useState<{ chatId?: string; isActive?: boolean } | null>(null);
+  const [telegramStatus, setTelegramStatus] = useState<{ connected?: boolean; chatId?: string } | null>(null);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true);
@@ -181,14 +186,11 @@ export default function ContentCalendarPage() {
           <p className="text-sm text-gray-500 mt-1">برنامه‌ریزی و زمان‌بندی محتوای شبکه‌های اجتماعی</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Telegram status */}
-          {telegramStatus?.isActive ? (
-            <div className="flex items-center gap-2 text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg">
-              <Send className="w-3.5 h-3.5" /> ربات متصل
-            </div>
-          ) : (
-            <TelegramConnect onConnect={() => apiFetch(`${API}/telegram/status`).then(setTelegramStatus).catch(() => {})} />
-          )}
+          {/* Telegram bot */}
+          <TelegramConnect
+            connected={!!telegramStatus?.connected}
+            onChanged={() => apiFetch(`${API}/telegram/status`).then(setTelegramStatus).catch(() => {})}
+          />
           <button
             onClick={() => { setSelected(today); setEditPlan(null); setShowModal(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold rounded-xl transition-all">
@@ -388,7 +390,16 @@ function PlanModal({
       const [h, mi] = jDate.time.split(":").map(Number);
       gDate.setHours(h, mi, 0, 0);
 
-      const body = { ...form, scheduledAt: gDate.toISOString() };
+      // Send only the fields the API expects (channels are handled server-side).
+      const body = {
+        title: form.title,
+        description: form.description,
+        platform: form.platform,
+        contentType: form.contentType,
+        color: form.color,
+        notifyBefore: form.notifyBefore,
+        scheduledAt: gDate.toISOString(),
+      };
 
       if (editPlan) {
         await apiFetch(`/api/v1/content-plans/${editPlan.id}`, {
@@ -401,12 +412,17 @@ function PlanModal({
       }
       onSaved();
     } catch (err: any) {
-      setError("خطا در ذخیره محتوا");
+      // Surface the real API message (PRO required / max-6-per-day / ...).
+      let msg = "خطا در ذخیره محتوا";
+      try {
+        const j = JSON.parse(err?.message || "{}");
+        if (j?.code === "PRO_REQUIRED") msg = "تقویم محتوا مخصوص پلن پرو است";
+        else if (j?.message) msg = Array.isArray(j.message) ? j.message[0] : j.message;
+      } catch { /* keep default */ }
+      setError(msg);
     }
     setSaving(false);
   };
-
-  const PlatformIcon = PLATFORMS.find((p) => p.value === form.platform)?.icon ?? Globe;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -435,27 +451,39 @@ function PlanModal({
                          focus:outline-none focus:border-orange-500/50 transition-all" />
           </div>
 
-          {/* Platform + content type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5">پلتفرم</label>
-              <select value={form.platform}
-                onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value, contentType: CONTENT_TYPES[e.target.value][0] }))}
-                className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm
-                           focus:outline-none focus:border-orange-500/50 transition-all">
-                {PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-              </select>
+          {/* Platform (logo buttons) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">پلتفرم</label>
+            <div className="grid grid-cols-4 gap-2">
+              {PLATFORMS.map((p) => {
+                const active = form.platform === p.value;
+                return (
+                  <button key={p.value} type="button"
+                    onClick={() => setForm((f) => ({ ...f, platform: p.value, contentType: CONTENT_TYPES[p.value][0] }))}
+                    className={`flex flex-col items-center gap-1 py-2 rounded-xl border transition-all
+                                ${active ? "border-orange-500/60 bg-orange-500/10" : "border-white/10 bg-white/5 hover:border-white/25"}`}>
+                    <BrandLogo platform={p.value} size={22} />
+                    <span className="text-[10px] text-gray-300">{p.label}</span>
+                  </button>
+                );
+              })}
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5">نوع محتوا</label>
-              <select value={form.contentType}
-                onChange={(e) => setForm((f) => ({ ...f, contentType: e.target.value }))}
-                className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm
-                           focus:outline-none focus:border-orange-500/50 transition-all">
-                {(CONTENT_TYPES[form.platform] || []).map((t) => (
-                  <option key={t} value={t}>{CONTENT_TYPE_LABELS[t] || t}</option>
-                ))}
-              </select>
+          </div>
+
+          {/* Content type */}
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">نوع محتوا</label>
+            <div className="flex flex-wrap gap-2">
+              {(CONTENT_TYPES[form.platform] || []).map((t) => (
+                <button key={t} type="button"
+                  onClick={() => setForm((f) => ({ ...f, contentType: t }))}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-all
+                              ${form.contentType === t
+                                ? "bg-orange-500/20 border-orange-500/50 text-orange-400"
+                                : "border-white/10 text-gray-400 hover:border-white/20"}`}>
+                  {CONTENT_TYPE_LABELS[t] || t}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -531,21 +559,10 @@ function PlanModal({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              {[
-                { key: "notifyViaSms", label: "پیامک" },
-                { key: "notifyViaEmail", label: "ایمیل" },
-                { key: "notifyViaTelegram", label: "تلگرام" },
-              ].map(({ key, label }) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox"
-                    checked={form[key as keyof FormData] as boolean}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.checked }))}
-                    className="w-3.5 h-3.5 accent-orange-500" />
-                  <span className="text-xs text-gray-400">{label}</span>
-                </label>
-              ))}
-            </div>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              یادآوری از داخل داشبورد نمایش داده می‌شود؛ در صورت اتصال ربات تلگرام،
+              یادآوری به تلگرام شما هم ارسال می‌شود.
+            </p>
           </div>
 
           {/* Actions */}
@@ -568,39 +585,87 @@ function PlanModal({
   );
 }
 
-// ─── Telegram Connect ─────────────────────────────────────────────────────────
-function TelegramConnect({ onConnect }: { onConnect: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const [connectUrl, setConnectUrl] = useState("");
+// ─── Telegram Connect (user's own bot token + chat id) ────────────────────────
+function TelegramConnect({ connected, onChanged }: { connected: boolean; onChanged: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [botToken, setBotToken] = useState("");
+  const [chatId, setChatId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
 
-  const connect = async () => {
-    setLoading(true);
+  const save = async () => {
+    setErr("");
+    if (!botToken.trim() || !chatId.trim()) { setErr("توکن ربات و شناسه چت الزامی است"); return; }
+    setSaving(true);
     try {
-      const data = await apiFetch("/api/v1/content-plans/telegram/connect");
-      setConnectUrl(data.connectUrl);
-    } catch {}
-    setLoading(false);
+      await apiFetch("/api/v1/content-plans/telegram/set-token", {
+        method: "POST",
+        body: JSON.stringify({ botToken: botToken.trim(), chatId: chatId.trim() }),
+      });
+      setOpen(false); setBotToken(""); setChatId("");
+      onChanged();
+    } catch {
+      setErr("ذخیره نشد، دوباره تلاش کنید");
+    }
+    setSaving(false);
   };
 
-  if (connectUrl) {
-    return (
-      <div className="flex items-center gap-2">
-        <a href={connectUrl} target="_blank" rel="noopener noreferrer"
-          onClick={() => setTimeout(onConnect, 5000)}
-          className="flex items-center gap-2 text-xs bg-blue-500/10 text-blue-400 hover:bg-blue-500/20
-                     border border-blue-500/20 px-3 py-1.5 rounded-lg transition-all">
-          <Send className="w-3.5 h-3.5" /> اتصال به ربات تلگرام
-        </a>
-      </div>
-    );
-  }
+  const disconnect = async () => {
+    try {
+      await apiFetch("/api/v1/content-plans/telegram/disconnect", { method: "DELETE" });
+      onChanged();
+    } catch {}
+  };
 
   return (
-    <button onClick={connect} disabled={loading}
-      className="flex items-center gap-2 text-xs bg-white/5 hover:bg-white/10
-                 border border-white/10 text-gray-400 px-3 py-1.5 rounded-lg transition-all">
-      {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-      اتصال تلگرام
-    </button>
+    <>
+      {connected ? (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg">
+            <Send className="w-3.5 h-3.5" /> ربات متصل
+          </div>
+          <button onClick={disconnect} className="text-xs text-gray-500 hover:text-red-400">قطع اتصال</button>
+        </div>
+      ) : (
+        <button onClick={() => setOpen(true)}
+          className="flex items-center gap-2 text-xs bg-white/5 hover:bg-white/10
+                     border border-white/10 text-gray-400 px-3 py-1.5 rounded-lg transition-all">
+          <Send className="w-3.5 h-3.5" /> اتصال ربات تلگرام
+        </button>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setOpen(false)}>
+          <div className="bg-[#141418] border border-white/10 rounded-2xl w-full max-w-md p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white">اتصال ربات تلگرام</h3>
+              <button onClick={() => setOpen(false)} className="text-gray-400"><X className="w-4 h-4" /></button>
+            </div>
+            <ol className="text-[11px] text-gray-400 space-y-1.5 leading-relaxed list-decimal pr-4">
+              <li>در تلگرام به <span className="text-blue-400">@BotFather</span> پیام دهید و یک ربات بسازید تا <b>توکن</b> بگیرید.</li>
+              <li>به ربات <span className="text-blue-400">@userinfobot</span> پیام دهید تا <b>شناسه چت (Chat ID)</b> عددی خود را ببینید.</li>
+              <li>یک‌بار به ربات خودتان <span className="text-white">/start</span> بزنید تا اجازهٔ ارسال پیام بدهید.</li>
+            </ol>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">توکن ربات</label>
+              <input value={botToken} onChange={(e) => setBotToken(e.target.value)} dir="ltr"
+                placeholder="123456:ABC-DEF..." className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-orange-500/50" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">شناسه چت (Chat ID)</label>
+              <input value={chatId} onChange={(e) => setChatId(e.target.value)} dir="ltr"
+                placeholder="123456789" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-orange-500/50" />
+            </div>
+            {err && <p className="text-xs text-red-400">{err}</p>}
+            <button onClick={save} disabled={saving}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold rounded-xl disabled:opacity-60">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "ذخیره و اتصال"}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -1,11 +1,13 @@
 ﻿import {
   Injectable,
-  ForbiddenException,
+  BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateContentPlanDto, UpdateContentPlanDto } from './dto/content-plan.dto';
 import { ProRequiredException } from "../common/exceptions/pro-required.exception";
+
+const MAX_PER_DAY = 6;
 
 @Injectable()
 export class ContentPlansService {
@@ -25,6 +27,17 @@ export class ContentPlansService {
     }
 
     const shopId = await this.getShopId(userId);
+
+    // Max 6 content items per calendar day.
+    const day = new Date(dto.scheduledAt);
+    const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0, 0);
+    const dayEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59, 999);
+    const sameDay = await this.prisma.contentPlan.count({
+      where: { shopId, scheduledAt: { gte: dayStart, lte: dayEnd } },
+    });
+    if (sameDay >= MAX_PER_DAY) {
+      throw new BadRequestException(`در هر روز حداکثر ${MAX_PER_DAY} محتوا می‌توانید اضافه کنید`);
+    }
 
     return this.prisma.contentPlan.create({
       data: {

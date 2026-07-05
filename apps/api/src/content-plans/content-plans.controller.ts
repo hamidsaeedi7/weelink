@@ -69,6 +69,12 @@ export class ContentPlansController {
     return { token, botUsername, connectUrl };
   }
 
+  /** POST /content-plans/telegram/set-token  { botToken, chatId } */
+  @Post('telegram/set-token')
+  setTelegramToken(@CurrentUser() user: any, @Body() body: { botToken: string; chatId: string }) {
+    return this.telegramService.saveToken(user.id, body.botToken, body.chatId);
+  }
+
   /** DELETE /content-plans/telegram/disconnect */
   @Delete('telegram/disconnect')
   telegramDisconnect(@CurrentUser() user: any) {
