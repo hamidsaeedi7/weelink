@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import axios from "axios";
 import { toPersianNumber } from "@/lib/utils";
+import { JalaliDatePicker } from "@/components/JalaliDatePicker";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -18,14 +19,16 @@ export default function CouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm({
-    defaultValues: { code: "", type: "percent", value: 10, maxUses: -1, expiresAt: "" },
+  const [expiresAt, setExpiresAt] = useState("");   // ISO date from the Jalali picker
+  const { register, handleSubmit, reset, watch, formState: { isSubmitting } } = useForm({
+    defaultValues: { code: "", type: "percent", value: 10, maxUses: -1 },
   });
+  const couponType = watch("type");
 
   const load = async () => {
     try {
       const { data } = await axios.get(`${API}/api/v1/coupons`, { headers: authHeaders() });
-      setCoupons(data.data || data);
+      setCoupons(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
     } catch { toast.error("خطا"); }
     finally { setLoading(false); }
   };
@@ -33,19 +36,26 @@ export default function CouponsPage() {
   useEffect(() => { load(); }, []);
 
   const onSubmit = async (form: any) => {
+    const value = Number(form.value);
+    if (form.type === "percent" && (value < 1 || value > 100)) {
+      toast.error("درصد تخفیف باید بین ۱ تا ۱۰۰ باشد");
+      return;
+    }
     try {
       const { data } = await axios.post(`${API}/api/v1/coupons`, {
-        ...form,
-        value: Number(form.value),
-        maxUses: Number(form.maxUses),
         code: form.code.toUpperCase(),
+        type: form.type,
+        value,
+        maxUses: Number(form.maxUses),
+        expiresAt: expiresAt || undefined,
       }, { headers: authHeaders() });
       setCoupons((prev) => [data.data || data, ...prev]);
       toast.success("کد تخفیف ساخته شد");
       setShowForm(false);
+      setExpiresAt("");
       reset();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "خطا");
+      toast.error(e.response?.data?.message || "خطا در ساخت کد");
     }
   };
 
@@ -110,7 +120,8 @@ export default function CouponsPage() {
               </select>
               <div className="relative">
                 <input {...register("value", { required: true, min: 1 })}
-                  type="number" placeholder="مقدار" className="input-base" />
+                  type="number" placeholder={couponType === "percent" ? "درصد (۱ تا ۱۰۰)" : "مبلغ (تومان)"}
+                  className="input-base" />
               </div>
             </div>
 
@@ -121,7 +132,7 @@ export default function CouponsPage() {
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">تاریخ انقضا (اختیاری)</label>
-                <input {...register("expiresAt")} type="date" className="input-base" />
+                <JalaliDatePicker value={expiresAt} onChange={setExpiresAt} placeholder="انتخاب تاریخ شمسی" minToday />
               </div>
             </div>
 

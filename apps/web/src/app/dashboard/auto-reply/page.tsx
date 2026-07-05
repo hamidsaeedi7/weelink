@@ -30,7 +30,7 @@ export default function AutoReplyPage() {
     try {
       const r = await fetch(`${API}/api/v1/auto-reply`, { headers: auth() });
       const d = await r.json();
-      setReplies(d.data || d || []);
+      setReplies(Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
     } catch { setReplies([]); }
     finally { setLoading(false); }
   };
@@ -41,17 +41,26 @@ export default function AutoReplyPage() {
     if (!form.keyword || !form.reply) { toast.error("کلیدواژه و پیام الزامی است"); return; }
     setSaving(true);
     try {
+      // Send only editable fields — on edit the form held the whole record
+      // (id/userId/triggerCount/timestamps) which Prisma rejects on update.
+      const payload = {
+        platform: form.platform,
+        keyword: form.keyword,
+        reply: form.reply,
+        isActive: form.isActive ?? true,
+      };
       const url = editing ? `${API}/api/v1/auto-reply/${editing.id}` : `${API}/api/v1/auto-reply`;
       const r = await fetch(url, {
         method: editing ? "PUT" : "POST",
         headers: { ...auth(), "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
-      if (!r.ok) throw new Error();
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.message || "خطا در ذخیره");
       toast.success(editing ? "ویرایش شد" : "قانون اضافه شد");
       setShowForm(false);
       load();
-    } catch { toast.error("خطا"); }
+    } catch (e: any) { toast.error(e.message || "خطا"); }
     finally { setSaving(false); }
   };
 
