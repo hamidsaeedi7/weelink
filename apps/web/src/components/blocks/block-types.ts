@@ -17,11 +17,17 @@ export interface BlockDef {
 export interface FieldDef {
   key: string;
   label: string;
-  type: "text" | "url" | "textarea" | "select" | "image";
+  type: "text" | "url" | "textarea" | "select" | "image" | "emoji" | "platform";
   placeholder?: string;
   required?: boolean;
+  hint?: string;
   options?: { value: string; label: string }[];
+  /** preset choices for the emoji picker */
+  presets?: string[];
 }
+
+// چند ایموجی پیشنهادی برای لینک‌ها
+export const LINK_EMOJI_PRESETS = ["🌐", "🔗", "📱", "🛒", "📸", "▶️", "📍", "⭐", "💬", "📞"];
 
 export const BLOCK_TYPES: BlockDef[] = [
   {
@@ -32,8 +38,11 @@ export const BLOCK_TYPES: BlockDef[] = [
     color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     fields: [
       { key: "label", label: "عنوان", type: "text", placeholder: "مثلاً: سایت من", required: true },
-      { key: "url", label: "آدرس لینک", type: "url", placeholder: "https://...", required: true },
-      { key: "icon", label: "آیکون (ایموجی)", type: "text", placeholder: "🌐" },
+      {
+        key: "url", label: "آدرس لینک", type: "url", placeholder: "https://example.com", required: true,
+        hint: "آدرس کامل مقصد را وارد کنید؛ مثال: https://instagram.com/yourpage یا https://mysite.ir",
+      },
+      { key: "icon", label: "آیکون (ایموجی)", type: "emoji", presets: LINK_EMOJI_PRESETS },
     ],
   },
   {
@@ -44,8 +53,11 @@ export const BLOCK_TYPES: BlockDef[] = [
     color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
     fields: [
       { key: "label", label: "عنوان", type: "text", required: true },
-      { key: "url", label: "آدرس", type: "url", required: true },
-      { key: "icon", label: "آیکون", type: "text" },
+      {
+        key: "url", label: "آدرس", type: "url", placeholder: "https://example.com", required: true,
+        hint: "آدرس کامل مقصد را وارد کنید؛ مثال: https://mysite.ir/product",
+      },
+      { key: "icon", label: "آیکون", type: "emoji", presets: LINK_EMOJI_PRESETS },
     ],
   },
   {
@@ -58,19 +70,17 @@ export const BLOCK_TYPES: BlockDef[] = [
       {
         key: "data.platform",
         label: "پلتفرم",
-        type: "select",
+        type: "platform",
         required: true,
         options: [
-          { value: "whatsapp", label: "واتساپ" },
           { value: "telegram", label: "تلگرام" },
+          { value: "whatsapp", label: "واتساپ" },
           { value: "bale", label: "بله" },
-          { value: "eitaa", label: "ایتا" },
           { value: "rubika", label: "روبیکا" },
-          { value: "gap", label: "گپ" },
-          { value: "soroush", label: "سروش" },
+          { value: "eitaa", label: "ایتا" },
         ],
       },
-      { key: "url", label: "شماره / یوزرنیم / لینک", type: "text", required: true },
+      { key: "url", label: "شماره / یوزرنیم / لینک", type: "text", required: true, hint: "یوزرنیم بدون @ یا شماره یا لینک کامل" },
       { key: "label", label: "عنوان", type: "text", placeholder: "پیام بده!" },
     ],
   },
@@ -117,14 +127,15 @@ export const BLOCK_TYPES: BlockDef[] = [
       {
         key: "data.platform",
         label: "پلتفرم",
-        type: "select",
+        type: "platform",
+        required: true,
         options: [
+          { value: "instagram", label: "اینستاگرام" },
           { value: "youtube", label: "یوتیوب" },
           { value: "aparat", label: "آپارات" },
-          { value: "vimeo", label: "ویمئو" },
         ],
       },
-      { key: "url", label: "آدرس ویدیو", type: "url", required: true },
+      { key: "url", label: "آدرس ویدیو", type: "url", required: true, hint: "لینک کامل ویدیو در یوتیوب/آپارات/اینستاگرام" },
       { key: "label", label: "عنوان", type: "text" },
     ],
   },
@@ -169,6 +180,16 @@ export const BLOCK_TYPES: BlockDef[] = [
     color: "bg-gray-500/10 text-gray-400 border-gray-500/20",
     fields: [
       { key: "label", label: "عنوان (اختیاری)", type: "text" },
+      {
+        key: "data.style", label: "مدل خط", type: "select",
+        options: [
+          { value: "solid", label: "خط ساده" },
+          { value: "dashed", label: "خط‌چین" },
+          { value: "dotted", label: "نقطه‌چین" },
+          { value: "gradient", label: "محو‌شونده" },
+          { value: "double", label: "دو‌خطی" },
+        ],
+      },
     ],
   },
   {
@@ -185,10 +206,14 @@ export const BLOCK_TYPES: BlockDef[] = [
     type: "ORDER_FORM",
     label: "فرم سفارش",
     icon: "🛒",
-    description: "فرم ثبت سفارش آنلاین ساده",
+    description: "دکمه‌ای که کاربر را به لینک سفارش می‌برد",
     color: "bg-orange-500/10 text-orange-400 border-orange-500/20",
     fields: [
-      { key: "label", label: "عنوان دکمه", type: "text", placeholder: "ثبت سفارش آنلاین" },
+      { key: "label", label: "عنوان دکمه", type: "text", placeholder: "ثبت سفارش آنلاین", required: true },
+      {
+        key: "url", label: "لینک مقصد", type: "url", required: true,
+        hint: "با کلیک روی دکمه، کاربر به این آدرس می‌رود؛ مثال: https://wa.me/98912...",
+      },
     ],
   },
   {

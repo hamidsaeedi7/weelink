@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import { X, Upload, Loader2, Clock } from "lucide-react";
-import { getBlockDef, type BlockType } from "./block-types";
+import { getBlockDef, type BlockType, type FieldDef } from "./block-types";
+import { BrandLogo } from "./brand-icons";
 import { uploadApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -63,6 +64,16 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
   };
 
   const handleSave = async () => {
+    // Validate required fields up-front with a clear message per field.
+    for (const field of def.fields as FieldDef[]) {
+      if (field.required) {
+        const v = getNestedValue(form, field.key);
+        if (v === undefined || v === null || String(v).trim() === "") {
+          toast.error(`«${field.label}» الزامی است`);
+          return;
+        }
+      }
+    }
     setSaving(true);
     try {
       await onSave(form);
@@ -101,7 +112,50 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                 {field.required && <span className="text-red-400 mr-1">*</span>}
               </label>
 
-              {field.type === "select" ? (
+              {field.type === "platform" ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {field.options?.map((o) => {
+                    const selected = getValue(field.key) === o.value;
+                    return (
+                      <button
+                        key={o.value}
+                        type="button"
+                        onClick={() => setValue(field.key, o.value)}
+                        className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl border transition-all
+                                    ${selected
+                                      ? "border-orange-500/60 bg-orange-500/10"
+                                      : "border-white/10 bg-white/5 hover:border-white/25"}`}>
+                        <BrandLogo platform={o.value} size={26} />
+                        <span className="text-[11px] text-white/80">{o.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : field.type === "emoji" ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {field.presets?.map((em) => (
+                      <button
+                        key={em}
+                        type="button"
+                        onClick={() => setValue(field.key, getValue(field.key) === em ? "" : em)}
+                        className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center border transition-all
+                                    ${getValue(field.key) === em
+                                      ? "border-orange-500/60 bg-orange-500/15"
+                                      : "border-white/10 bg-white/5 hover:border-white/25"}`}>
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={getValue(field.key)}
+                    onChange={(e) => setValue(field.key, e.target.value.slice(0, 2))}
+                    placeholder="یا ایموجی دلخواه"
+                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10
+                               text-white text-sm text-center focus:outline-none focus:border-orange-500/50" />
+                </div>
+              ) : field.type === "select" ? (
                 <select
                   value={getValue(field.key)}
                   onChange={(e) => setValue(field.key, e.target.value)}
@@ -159,6 +213,10 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                   className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10
                              text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
                 />
+              )}
+
+              {field.hint && (
+                <p className="mt-1 text-[10px] text-gray-500 leading-relaxed">{field.hint}</p>
               )}
             </div>
           ))}

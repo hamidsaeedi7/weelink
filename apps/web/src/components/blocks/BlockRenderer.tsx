@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ExternalLink, Phone, MapPin, ChevronDown, Mail } from "lucide-react";
 import { blocksApi } from "@/lib/api";
 import { MESSENGER_META } from "./block-types";
-import Image from "next/image";
+import { BrandLogo, PLATFORM_META } from "./brand-icons";
 
 interface Block {
   id: string;
@@ -98,8 +98,10 @@ function FeaturedBlock({ block, color, onClick }: { block: Block; color: string;
 
 function MessengerBlock({ block, onClick }: { block: Block; onClick: () => void }) {
   const platform = block.data?.platform || "telegram";
-  const meta = MESSENGER_META[platform] || MESSENGER_META.telegram;
-  const href = block.url?.startsWith("http") ? block.url : `${meta.prefix}${block.url}`;
+  const meta = PLATFORM_META[platform] || MESSENGER_META[platform] || PLATFORM_META.telegram;
+  const prefix = (meta as any).prefix || "";
+  const raw = (block.url || "").replace(/^@/, "");
+  const href = raw.startsWith("http") ? raw : `${prefix}${raw}`;
 
   return (
     <a href={href} target="_blank" rel="noopener noreferrer"
@@ -108,9 +110,9 @@ function MessengerBlock({ block, onClick }: { block: Block; onClick: () => void 
       className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl
                  bg-white/5 border hover:bg-white/10
                  transition-all duration-200 active:scale-[0.98]">
-      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
         style={{ background: `${meta.color}20` }}>
-        <span className="text-base">💬</span>
+        <BrandLogo platform={platform} size={22} />
       </div>
       <div className="flex-1">
         <div className="text-sm font-medium text-white">{block.label || meta.label}</div>
@@ -167,21 +169,41 @@ function TextBlock({ block }: { block: Block }) {
 function VideoBlock({ block }: { block: Block }) {
   const getEmbedUrl = (url: string, platform: string) => {
     if (platform === "youtube") {
-      const id = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+      const id = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([^&?/]+)/)?.[1];
       return id ? `https://www.youtube.com/embed/${id}` : null;
     }
     if (platform === "aparat") {
-      const id = url.match(/\/v\/([^/]+)/)?.[1];
+      const id = url.match(/\/v\/([^/?]+)/)?.[1];
       return id ? `https://www.aparat.com/video/video/embed/videohash/${id}/vt/frame` : null;
+    }
+    if (platform === "instagram") {
+      const id = url.match(/\/(?:reel|p|tv)\/([^/?]+)/)?.[1];
+      return id ? `https://www.instagram.com/p/${id}/embed` : null;
     }
     return null;
   };
 
-  const embed = getEmbedUrl(block.url || "", block.data?.platform || "youtube");
-  if (!embed) return null;
+  const platform = block.data?.platform || "youtube";
+  const embed = getEmbedUrl(block.url || "", platform);
+
+  // If we can't embed (e.g. a private/unsupported link), fall back to a branded
+  // link card so the block is never silently blank.
+  if (!embed) {
+    if (!block.url) return null;
+    const meta = PLATFORM_META[platform];
+    return (
+      <a href={block.url} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl
+                   bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-[0.98]">
+        <BrandLogo platform={platform} size={26} />
+        <span className="flex-1 text-sm font-medium text-white">{block.label || meta?.label || "مشاهده ویدیو"}</span>
+        <ExternalLink className="w-4 h-4 text-white/30 shrink-0" />
+      </a>
+    );
+  }
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden aspect-video bg-black/40">
+    <div className={`w-full rounded-2xl overflow-hidden bg-black/40 ${platform === "instagram" ? "aspect-[4/5]" : "aspect-video"}`}>
       <iframe src={embed} className="w-full h-full" allowFullScreen title={block.label} />
     </div>
   );
@@ -262,11 +284,38 @@ function FaqBlock({ block }: { block: Block }) {
 // ─── Divider ──────────────────────────────────────────────────────────────────
 
 function DividerBlock({ block }: { block: Block }) {
+  const style = block.data?.style || "solid";
+
+  const lineFor = (side: "l" | "r") => {
+    switch (style) {
+      case "dashed":
+        return <div className="flex-1 border-t border-dashed border-white/20" />;
+      case "dotted":
+        return <div className="flex-1 border-t border-dotted border-white/25" />;
+      case "double":
+        return <div className="flex-1 border-t-[3px] border-double border-white/20" />;
+      case "gradient":
+        return (
+          <div
+            className="flex-1 h-px"
+            style={{
+              background:
+                side === "l"
+                  ? "linear-gradient(to right, transparent, rgba(255,255,255,0.25))"
+                  : "linear-gradient(to left, transparent, rgba(255,255,255,0.25))",
+            }}
+          />
+        );
+      default:
+        return <div className="flex-1 h-px bg-white/10" />;
+    }
+  };
+
   return (
     <div className="flex items-center gap-3 py-1">
-      <div className="flex-1 h-px bg-white/10" />
+      {lineFor("l")}
       {block.label && <span className="text-xs text-white/30 shrink-0">{block.label}</span>}
-      <div className="flex-1 h-px bg-white/10" />
+      {lineFor("r")}
     </div>
   );
 }
@@ -284,11 +333,16 @@ function GroupBlock({ block }: { block: Block }) {
 // ─── Order Form Block ──────────────────────────────────────────────────────────
 
 function OrderFormBlock({ block, color, onClick }: { block: Block; color: string; onClick: () => void }) {
+  // Destination link is set by the user; fall back to the built-in order page.
   const slug = typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
+  const href = block.url && block.url.trim() !== "" ? block.url : `/${slug}/order`;
+  const external = /^https?:\/\//.test(href);
   return (
     <a
-      href={`/${slug}/order`}
+      href={href}
       onClick={onClick}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       className="flex items-center justify-center gap-3 w-full px-4 py-4 rounded-2xl
                  font-bold text-white text-sm active:scale-[0.98] transition-all duration-200"
       style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)`, boxShadow: `0 4px 20px ${color}40` }}
