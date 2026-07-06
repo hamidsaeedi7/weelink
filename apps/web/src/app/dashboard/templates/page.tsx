@@ -1,140 +1,50 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, LayoutTemplate, Check } from "lucide-react";
+import { Loader2, LayoutTemplate, Check, X, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { TEMPLATES, type Template } from "./templates-data";
+import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
 
-const TEMPLATES = [
-  {
-    id: "doctor",
-    label: "دکتر / پزشک",
-    emoji: "🏥",
-    color: "from-blue-500/20 to-cyan-500/20",
-    accentColor: "#3B82F6",
-    desc: "ویزیت آنلاین، نوبت‌دهی، آدرس مطب",
-    blocks: [
-      { type: "TEXT", label: "بیوگرافی", data: { content: "دکتر متخصص — مشاوره پزشکی آنلاین و حضوری" } },
-      { type: "PHONE", label: "تماس با مطب", url: "09120000000" },
-      { type: "MAP", label: "آدرس مطب", url: "https://maps.google.com", icon: "📍" },
-      { type: "WHATSAPP", label: "نوبت‌گیری واتساپ", data: { phone: "989120000000", message: "سلام، میخوام نوبت بگیرم" } },
-      { type: "FAQ", label: "ساعات کاری مطب", data: { answer: "شنبه تا چهارشنبه ۹ تا ۱۷" } },
-    ],
-  },
-  {
-    id: "coach",
-    label: "مربی ورزشی",
-    emoji: "💪",
-    color: "from-orange-500/20 to-red-500/20",
-    accentColor: "#F97316",
-    desc: "برنامه تمرین، مشاوره آنلاین، کلاس‌ها",
-    blocks: [
-      { type: "TEXT", label: "معرفی کوچ", data: { content: "مربی تخصصی فیتنس و تناسب اندام" } },
-      { type: "FEATURED", label: "ثبت‌نام کلاس آنلاین", url: "#", icon: "⚡" },
-      { type: "VIDEO", label: "تمرین رایگان", url: "https://youtube.com", data: { platform: "youtube" } },
-      { type: "WHATSAPP", label: "مشاوره رایگان", data: { phone: "989120000000", message: "میخوام مشاوره رایگان بگیرم" } },
-      { type: "MESSENGER", label: "کانال تلگرام", data: { platform: "telegram" }, url: "t.me/channel" },
-    ],
-  },
-  {
-    id: "shop_insta",
-    label: "فروشگاه اینستا",
-    emoji: "🛍️",
-    color: "from-pink-500/20 to-purple-500/20",
-    accentColor: "#EC4899",
-    desc: "محصولات، سفارش واتساپ، تخفیف‌ها",
-    blocks: [
-      { type: "TEXT", label: "معرفی فروشگاه", data: { content: "فروش آنلاین محصولات اورجینال" } },
-      { type: "FEATURED", label: "مشاهده محصولات", url: "#", icon: "🛍️" },
-      { type: "FLASH_SALE", label: "حراج ویژه", data: { discount: "۳۰", description: "فقط تا آخر هفته!", endDate: "" } },
-      { type: "WHATSAPP", label: "ثبت سفارش", data: { phone: "989120000000", message: "میخوام سفارش بدم" } },
-      { type: "MESSENGER", label: "کانال اطلاع‌رسانی", data: { platform: "telegram" }, url: "t.me/channel" },
-    ],
-  },
-  {
-    id: "realstate",
-    label: "مشاور املاک",
-    emoji: "🏠",
-    color: "from-green-500/20 to-emerald-500/20",
-    accentColor: "#10B981",
-    desc: "آگهی‌ها، تماس، آدرس دفتر",
-    blocks: [
-      { type: "TEXT", label: "معرفی مشاور", data: { content: "مشاور رسمی املاک — خرید، فروش، رهن و اجاره" } },
-      { type: "PHONE", label: "تماس مستقیم", url: "09120000000" },
-      { type: "FEATURED", label: "آگهی‌های موجود", url: "#", icon: "🏠" },
-      { type: "WHATSAPP", label: "مشاوره رایگان", data: { phone: "989120000000", message: "نیاز به مشاوره دارم" } },
-      { type: "MAP", label: "آدرس دفتر", url: "https://maps.google.com" },
-    ],
-  },
-  {
-    id: "cafe",
-    label: "کافه / رستوران",
-    emoji: "☕",
-    color: "from-amber-500/20 to-yellow-500/20",
-    accentColor: "#F59E0B",
-    desc: "منو، رزرو میز، اینستاگرام",
-    blocks: [
-      { type: "TEXT", label: "معرفی کافه", data: { content: "کافه‌ای دنج در قلب شهر" } },
-      { type: "FEATURED", label: "مشاهده منو", url: "#", icon: "☕" },
-      { type: "PHONE", label: "رزرو میز", url: "09120000000" },
-      { type: "MAP", label: "موقعیت کافه", url: "https://maps.google.com" },
-      { type: "MESSENGER", label: "اینستاگرام ما", data: { platform: "telegram" }, url: "https://instagram.com" },
-    ],
-  },
-  {
-    id: "photographer",
-    label: "عکاس / فیلمساز",
-    emoji: "📸",
-    color: "from-violet-500/20 to-purple-500/20",
-    accentColor: "#8B5CF6",
-    desc: "پرتفولیو، رزرو، قیمت‌ها",
-    blocks: [
-      { type: "TEXT", label: "معرفی هنرمند", data: { content: "عکاسی تخصصی عروسی، پرتره و تجاری" } },
-      { type: "IMAGE", label: "نمونه کارها", data: { imageUrl: "" } },
-      { type: "FEATURED", label: "مشاهده پرتفولیو", url: "#", icon: "📸" },
-      { type: "WHATSAPP", label: "رزرو عکاسی", data: { phone: "989120000000", message: "میخوام رزرو عکاسی کنم" } },
-      { type: "LINK", label: "قیمت‌ها و پکیج‌ها", url: "#", icon: "💰" },
-    ],
-  },
-  {
-    id: "blank",
-    label: "شروع از صفر",
-    emoji: "✨",
-    color: "from-gray-500/10 to-gray-400/10",
-    accentColor: "#6B7280",
-    desc: "صفحه خالی بدون بلوک پیش‌فرض",
-    blocks: [],
-  },
-];
-
 export default function TemplatesPage() {
   const [applying, setApplying] = useState<string | null>(null);
+  const [preview, setPreview] = useState<Template | null>(null);
   const router = useRouter();
 
-  const applyTemplate = async (tpl: typeof TEMPLATES[0]) => {
+  const applyTemplate = async (tpl: Template) => {
     if (applying) return;
     if (tpl.id === "blank") {
       router.push("/dashboard/blocks");
       return;
     }
-    if (!confirm(`قالب «${tpl.label}» اعمال شود؟ بلوک‌های فعلی شما جایگزین می‌شوند.`)) return;
 
     setApplying(tpl.id);
     try {
-      const existing = await fetch(`${API}/api/v1/blocks`, { headers: auth() }).then((r) => r.json());
-      const existingBlocks = existing.data || existing || [];
-      await Promise.all(existingBlocks.map((b: any) =>
+      // Replace current blocks with the template's blocks.
+      const res = await fetch(`${API}/api/v1/blocks`, { headers: auth() }).then((r) => r.json());
+      const existing = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      await Promise.all(existing.map((b: any) =>
         fetch(`${API}/api/v1/blocks/${b.id}`, { method: "DELETE", headers: auth() })
       ));
       for (let i = 0; i < tpl.blocks.length; i++) {
-        await fetch(`${API}/api/v1/blocks`, {
+        const blk = tpl.blocks[i];
+        const r = await fetch(`${API}/api/v1/blocks`, {
           method: "POST",
           headers: { ...auth(), "Content-Type": "application/json" },
-          body: JSON.stringify({ ...tpl.blocks[i], sortOrder: i }),
+          body: JSON.stringify({
+            type: blk.type,
+            label: blk.label,
+            url: blk.url,
+            icon: blk.icon,
+            data: blk.data ?? {},
+            sortOrder: i,
+          }),
         });
+        if (!r.ok) throw new Error();
       }
       toast.success("قالب اعمال شد!");
       router.push("/dashboard/blocks");
@@ -149,20 +59,20 @@ export default function TemplatesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-black text-gray-900 dark:text-white">قالب‌های حرفه‌ای</h1>
-        <p className="text-sm text-gray-500">یک کلیک — صفحه بیو آماده برای شغل شما</p>
+        <p className="text-sm text-gray-500">پیش‌نمایش ببینید و با یک کلیک صفحهٔ بیوی آمادهٔ شغل‌تان را بسازید</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {TEMPLATES.map((tpl) => (
           <div key={tpl.id}
             className="glass-card overflow-hidden group cursor-pointer hover:border-orange-500/30 transition-all"
-            onClick={() => applyTemplate(tpl)}>
+            onClick={() => (tpl.id === "blank" ? applyTemplate(tpl) : setPreview(tpl))}>
             <div className={`h-28 bg-gradient-to-br ${tpl.color} flex items-center justify-center text-5xl transition-transform group-hover:scale-105`}>
               {tpl.emoji}
             </div>
             <div className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900 dark:text-white">{tpl.label}</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{tpl.label}</h3>
                 {tpl.blocks.length > 0 && (
                   <span className="text-xs text-gray-400">{tpl.blocks.length} بلوک</span>
                 )}
@@ -188,14 +98,16 @@ export default function TemplatesPage() {
                            border border-gray-200 dark:border-white/10
                            hover:text-white hover:border-transparent"
                 style={{ background: applying === tpl.id ? "#F97316" : "" }}
-                onClick={(e) => { e.stopPropagation(); applyTemplate(tpl); }}>
+                onClick={(e) => { e.stopPropagation(); tpl.id === "blank" ? applyTemplate(tpl) : setPreview(tpl); }}>
                 {applying === tpl.id ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" /> در حال اعمال...
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-1.5">
-                    <Check className="w-3.5 h-3.5" /> استفاده از این قالب
+                    {tpl.id === "blank"
+                      ? <><Check className="w-3.5 h-3.5" /> شروع از صفر</>
+                      : <><Eye className="w-3.5 h-3.5" /> پیش‌نمایش و انتخاب</>}
                   </span>
                 )}
               </button>
@@ -203,6 +115,55 @@ export default function TemplatesPage() {
           </div>
         ))}
       </div>
+
+      {/* Preview modal */}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setPreview(null)}>
+          <div className="bg-[#0D0D18] border border-white/10 rounded-3xl w-full max-w-sm max-h-[92vh] flex flex-col overflow-hidden"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{preview.emoji}</span>
+                <h3 className="font-bold text-white text-sm">{preview.label}</h3>
+              </div>
+              <button onClick={() => setPreview(null)} className="text-gray-500 hover:text-white p-1">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* phone-frame preview */}
+            <div className="flex-1 overflow-y-auto p-5 bg-[#0A0A0F]">
+              <div className="mx-auto max-w-[320px] space-y-3">
+                <div className="text-center mb-4">
+                  <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-br ${preview.color} flex items-center justify-center text-3xl`}>
+                    {preview.emoji}
+                  </div>
+                  <p className="mt-2 text-sm font-bold text-white">{preview.label}</p>
+                  <p className="text-xs text-white/40">{preview.desc}</p>
+                </div>
+                {preview.blocks.map((b, i) => (
+                  <BlockRenderer key={i} block={{ id: `preview-${i}`, ...b }} primaryColor={preview.accentColor} />
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-white/[0.06] flex gap-2">
+              <button onClick={() => setPreview(null)}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm text-gray-400 hover:bg-white/5">
+                انصراف
+              </button>
+              <button
+                disabled={applying === preview.id}
+                onClick={() => { const t = preview; setPreview(null); applyTemplate(t); }}
+                className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+                {applying === preview.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                استفاده از این قالب
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
