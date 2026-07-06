@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Loader2, CalendarCheck, X, Clock, Users, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
+import { ShareBar } from "@/components/ShareBar";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
@@ -27,6 +28,8 @@ export default function AppointmentsPage() {
   const [form, setForm] = useState<any>(EMPTY_SVC);
   const [saving, setSaving] = useState(false);
 
+  const [slug, setSlug] = useState("");
+
   const load = async () => {
     setLoading(true);
     try {
@@ -35,13 +38,17 @@ export default function AppointmentsPage() {
         fetch(`${API}/api/v1/appointments/bookings`, { headers: auth() }),
       ]);
       const [sData, bData] = await Promise.all([sRes.json(), bRes.json()]);
-      setServices(sData.data || sData || []);
-      setBookings(bData.data || bData || []);
+      setServices(Array.isArray(sData?.data) ? sData.data : Array.isArray(sData) ? sData : []);
+      setBookings(Array.isArray(bData?.data) ? bData.data : Array.isArray(bData) ? bData : []);
     } catch { setServices([]); setBookings([]); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    fetch(`${API}/api/v1/me/shop`, { headers: auth() }).then((r) => r.json())
+      .then((d) => setSlug((d?.data ?? d)?.slug || "")).catch(() => {});
+  }, []);
 
   const save = async () => {
     if (!form.name) { toast.error("نام سرویس الزامی است"); return; }
@@ -87,15 +94,18 @@ export default function AppointmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">رزرو وقت</h1>
-          <p className="text-sm text-gray-500">سرویس‌های خود را تعریف کنید تا مشتریان وقت بگیرند</p>
+          <h1 className="text-xl font-black text-gray-900 dark:text-white">نوبت‌دهی آنلاین</h1>
+          <p className="text-sm text-gray-500">لینک رزرو را برای مشتری بفرستید تا آنلاین نوبت بگیرد</p>
         </div>
-        {tab === "services" && (
-          <button onClick={() => { setForm(EMPTY_SVC); setEditing(null); setShowForm(true); }}
-            className="btn-primary flex items-center gap-2 py-2.5 px-4">
-            <Plus className="w-4 h-4" /> افزودن سرویس
-          </button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {slug && <ShareBar url={`https://weeelink.ir/${slug}/booking`} text="رزرو نوبت آنلاین" />}
+          {tab === "services" && (
+            <button onClick={() => { setForm(EMPTY_SVC); setEditing(null); setShowForm(true); }}
+              className="btn-primary flex items-center gap-2 py-2.5 px-4">
+              <Plus className="w-4 h-4" /> افزودن سرویس
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl w-fit">

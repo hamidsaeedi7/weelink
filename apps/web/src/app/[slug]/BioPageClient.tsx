@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
-import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap } from "lucide-react";
+import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap, CalendarCheck } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -11,15 +11,16 @@ function unwrap(d: any) { return Array.isArray(d?.data) ? d.data : Array.isArray
 
 // نوار فروشگاه: اگر شاپ محصول/فایل/دوره داشته باشد، لینک عمومی‌شان نمایش داده می‌شود
 function StorefrontLinks({ slug, primary }: { slug: string; primary: string }) {
-  const [state, setState] = useState({ products: 0, files: 0, courses: 0 });
+  const [state, setState] = useState({ products: 0, files: 0, courses: 0, services: 0 });
   useEffect(() => {
     (async () => {
-      const [p, f, c] = await Promise.all([
+      const [p, f, c, a] = await Promise.all([
         fetch(`${API}/api/v1/shops/${slug}/products`).then((r) => r.json()).catch(() => []),
         fetch(`${API}/api/v1/shops/${slug}/digital-files`).then((r) => r.json()).catch(() => []),
         fetch(`${API}/api/v1/shops/${slug}/courses`).then((r) => r.json()).catch(() => []),
+        fetch(`${API}/api/v1/shops/${slug}/appointments/services`).then((r) => r.json()).catch(() => []),
       ]);
-      setState({ products: unwrap(p).length, files: unwrap(f).length, courses: unwrap(c).length });
+      setState({ products: unwrap(p).length, files: unwrap(f).length, courses: unwrap(c).length, services: unwrap(a).length });
     })();
   }, [slug]);
 
@@ -27,6 +28,7 @@ function StorefrontLinks({ slug, primary }: { slug: string; primary: string }) {
     state.products > 0 && { href: `/${slug}/shop`, icon: ShoppingBag, label: "فروشگاه محصولات" },
     state.files > 0 && { href: `/${slug}/files`, icon: FileDown, label: "فایل‌های دیجیتال" },
     state.courses > 0 && { href: `/${slug}/courses`, icon: BookOpen, label: "دوره‌های آموزشی" },
+    state.services > 0 && { href: `/${slug}/booking`, icon: CalendarCheck, label: "رزرو نوبت آنلاین" },
   ].filter(Boolean) as { href: string; icon: any; label: string }[];
 
   if (!links.length) return null;

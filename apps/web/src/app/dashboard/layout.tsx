@@ -30,7 +30,7 @@ const NAV_GROUPS = [
       { href: "/dashboard/courses",       icon: BookOpen,      label: "دوره‌های آموزشی", pro: true },
       { href: "/dashboard/products",      icon: ShoppingBag,   label: "محصولات فیزیکی" },
       { href: "/dashboard/orders",        icon: Package,       label: "سفارش‌ها" },
-      { href: "/dashboard/appointments",  icon: CalendarCheck, label: "رزرو وقت" },
+      { href: "/dashboard/appointments",  icon: CalendarCheck, label: "نوبت‌دهی آنلاین", pro: true },
       { href: "/dashboard/flash-sale",    icon: Flame,         label: "فلش سیل",          pro: true },
       { href: "/dashboard/coupons",       icon: Tag,           label: "تخفیف‌ها" },
     ],

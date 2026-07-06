@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/commo
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { CreateServiceDto, UpdateServiceDto, UpdateBookingDto } from "./dto/service.dto";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 
 @Injectable()
 export class AppointmentsService {
@@ -19,6 +20,9 @@ export class AppointmentsService {
 
   // Services
   async createService(userId: string, dto: CreateServiceDto) {
+    // نوبت‌دهی آنلاین ویژگی پرو است
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { plan: true } });
+    if (user?.plan !== "PRO") throw new ProRequiredException();
     const shopId = await this.getShopId(userId);
     return this.serializeService(
       await this.prisma.appointmentService.create({
