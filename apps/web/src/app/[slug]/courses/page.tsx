@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { BookOpen, Loader2, PlayCircle, Lock } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import { PurchaseModal } from "../files/page";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -18,7 +17,6 @@ export default function PublicCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [buy, setBuy] = useState<Course | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -65,10 +63,10 @@ export default function PublicCoursesPage() {
                   )}
                   <div className="flex items-center justify-between pt-1 border-t border-white/5">
                     <span className="font-black text-orange-500">{c.isFree ? "رایگان" : formatPrice(Number(c.price))}</span>
-                    <button onClick={() => setBuy(c)}
+                    <a href={`/${slug}/course/${c.id}`}
                       className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-sm font-bold transition-all">
-                      {c.isFree ? "شروع دوره" : "خرید دوره"}
-                    </button>
+                      مشاهده دوره
+                    </a>
                   </div>
                 </div>
               </div>
@@ -76,8 +74,6 @@ export default function PublicCoursesPage() {
           </div>
         )}
       </div>
-
-      {buy && <PurchaseModal item={buy} shop={shop} onClose={() => setBuy(null)} />}
     </div>
   );
 }

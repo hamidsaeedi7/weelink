@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Pencil, Trash2, Loader2, BookOpen, X, PlayCircle, Users, Lock, Unlock } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, BookOpen, X, PlayCircle, Users, Lock, Unlock, ChevronDown, Upload, Video, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
 import { ShareBar } from "@/components/ShareBar";
+import { SecureVideoPlayer } from "@/components/SecureVideoPlayer";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
@@ -20,9 +21,92 @@ export default function CoursesPage() {
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<any>(null);
   const [chapters, setChapters] = useState<any[]>([]);
-  const [newChapter, setNewChapter] = useState({ title: "", videoUrl: "", isPreview: false });
+  const [newChapter, setNewChapter] = useState({ title: "", isPreview: false });
   const coverRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  // chapter video management
+  const [expandedCh, setExpandedCh] = useState<string | null>(null);
+  const [vidUploading, setVidUploading] = useState(false);
+  const [vidProgress, setVidProgress] = useState(0);
+  const [videoForm, setVideoForm] = useState<{ title: string; videoUrl: string; coverUrl: string }>({ title: "", videoUrl: "", coverUrl: "" });
+  const [wm, setWm] = useState({ watermarkText: "", watermarkColor: "#ffffff", watermarkCount: 3 });
+  const [wmSaving, setWmSaving] = useState(false);
+  const MAX_VIDEO = 1024 * 1024 * 1024; // 1GB
+
+  // آپلود با درصد پیشرفت (XHR)
+  const uploadXHR = (file: File, endpoint: string, onProgress: (p: number) => void) =>
+    new Promise<string>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API}/api/v1/${endpoint}`);
+      xhr.setRequestHeader("Authorization", auth().Authorization);
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100)); };
+      xhr.onload = () => {
+        try {
+          const d = JSON.parse(xhr.responseText || "{}");
+          if (xhr.status < 200 || xhr.status >= 300) return reject(new Error(d.message || "خطا در آپلود"));
+          resolve(d.data?.url || d.url);
+        } catch { reject(new Error("خطا در آپلود")); }
+      };
+      xhr.onerror = () => reject(new Error("خطا در آپلود"));
+      const fd = new FormData(); fd.append("file", file); xhr.send(fd);
+    });
+
+  const saveChapterVideos = async (chapterId: string, videos: any[]) => {
+    const r = await fetch(`${API}/api/v1/courses/chapters/${chapterId}`, {
+      method: "PUT", headers: { ...auth(), "Content-Type": "application/json" },
+      body: JSON.stringify({ videos }),
+    });
+    if (!r.ok) throw new Error();
+    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, videos } : c)));
+  };
+
+  const uploadChapterVideo = async (chapterId: string, file: File) => {
+    if (file.size > MAX_VIDEO) { toast.error("حجم ویدیو نباید بیشتر از ۱ گیگابایت باشد"); return; }
+    setVidUploading(true); setVidProgress(0);
+    try {
+      const url = await uploadXHR(file, "upload/video", setVidProgress);
+      setVideoForm((p) => ({ ...p, videoUrl: url, title: p.title || file.name.replace(/\.[^.]+$/, "") }));
+      toast.success("ویدیو آپلود شد");
+    } catch (e: any) { toast.error(e.message || "خطا در آپلود ویدیو"); }
+    finally { setVidUploading(false); }
+  };
+
+  const uploadVideoCover = async (file: File) => {
+    try {
+      const url = await uploadXHR(file, "upload/image", () => {});
+      setVideoForm((p) => ({ ...p, coverUrl: url }));
+    } catch { toast.error("خطا در آپلود کاور"); }
+  };
+
+  const addVideo = async (chapter: any) => {
+    if (!videoForm.title || !videoForm.videoUrl) { toast.error("عنوان و ویدیو الزامی است"); return; }
+    const videos = [...(chapter.videos || []), { ...videoForm }];
+    try {
+      await saveChapterVideos(chapter.id, videos);
+      setVideoForm({ title: "", videoUrl: "", coverUrl: "" });
+      toast.success("ویدیو اضافه شد");
+    } catch { toast.error("خطا در ذخیره ویدیو"); }
+  };
+
+  const removeVideo = async (chapter: any, idx: number) => {
+    const videos = (chapter.videos || []).filter((_: any, i: number) => i !== idx);
+    try { await saveChapterVideos(chapter.id, videos); } catch { toast.error("خطا"); }
+  };
+
+  const saveWatermark = async () => {
+    if (!selected) return;
+    setWmSaving(true);
+    try {
+      const r = await fetch(`${API}/api/v1/courses/${selected.id}`, {
+        method: "PUT", headers: { ...auth(), "Content-Type": "application/json" },
+        body: JSON.stringify({ watermarkText: wm.watermarkText, watermarkColor: wm.watermarkColor, watermarkCount: Number(wm.watermarkCount) }),
+      });
+      if (!r.ok) throw new Error();
+      toast.success("تنظیمات واترمارک ذخیره شد");
+    } catch { toast.error("خطا در ذخیره"); }
+    finally { setWmSaving(false); }
+  };
 
   // Always coerce to an array: an error response ({success:false,...}) has no
   // `data` array, and setting state to that object made `courses.map` crash the
@@ -52,7 +136,17 @@ export default function CoursesPage() {
     fetch(`${API}/api/v1/me/shop`, { headers: auth() }).then((r) => r.json())
       .then((d) => setSlug((d?.data ?? d)?.slug || "")).catch(() => {});
   }, []);
-  useEffect(() => { if (selected) loadChapters(selected.id); }, [selected]);
+  useEffect(() => {
+    if (selected) {
+      loadChapters(selected.id);
+      setWm({
+        watermarkText: selected.watermarkText || "",
+        watermarkColor: selected.watermarkColor || "#ffffff",
+        watermarkCount: selected.watermarkCount ?? 3,
+      });
+      setExpandedCh(null);
+    }
+  }, [selected]);
 
   const uploadCover = async (file: File) => {
     setUploading(true);
@@ -90,11 +184,11 @@ export default function CoursesPage() {
       const r = await fetch(`${API}/api/v1/courses/${selected.id}/chapters`, {
         method: "POST",
         headers: { ...auth(), "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newChapter, sortOrder: chapters.length }),
+        body: JSON.stringify({ ...newChapter, videos: [], sortOrder: chapters.length }),
       });
       const d = await r.json();
       setChapters((p) => [...p, d.data || d]);
-      setNewChapter({ title: "", videoUrl: "", isPreview: false });
+      setNewChapter({ title: "", isPreview: false });
       toast.success("فصل اضافه شد");
     } catch { toast.error("خطا"); }
   };
@@ -112,34 +206,97 @@ export default function CoursesPage() {
   };
 
   if (selected) return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
+    <div className="space-y-6 max-w-2xl">
+      <div className="flex items-center gap-3 flex-wrap">
         <button onClick={() => setSelected(null)} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">
           ← بازگشت
         </button>
-        <h1 className="text-xl font-black text-gray-900 dark:text-white">{selected.title}</h1>
+        <h1 className="text-xl font-black text-gray-900 dark:text-white flex-1">{selected.title}</h1>
+        {slug && <ShareBar url={`https://weeelink.ir/${slug}/course/${selected.id}`} text={selected.title} />}
       </div>
-      <div className="glass-card p-5 space-y-4">
-        <h2 className="font-bold text-gray-900 dark:text-white">فصل‌های دوره</h2>
+
+      {/* فصل‌ها (آکاردیون) */}
+      <div className="glass-card p-5 space-y-3">
+        <h2 className="font-bold text-gray-900 dark:text-white">فصل‌ها و ویدیوها</h2>
         <div className="space-y-2">
-          {chapters.map((ch, i) => (
-            <div key={ch.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
-              <span className="text-xs text-gray-400 w-5">{i + 1}</span>
-              <PlayCircle className="w-4 h-4 text-gray-400 shrink-0" />
-              <span className="flex-1 text-sm text-gray-900 dark:text-white">{ch.title}</span>
-              {ch.isPreview ? <Unlock className="w-3.5 h-3.5 text-green-500" /> : <Lock className="w-3.5 h-3.5 text-gray-400" />}
-              <button onClick={() => removeChapter(ch.id)} className="text-gray-400 hover:text-red-500">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+          {chapters.map((ch, i) => {
+            const open = expandedCh === ch.id;
+            const vids = ch.videos || [];
+            return (
+              <div key={ch.id} className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 cursor-pointer"
+                  onClick={() => { setExpandedCh(open ? null : ch.id); setVideoForm({ title: "", videoUrl: "", coverUrl: "" }); }}>
+                  <span className="text-xs text-gray-400 w-5">{i + 1}</span>
+                  <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white">{ch.title}</span>
+                  <span className="text-[10px] text-gray-400">{vids.length} ویدیو</span>
+                  {ch.isPreview ? <Unlock className="w-3.5 h-3.5 text-green-500" /> : <Lock className="w-3.5 h-3.5 text-gray-400" />}
+                  <button onClick={(e) => { e.stopPropagation(); removeChapter(ch.id); }} className="text-gray-400 hover:text-red-500">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+                </div>
+
+                {open && (
+                  <div className="p-3 space-y-3 bg-white dark:bg-transparent">
+                    {/* لیست ویدیوها با پیش‌نمایش کوچک */}
+                    {vids.map((v: any, vi: number) => (
+                      <div key={vi} className="flex gap-3 items-start p-2 rounded-lg bg-gray-50 dark:bg-white/5">
+                        <video src={v.videoUrl} poster={v.coverUrl} className="w-24 h-16 object-cover rounded-lg bg-black shrink-0" preload="metadata" muted />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 dark:text-white truncate">{v.title}</p>
+                          <a href={v.videoUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-gray-400 truncate block" dir="ltr">{v.videoUrl.split("/").pop()}</a>
+                        </div>
+                        <button onClick={() => removeVideo(ch, vi)} className="text-gray-400 hover:text-red-500 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ))}
+
+                    {/* افزودن ویدیو */}
+                    <div className="border border-dashed border-gray-200 dark:border-white/10 rounded-lg p-3 space-y-2">
+                      <input value={videoForm.title} onChange={(e) => setVideoForm((p) => ({ ...p, title: e.target.value }))}
+                        className="input-base text-sm" placeholder="عنوان ویدیو" />
+                      {videoForm.videoUrl ? (
+                        <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                          <Video className="w-3.5 h-3.5" /><span className="truncate flex-1" dir="ltr">{videoForm.videoUrl.split("/").pop()}</span>
+                          <button onClick={() => setVideoForm((p) => ({ ...p, videoUrl: "" }))} className="text-gray-400 hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ) : vidUploading ? (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-orange-500"><span>در حال آپلود…</span><span>{vidProgress}٪</span></div>
+                          <div className="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden"><div className="h-full bg-orange-500 transition-all" style={{ width: `${vidProgress}%` }} /></div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <label className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-xs text-gray-500 cursor-pointer hover:border-orange-500/40">
+                            <Upload className="w-3.5 h-3.5" /> آپلود ویدیو (تا ۱GB)
+                            <input type="file" accept="video/*" className="hidden"
+                              onChange={(e) => e.target.files?.[0] && uploadChapterVideo(ch.id, e.target.files[0])} />
+                          </label>
+                        </div>
+                      )}
+                      <input value={videoForm.videoUrl.startsWith("/uploads") ? "" : videoForm.videoUrl}
+                        onChange={(e) => setVideoForm((p) => ({ ...p, videoUrl: e.target.value }))}
+                        className="input-base text-sm" placeholder="یا لینک ویدیو (یوتیوب/آپارات)" dir="ltr" />
+                      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        {videoForm.coverUrl ? <img src={videoForm.coverUrl} alt="" className="w-10 h-7 object-cover rounded" /> : <Upload className="w-3.5 h-3.5" />}
+                        {videoForm.coverUrl ? "تغییر کاور" : "آپلود کاور ویدیو (اختیاری)"}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadVideoCover(e.target.files[0])} />
+                      </label>
+                      <button onClick={() => addVideo(ch)} className="btn-primary py-2 px-3 text-xs flex items-center gap-1.5 w-full justify-center">
+                        <Plus className="w-3.5 h-3.5" /> افزودن این ویدیو
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* افزودن فصل */}
         <div className="border border-gray-200 dark:border-white/10 rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">افزودن فصل جدید</h3>
           <input value={newChapter.title} onChange={(e) => setNewChapter((p) => ({ ...p, title: e.target.value }))}
             className="input-base" placeholder="عنوان فصل" />
-          <input value={newChapter.videoUrl} onChange={(e) => setNewChapter((p) => ({ ...p, videoUrl: e.target.value }))}
-            className="input-base" placeholder="لینک ویدیو (یوتیوب، آپارات...)" dir="ltr" />
           <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400">
             <input type="checkbox" checked={newChapter.isPreview}
               onChange={(e) => setNewChapter((p) => ({ ...p, isPreview: e.target.checked }))}
@@ -151,6 +308,45 @@ export default function CoursesPage() {
           </button>
         </div>
       </div>
+
+      {/* واترمارک (محافظت کپی‌رایت) */}
+      <div className="glass-card p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-orange-500" />
+          <h2 className="font-bold text-gray-900 dark:text-white">واترمارک محافظت کپی‌رایت</h2>
+        </div>
+        <p className="text-xs text-gray-500">متن واترمارک روی همهٔ ویدیوهای این دوره نمایش داده می‌شود (بازدارندهٔ کپی).</p>
+        <input value={wm.watermarkText} onChange={(e) => setWm((p) => ({ ...p, watermarkText: e.target.value }))}
+          className="input-base" placeholder="مثال: نام کانال یا موبایل شما" />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">رنگ</label>
+            <input type="color" value={wm.watermarkColor} onChange={(e) => setWm((p) => ({ ...p, watermarkColor: e.target.value }))}
+              className="w-full h-10 rounded-lg cursor-pointer bg-transparent border border-gray-200 dark:border-white/10" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">تعداد روی صفحه</label>
+            <input type="number" min={1} max={8} value={wm.watermarkCount}
+              onChange={(e) => setWm((p) => ({ ...p, watermarkCount: Number(e.target.value) }))} className="input-base" />
+          </div>
+        </div>
+        <button onClick={saveWatermark} disabled={wmSaving} className="btn-primary py-2 px-4 text-sm flex items-center gap-2">
+          {wmSaving && <Loader2 className="w-4 h-4 animate-spin" />} ذخیرهٔ واترمارک
+        </button>
+      </div>
+
+      {/* پیش‌نمایش امن (اولین ویدیو) */}
+      {chapters.some((c) => (c.videos || []).length) && (
+        <div className="glass-card p-5 space-y-2">
+          <h2 className="font-bold text-gray-900 dark:text-white text-sm">پیش‌نمایش پخش‌کنندهٔ امن</h2>
+          <SecureVideoPlayer
+            src={(chapters.find((c) => (c.videos || []).length)?.videos[0]?.videoUrl) || ""}
+            watermarkText={wm.watermarkText}
+            watermarkColor={wm.watermarkColor}
+            watermarkCount={wm.watermarkCount}
+          />
+        </div>
+      )}
     </div>
   );
 

@@ -36,7 +36,7 @@ const imageFilter = (_req: any, file: Express.Multer.File, cb: any) => {
 };
 
 const videoFilter = (_req: any, file: Express.Multer.File, cb: any) => {
-  const allowed = [".mp4", ".webm", ".mov", ".ogg"];
+  const allowed = [".mp4", ".webm", ".mov", ".ogg", ".mkv", ".m4v"];
   if (allowed.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
   else cb(new BadRequestException("فقط فایل‌های ویدیویی مجاز هستند"), false);
 };
@@ -69,7 +69,7 @@ export class UploadController {
   @UseInterceptors(FileInterceptor("file", {
     storage: makeStorage("videos"),
     fileFilter: videoFilter,
-    limits: { fileSize: 50 * 1024 * 1024 },
+    limits: { fileSize: 1024 * 1024 * 1024 },
   }))
   uploadVideo(@UploadedFile() file: Express.Multer.File, @CurrentUser() _u: any) {
     if (!file) throw new BadRequestException("فایلی انتخاب نشده");

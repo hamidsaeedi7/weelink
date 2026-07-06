@@ -559,6 +559,10 @@ model Course {
   isFree      Boolean  @default(false)
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
+  watermarkText  String?      // متن واترمارک روی ویدیوها (محافظت کپی‌رایت)
+  watermarkColor String?      // رنگ واترمارک
+  watermarkCount Int     @default(3) // تعداد واترمارک روی صفحه
+  showInBio      Boolean @default(false) // نمایش لینک فروش دوره داخل بلوک‌های بیو
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -575,6 +579,7 @@ model CourseChapter {
   title     String
   videoUrl  String?
   fileUrl   String?
+  videos    Json     @default("[]") // ویدیوهای نامحدود فصل: [{title, videoUrl, coverUrl}]
   sortOrder Int      @default(0)
   isPreview Boolean  @default(false)
   createdAt DateTime @default(now())

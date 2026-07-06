@@ -46,10 +46,28 @@ export class CoursesService {
     const courses = await this.prisma.course.findMany({
       where: { shopId: shop.id, isActive: true },
       orderBy: { sortOrder: "asc" },
-      select: { id: true, title: true, description: true, coverUrl: true, price: true, isFree: true,
-        chapters: { where: { isPreview: true }, select: { id: true, title: true, videoUrl: true } } },
+      select: {
+        id: true, title: true, description: true, coverUrl: true, price: true, isFree: true,
+        watermarkText: true, watermarkColor: true, watermarkCount: true,
+        chapters: {
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, title: true, isPreview: true, sortOrder: true, videos: true },
+        },
+      },
     });
-    return courses.map(this.serialize);
+    // strip video urls from non-preview chapters so paid content isn't leaked publicly
+    return courses.map((c: any) =>
+      this.serialize({
+        ...c,
+        chapters: c.chapters.map((ch: any) => ({
+          id: ch.id,
+          title: ch.title,
+          isPreview: ch.isPreview,
+          videoCount: Array.isArray(ch.videos) ? ch.videos.length : 0,
+          videos: ch.isPreview ? ch.videos : [],
+        })),
+      }),
+    );
   }
 
   async update(userId: string, id: string, dto: any) {
