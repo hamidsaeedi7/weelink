@@ -9,12 +9,13 @@ import {
 } from "lucide-react";
 import { shopsApi, uploadApi } from "@/lib/api";
 
+// فونت‌های فارسی self-hosted (فایل‌ها در public/fonts + @font-face در globals.css)
 const FONTS = [
   { value: "Vazirmatn", label: "وزیرمتن" },
-  { value: "IRANSans", label: "ایران‌سنس" },
-  { value: "Shabnam", label: "شبنم" },
-  { value: "Roboto", label: "Roboto" },
-  { value: "Poppins", label: "Poppins" },
+  { value: "Lalezar", label: "لاله‌زار" },
+  { value: "Sahel", label: "ساحل" },
+  { value: "Samim", label: "صمیم" },
+  { value: "Estedad", label: "استعداد" },
 ];
 
 const COLORS = [
@@ -38,7 +39,7 @@ const THEMES = [
   { id: "crimson",   label: "قرمز",       preview: ["#EF4444", "#1A0505"] },
 ];
 
-type Tab = "profile" | "media" | "tracking";
+type Tab = "profile" | "media" | "tracking" | "payment";
 
 export default function ShopSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -74,6 +75,9 @@ export default function ShopSettingsPage() {
         setValue("fontFamily",     data.fontFamily     || "Vazirmatn");
         setValue("gaId",           data.gaId           || "");
         setValue("metaPixel",      data.metaPixel      || "");
+        setValue("cardNumber",     data.cardNumber     || "");
+        setValue("cardHolder",     data.cardHolder     || "");
+        setValue("bankName",       data.bankName       || "");
       }
     }).finally(() => setLoading(false));
   }, [setValue]);
@@ -120,6 +124,7 @@ export default function ShopSettingsPage() {
   const TABS: { id: Tab; label: string }[] = [
     { id: "profile",  label: "پروفایل" },
     { id: "media",    label: "رسانه" },
+    { id: "payment",  label: "کارت بانکی" },
     { id: "tracking", label: "آمارگیری" },
   ];
 
@@ -413,6 +418,44 @@ export default function ShopSettingsPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ─── Tab: Payment (bank card) ──────────────────────────────────────────── */}
+      {tab === "payment" && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="glass-card p-5 space-y-4">
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">کارت بانکی (کارت‌به‌کارت)</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                این اطلاعات هنگام تسویه‌حساب محصولات فیزیکی و فروش فایل دیجیتال به خریدار نمایش داده می‌شود
+                تا بتواند کارت‌به‌کارت واریز کند.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">شماره کارت</label>
+              <input {...register("cardNumber")} inputMode="numeric" dir="ltr"
+                className="input-base font-mono tracking-widest text-left"
+                placeholder="6037-9974-xxxx-xxxx" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">نام صاحب کارت</label>
+                <input {...register("cardHolder")} className="input-base" placeholder="مثال: علی رضایی" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
+                <input {...register("bankName")} className="input-base" placeholder="مثال: بانک ملت" />
+              </div>
+            </div>
+          </div>
+          <button type="submit" disabled={saving}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
+                       bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm
+                       transition-all disabled:opacity-60 shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            ذخیره
+          </button>
+        </form>
       )}
 
       {/* ─── Tab: Tracking ─────────────────────────────────────────────────────── */}

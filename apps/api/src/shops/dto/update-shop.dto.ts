@@ -61,6 +61,35 @@ export class UpdateShopDto {
   metaPixel?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(70)
+  metaTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  metaDesc?: string;
+
+  @IsOptional()
+  @IsString()
+  ogImage?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  cardNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  cardHolder?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  bankName?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }

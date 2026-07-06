@@ -164,7 +164,7 @@ export default function DomainsPage() {
                 <DnsRecord
                   type="CNAME"
                   name={info.customDomain}
-                  value="weeelink.com"
+                  value="cname.weeelink.ir"
                 />
                 <DnsRecord
                   type="TXT"

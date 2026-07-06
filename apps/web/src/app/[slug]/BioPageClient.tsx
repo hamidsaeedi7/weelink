@@ -30,7 +30,7 @@ export function BioPageClient({ shop }: { shop: Shop }) {
         background: bg
           ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
           : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`,
-        fontFamily: shop.fontFamily === "Vazirmatn" ? "Vazirmatn, sans-serif" : shop.fontFamily,
+        fontFamily: `'${shop.fontFamily || "Vazirmatn"}', Vazirmatn, sans-serif`,
       }}
     >
       {/* Banner */}

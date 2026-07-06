@@ -133,6 +133,9 @@ model Shop {
   metaTitle    String?
   metaDesc     String?  @db.VarChar(200)
   ogImage      String?
+  cardNumber   String?  // شماره کارت برای پرداخت کارت‌به‌کارت
+  cardHolder   String?  // نام صاحب کارت
+  bankName     String?  // نام بانک
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

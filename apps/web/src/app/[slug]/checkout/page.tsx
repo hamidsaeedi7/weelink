@@ -1,13 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useParams } from "next/navigation";
-import { ShoppingCart, Tag, Loader2, Trash2, CheckCircle } from "lucide-react";
+import { ShoppingCart, Tag, Loader2, Trash2, CheckCircle, CreditCard, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart";
 import { formatPrice, toPersianNumber } from "@/lib/utils";
 import axios from "axios";
+
+// کارت‌به‌کارت فروشنده — نمایش شماره کارت با قابلیت کپی
+function BankCardBox({ card, holder, bank }: { card: string; holder?: string; bank?: string }) {
+  const copy = () => { navigator.clipboard.writeText(card.replace(/\D/g, "")); toast.success("شماره کارت کپی شد"); };
+  const pretty = card.replace(/\D/g, "").replace(/(\d{4})(?=\d)/g, "$1-");
+  return (
+    <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-4 space-y-3">
+      <div className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
+        <CreditCard className="w-4 h-4 text-orange-500" /> پرداخت کارت‌به‌کارت
+      </div>
+      <button type="button" onClick={copy}
+        className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl
+                   bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/10
+                   hover:border-orange-500/40 transition-all group">
+        <span className="font-mono text-base tracking-widest text-gray-900 dark:text-white" dir="ltr">{pretty}</span>
+        <Copy className="w-4 h-4 text-gray-400 group-hover:text-orange-500 shrink-0" />
+      </button>
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        {holder && <span>به نام: <span className="text-gray-700 dark:text-gray-300 font-medium">{holder}</span></span>}
+        {bank && <span>{bank}</span>}
+      </div>
+      <p className="text-[11px] text-gray-400">
+        پس از واریز، رسید را از طریق راه‌های ارتباطی فروشنده ارسال کنید.
+      </p>
+    </div>
+  );
+}
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -24,7 +51,14 @@ export default function CheckoutPage() {
   const slug = params.slug as string;
 
   const { items, clear, total, remove, update, shopSlug } = useCart();
+  const [shopBank, setShopBank] = useState<{ cardNumber?: string; cardHolder?: string; bankName?: string } | null>(null);
   const [coupon, setCoupon] = useState("");
+
+  useEffect(() => {
+    axios.get(`${API}/api/v1/shops/${slug}`)
+      .then((r) => { const s = r.data?.data || r.data; setShopBank({ cardNumber: s?.cardNumber, cardHolder: s?.cardHolder, bankName: s?.bankName }); })
+      .catch(() => {});
+  }, [slug]);
   const [couponResult, setCouponResult] = useState<any>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -227,12 +261,17 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* پرداخت کارت‌به‌کارت فروشنده (در صورت تنظیم) */}
+          {shopBank?.cardNumber && (
+            <BankCardBox card={shopBank.cardNumber} holder={shopBank.cardHolder} bank={shopBank.bankName} />
+          )}
+
           <button type="submit" disabled={submitting}
             className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl
                        bg-orange-500 hover:bg-orange-400 text-white font-black text-base
                        transition-all disabled:opacity-60 shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            {submitting ? "در حال پردازش..." : `پرداخت ${formatPrice(finalTotal)}`}
+            {submitting ? "در حال پردازش..." : `پرداخت آنلاین ${formatPrice(finalTotal)}`}
           </button>
         </form>
       </div>
