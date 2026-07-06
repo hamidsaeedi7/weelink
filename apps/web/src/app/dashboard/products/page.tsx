@@ -246,9 +246,12 @@ export default function ProductsPage() {
                 {/* دسته محصول (اجباری) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">دسته محصول *</label>
-                  <select {...register("category", { required: true })} className="input-base">
-                    <option value="">انتخاب دسته...</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <select {...register("category", { required: true })}
+                    className="input-base bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                    <option value="" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">انتخاب دسته...</option>
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c} className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{c}</option>
+                    ))}
                   </select>
                 </div>
 

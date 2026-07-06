@@ -5,6 +5,7 @@ import { Plus, Trash2, Loader2, Zap, X, Clock, ToggleLeft, ToggleRight, Upload }
 import { toast } from "sonner";
 import { formatPrice, toPersianNumber } from "@/lib/utils";
 import { uploadApi } from "@/lib/api";
+import { JalaliDatePicker } from "@/components/JalaliDatePicker";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
@@ -59,9 +60,13 @@ export default function FlashSalePage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<any>(EMPTY);
+  const [endsDate, setEndsDate] = useState("");   // ISO yyyy-mm-dd (شمسی از پیکر)
+  const [endsTime, setEndsTime] = useState("23:59"); // ساعت ۲۴ساعته
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const imageRef = useRef<HTMLInputElement>(null);
+
+  const resetForm = () => { setForm(EMPTY); setEndsDate(""); setEndsTime("23:59"); };
 
   const load = async () => {
     try {
@@ -76,19 +81,20 @@ export default function FlashSalePage() {
 
   const save = async () => {
     if (!form.title) { toast.error("عنوان الزامی است"); return; }
-    if (!form.endsAt) { toast.error("تاریخ پایان الزامی است"); return; }
+    if (!endsDate) { toast.error("تاریخ پایان را انتخاب کنید"); return; }
     if (!form.salePrice || !form.originalPrice) { toast.error("قیمت‌ها الزامی هستند"); return; }
+    const endsAt = new Date(`${endsDate}T${endsTime || "23:59"}:00`).toISOString();
     setSaving(true);
     try {
       const r = await fetch(`${API}/api/v1/flash-sales`, {
         method: "POST",
         headers: { ...auth(), "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, endsAt }),
       });
       if (!r.ok) throw new Error();
       toast.success("فلش سیل ایجاد شد");
       setShowForm(false);
-      setForm(EMPTY);
+      resetForm();
       load();
     } catch { toast.error("خطا در ذخیره"); }
     finally { setSaving(false); }
@@ -119,7 +125,6 @@ export default function FlashSalePage() {
     finally { setImageUploading(false); }
   };
 
-  const minDateTime = new Date(Date.now() + 60000).toISOString().slice(0, 16);
 
   return (
     <div className="space-y-6">
@@ -131,7 +136,7 @@ export default function FlashSalePage() {
           </h1>
           <p className="text-sm text-gray-500">فروش ویژه با تایمر شمارش معکوس</p>
         </div>
-        <button onClick={() => { setForm(EMPTY); setShowForm(true); }}
+        <button onClick={() => { resetForm(); setShowForm(true); }}
           className="btn-primary flex items-center gap-2 py-2.5 px-4">
           <Plus className="w-4 h-4" /> فلش سیل جدید
         </button>
@@ -144,7 +149,7 @@ export default function FlashSalePage() {
           <Zap className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
           <p className="text-gray-500">هنوز فلش سیلی تنظیم نکرده‌اید</p>
           <p className="text-xs text-gray-400">فلش سیل در صفحه بیوی شما با تایمر شمارش معکوس نمایش داده می‌شود</p>
-          <button onClick={() => { setForm(EMPTY); setShowForm(true); }}
+          <button onClick={() => { resetForm(); setShowForm(true); }}
             className="btn-primary py-2 px-4 text-sm mx-auto flex items-center gap-2 w-fit">
             <Plus className="w-4 h-4" /> اولین فلش سیل را بسازید
           </button>
@@ -251,9 +256,12 @@ export default function FlashSalePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">پایان فروش *</label>
-                <input type="datetime-local" value={form.endsAt} min={minDateTime}
-                  onChange={(e) => setForm((p: any) => ({ ...p, endsAt: e.target.value }))}
-                  className="input-base" dir="ltr" />
+                <div className="grid grid-cols-2 gap-2">
+                  <JalaliDatePicker value={endsDate} onChange={setEndsDate} placeholder="تاریخ (شمسی)" minToday />
+                  <input type="time" value={endsTime} onChange={(e) => setEndsTime(e.target.value)}
+                    className="input-base text-center" dir="ltr" step={60} />
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">تاریخ را از تقویم شمسی و ساعت را به‌صورت ۲۴ساعته انتخاب کنید</p>
               </div>
 
               <div>

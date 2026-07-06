@@ -22,6 +22,7 @@ import { blocksApi, shopsApi } from "@/lib/api";
 import { SortableBlock } from "@/components/blocks/SortableBlock";
 import { AddBlockModal } from "@/components/blocks/AddBlockModal";
 import { BlockEditPanel } from "@/components/blocks/BlockEditPanel";
+import { ShareBar } from "@/components/ShareBar";
 import type { BlockType } from "@/components/blocks/block-types";
 
 export default function BlocksPage() {
@@ -140,19 +141,22 @@ export default function BlocksPage() {
             {saving && <span className="text-orange-400 mr-2">• در حال ذخیره...</span>}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {slug && (
-            <a
-              href={`/${slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
-                         border border-gray-200 dark:border-white/10
-                         text-gray-600 dark:text-gray-400 hover:border-orange-500/50
-                         hover:text-orange-500 transition-all">
-              <Eye className="w-4 h-4" />
-              پیش‌نمایش
-            </a>
+            <>
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
+                           border border-gray-200 dark:border-white/10
+                           text-gray-600 dark:text-gray-400 hover:border-orange-500/50
+                           hover:text-orange-500 transition-all">
+                <Eye className="w-4 h-4" />
+                پیش‌نمایش
+              </a>
+              <ShareBar url={`https://weeelink.ir/${slug}`} />
+            </>
           )}
           <button
             onClick={() => setShowAdd(true)}

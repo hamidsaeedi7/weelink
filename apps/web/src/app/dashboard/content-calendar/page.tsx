@@ -92,7 +92,11 @@ const headers = () => ({ "Content-Type": "application/json", Authorization: `Bea
 async function apiFetch(url: string, opts?: RequestInit) {
   const r = await fetch(url, { ...opts, headers: headers() });
   if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  if (r.status === 204) return null;
+  // API wraps responses as { success, data, timestamp } — unwrap to the payload
+  // so callers get the array/object directly (otherwise plans.filter crashed).
+  const j = await r.json();
+  return j && typeof j === "object" && "data" in j ? j.data : j;
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -112,7 +116,7 @@ export default function ContentCalendarPage() {
     setLoading(true);
     try {
       const data = await apiFetch(`${API}?year=${jy}&month=${jm}&view=${view}`);
-      setPlans(data);
+      setPlans(Array.isArray(data) ? data : []);
     } catch { setPlans([]); }
     setLoading(false);
   }, [jy, jm, view]);
