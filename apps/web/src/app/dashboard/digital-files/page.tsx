@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Pencil, Trash2, Loader2, FileDown, X, Download, Eye, EyeOff, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, FileDown, X, Download, ToggleLeft, ToggleRight } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
+import { ShareBar } from "@/components/ShareBar";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
@@ -21,8 +22,13 @@ export default function DigitalFilesPage() {
   const [form, setForm] = useState<any>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"file" | "cover" | null>(null);
+  const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE = 500 * 1024 * 1024; // 500MB
+
+  const [slug, setSlug] = useState("");
 
   const load = async () => {
     try {
@@ -33,30 +39,48 @@ export default function DigitalFilesPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    fetch(`${API}/api/v1/me/shop`, { headers: auth() }).then((r) => r.json())
+      .then((d) => setSlug((d?.data ?? d)?.slug || "")).catch(() => {});
+  }, []);
 
   const openNew = () => { setForm(EMPTY); setEditing(null); setShowForm(true); };
   const openEdit = (f: any) => { setForm({ ...f }); setEditing(f); setShowForm(true); };
 
-  const uploadFile = async (file: File, type: "file" | "cover") => {
+  const uploadFile = (file: File, type: "file" | "cover") => {
+    if (type === "file" && file.size > MAX_FILE) {
+      toast.error("حجم فایل نباید بیشتر از ۵۰۰ مگابایت باشد");
+      return;
+    }
     setUploading(type);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      // main file → /upload/file (archives/docs/media); cover → /upload/image
-      const endpoint = type === "file" ? "upload/file" : "upload/image";
-      const r = await fetch(`${API}/api/v1/${endpoint}`, { method: "POST", headers: auth(), body: fd });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.message || "خطا در آپلود");
-      const url = d.data?.url || d.url;
-      if (type === "file") {
-        setForm((p: any) => ({ ...p, fileUrl: url, fileName: d.data?.originalName || file.name }));
-      } else {
-        setForm((p: any) => ({ ...p, coverUrl: url }));
-      }
-      toast.success("آپلود شد");
-    } catch (e: any) { toast.error(e.message || "خطا در آپلود"); }
-    finally { setUploading(null); }
+    setProgress(0);
+    // XHR (not fetch) so we can report real upload progress %
+    const endpoint = type === "file" ? "upload/file" : "upload/image";
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API}/api/v1/${endpoint}`);
+    xhr.setRequestHeader("Authorization", auth().Authorization);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      setUploading(null);
+      try {
+        const d = JSON.parse(xhr.responseText || "{}");
+        if (xhr.status < 200 || xhr.status >= 300) throw new Error(d.message || "خطا در آپلود");
+        const url = d.data?.url || d.url;
+        if (type === "file") {
+          setForm((p: any) => ({ ...p, fileUrl: url, fileName: d.data?.originalName || file.name }));
+        } else {
+          setForm((p: any) => ({ ...p, coverUrl: url }));
+        }
+        toast.success("آپلود شد");
+      } catch (e: any) { toast.error(e.message || "خطا در آپلود"); }
+    };
+    xhr.onerror = () => { setUploading(null); toast.error("خطا در آپلود — دوباره تلاش کنید"); };
+    const fd = new FormData();
+    fd.append("file", file);
+    xhr.send(fd);
   };
 
   const save = async () => {
@@ -112,11 +136,14 @@ export default function DigitalFilesPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-black text-gray-900 dark:text-white">فروش فایل دیجیتال</h1>
-          <p className="text-sm text-gray-500">PDF، موسیقی، عکس، قالب — دانلود خودکار پس از پرداخت</p>
+          <p className="text-sm text-gray-500">لینک فروش را برای مشتری بفرستید یا در بیو نمایش دهید</p>
         </div>
-        <button onClick={openNew} className="btn-primary flex items-center gap-2 py-2.5 px-4">
-          <Plus className="w-4 h-4" /> افزودن فایل
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {slug && <ShareBar url={`https://weeelink.ir/${slug}/files`} text="فایل‌های دیجیتال من" />}
+          <button onClick={openNew} className="btn-primary flex items-center gap-2 py-2.5 px-4">
+            <Plus className="w-4 h-4" /> افزودن فایل
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -198,15 +225,25 @@ export default function DigitalFilesPage() {
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                ) : uploading === "file" ? (
+                  <div className="w-full border-2 border-dashed border-orange-500/40 rounded-xl p-6 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-orange-500 font-bold">
+                      <span>در حال آپلود...</span>
+                      <span>{progress}٪</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                      <div className="h-full bg-orange-500 transition-all duration-200" style={{ width: `${progress}%` }} />
+                    </div>
+                  </div>
                 ) : (
                   <button onClick={() => fileRef.current?.click()}
                     className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-6 text-center text-sm text-gray-400 hover:border-orange-500/50 transition-colors">
-                    {uploading === "file" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "کلیک کنید تا فایل آپلود کنید"}
+                    کلیک کنید تا فایل آپلود کنید
                   </button>
                 )}
                 <input ref={fileRef} type="file" accept={FILE_ACCEPT} className="hidden"
                   onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], "file")} />
-                <p className="mt-1.5 text-[10px] text-gray-400">فرمت‌های مجاز: zip, rar, pdf, ai, figma, mp3, jpeg, excel, word, powerpoint</p>
+                <p className="mt-1.5 text-[10px] text-gray-400">فرمت‌های مجاز: zip, rar, pdf, ai, figma, mp3, jpeg, excel, word, powerpoint — حداکثر ۵۰۰ مگابایت</p>
               </div>
 
               <div>

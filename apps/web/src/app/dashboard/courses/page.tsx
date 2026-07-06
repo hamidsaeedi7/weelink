@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2, Loader2, BookOpen, X, PlayCircle, Users, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
+import { ShareBar } from "@/components/ShareBar";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
@@ -45,7 +46,12 @@ export default function CoursesPage() {
     } catch { setChapters([]); }
   };
 
-  useEffect(() => { load(); }, []);
+  const [slug, setSlug] = useState("");
+  useEffect(() => {
+    load();
+    fetch(`${API}/api/v1/me/shop`, { headers: auth() }).then((r) => r.json())
+      .then((d) => setSlug((d?.data ?? d)?.slug || "")).catch(() => {});
+  }, []);
   useEffect(() => { if (selected) loadChapters(selected.id); }, [selected]);
 
   const uploadCover = async (file: File) => {
@@ -155,10 +161,13 @@ export default function CoursesPage() {
           <h1 className="text-xl font-black text-gray-900 dark:text-white">دوره‌های آموزشی</h1>
           <p className="text-sm text-gray-500">دوره‌های آموزشی خود را بفروشید با دسترسی قفل‌شده</p>
         </div>
-        <button onClick={() => { setForm(EMPTY); setEditing(null); setShowForm(true); }}
-          className="btn-primary flex items-center gap-2 py-2.5 px-4">
-          <Plus className="w-4 h-4" /> دوره جدید
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {slug && <ShareBar url={`https://weeelink.ir/${slug}/courses`} text="دوره‌های آموزشی من" />}
+          <button onClick={() => { setForm(EMPTY); setEditing(null); setShowForm(true); }}
+            className="btn-primary flex items-center gap-2 py-2.5 px-4">
+            <Plus className="w-4 h-4" /> دوره جدید
+          </button>
+        </div>
       </div>
 
       {loading ? (

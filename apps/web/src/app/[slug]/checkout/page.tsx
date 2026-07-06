@@ -9,22 +9,35 @@ import { useCart } from "@/store/cart";
 import { formatPrice, toPersianNumber } from "@/lib/utils";
 import axios from "axios";
 
-// کارت‌به‌کارت فروشنده — نمایش شماره کارت با قابلیت کپی
-function BankCardBox({ card, holder, bank }: { card: string; holder?: string; bank?: string }) {
-  const copy = () => { navigator.clipboard.writeText(card.replace(/\D/g, "")); toast.success("شماره کارت کپی شد"); };
+// کارت‌به‌کارت فروشنده — شماره کارت و مبلغ، هر دو قابل کپی
+function BankCardBox({ card, holder, bank, amount }: { card: string; holder?: string; bank?: string; amount?: number }) {
+  const copyCard = () => { navigator.clipboard.writeText(card.replace(/\D/g, "")); toast.success("شماره کارت کپی شد"); };
+  const copyAmount = () => { navigator.clipboard.writeText(String(amount ?? 0)); toast.success("مبلغ کپی شد"); };
   const pretty = card.replace(/\D/g, "").replace(/(\d{4})(?=\d)/g, "$1-");
   return (
     <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-4 space-y-3">
       <div className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
         <CreditCard className="w-4 h-4 text-orange-500" /> پرداخت کارت‌به‌کارت
       </div>
-      <button type="button" onClick={copy}
+      <button type="button" onClick={copyCard}
         className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl
                    bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/10
                    hover:border-orange-500/40 transition-all group">
         <span className="font-mono text-base tracking-widest text-gray-900 dark:text-white" dir="ltr">{pretty}</span>
         <Copy className="w-4 h-4 text-gray-400 group-hover:text-orange-500 shrink-0" />
       </button>
+      {amount !== undefined && (
+        <button type="button" onClick={copyAmount}
+          className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl
+                     bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/10
+                     hover:border-orange-500/40 transition-all group">
+          <span className="text-xs text-gray-500">مبلغ قابل پرداخت</span>
+          <span className="flex items-center gap-2">
+            <span className="font-bold text-orange-500">{formatPrice(amount)}</span>
+            <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-orange-500 shrink-0" />
+          </span>
+        </button>
+      )}
       <div className="flex items-center justify-between text-xs text-gray-500">
         {holder && <span>به نام: <span className="text-gray-700 dark:text-gray-300 font-medium">{holder}</span></span>}
         {bank && <span>{bank}</span>}
@@ -263,7 +276,7 @@ export default function CheckoutPage() {
 
           {/* پرداخت کارت‌به‌کارت فروشنده (در صورت تنظیم) */}
           {shopBank?.cardNumber && (
-            <BankCardBox card={shopBank.cardNumber} holder={shopBank.cardHolder} bank={shopBank.bankName} />
+            <BankCardBox card={shopBank.cardNumber} holder={shopBank.cardHolder} bank={shopBank.bankName} amount={finalTotal} />
           )}
 
           <button type="submit" disabled={submitting}

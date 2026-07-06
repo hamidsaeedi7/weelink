@@ -17,7 +17,7 @@ export interface BlockDef {
 export interface FieldDef {
   key: string;
   label: string;
-  type: "text" | "url" | "textarea" | "select" | "image" | "emoji" | "platform";
+  type: "text" | "url" | "textarea" | "select" | "image" | "emoji" | "platform" | "jdatetime";
   placeholder?: string;
   required?: boolean;
   hint?: string;
@@ -237,7 +237,7 @@ export const BLOCK_TYPES: BlockDef[] = [
     fields: [
       { key: "label", label: "عنوان فروش ویژه", type: "text", placeholder: "حراج ویژه", required: true },
       { key: "data.discount", label: "درصد تخفیف", type: "text", placeholder: "۳۰" },
-      { key: "data.endDate", label: "تاریخ پایان (ISO)", type: "text", placeholder: "2026-12-31T23:59:00" },
+      { key: "data.endDate", label: "تاریخ و ساعت پایان", type: "jdatetime" },
       { key: "data.description", label: "توضیح کوتاه", type: "text", placeholder: "فقط تا آخر هفته!" },
     ],
   },

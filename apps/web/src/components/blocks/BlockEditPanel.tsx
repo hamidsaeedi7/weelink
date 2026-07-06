@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { X, Upload, Loader2, Clock } from "lucide-react";
 import { getBlockDef, type BlockType, type FieldDef } from "./block-types";
 import { BrandLogo } from "./brand-icons";
+import { JalaliDateTime } from "../JalaliDatePicker";
 import { uploadApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -112,7 +113,13 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                 {field.required && <span className="text-red-400 mr-1">*</span>}
               </label>
 
-              {field.type === "platform" ? (
+              {field.type === "jdatetime" ? (
+                <JalaliDateTime
+                  value={getValue(field.key)}
+                  onChange={(iso) => setValue(field.key, iso)}
+                  minToday
+                />
+              ) : field.type === "platform" ? (
                 <div className="grid grid-cols-3 gap-2">
                   {field.options?.map((o) => {
                     const selected = getValue(field.key) === o.value;

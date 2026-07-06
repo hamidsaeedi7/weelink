@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 export class CreateDigitalFileDto {
   @IsString()
@@ -10,11 +10,12 @@ export class CreateDigitalFileDto {
   @MaxLength(2000)
   description?: string;
 
-  @IsUrl()
+  // relative upload path (e.g. /uploads/files/..) — @IsUrl rejected these → 400
+  @IsString()
   fileUrl: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   coverUrl?: string;
 
   @IsOptional()
@@ -48,11 +49,11 @@ export class UpdateDigitalFileDto {
   description?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   fileUrl?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   coverUrl?: string;
 
   @IsOptional()

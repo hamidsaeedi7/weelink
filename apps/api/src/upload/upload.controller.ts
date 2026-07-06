@@ -80,7 +80,7 @@ export class UploadController {
   @UseInterceptors(FileInterceptor("file", {
     storage: makeStorage("files"),
     fileFilter: digitalFileFilter,
-    limits: { fileSize: 100 * 1024 * 1024 },
+    limits: { fileSize: 500 * 1024 * 1024 },
   }))
   uploadFile(@UploadedFile() file: Express.Multer.File, @CurrentUser() _u: any) {
     if (!file) throw new BadRequestException("فایلی انتخاب نشده");

@@ -1,8 +1,99 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap } from "lucide-react";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+function unwrap(d: any) { return Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []; }
+
+// نوار فروشگاه: اگر شاپ محصول/فایل/دوره داشته باشد، لینک عمومی‌شان نمایش داده می‌شود
+function StorefrontLinks({ slug, primary }: { slug: string; primary: string }) {
+  const [state, setState] = useState({ products: 0, files: 0, courses: 0 });
+  useEffect(() => {
+    (async () => {
+      const [p, f, c] = await Promise.all([
+        fetch(`${API}/api/v1/shops/${slug}/products`).then((r) => r.json()).catch(() => []),
+        fetch(`${API}/api/v1/shops/${slug}/digital-files`).then((r) => r.json()).catch(() => []),
+        fetch(`${API}/api/v1/shops/${slug}/courses`).then((r) => r.json()).catch(() => []),
+      ]);
+      setState({ products: unwrap(p).length, files: unwrap(f).length, courses: unwrap(c).length });
+    })();
+  }, [slug]);
+
+  const links = [
+    state.products > 0 && { href: `/${slug}/shop`, icon: ShoppingBag, label: "فروشگاه محصولات" },
+    state.files > 0 && { href: `/${slug}/files`, icon: FileDown, label: "فایل‌های دیجیتال" },
+    state.courses > 0 && { href: `/${slug}/courses`, icon: BookOpen, label: "دوره‌های آموزشی" },
+  ].filter(Boolean) as { href: string; icon: any; label: string }[];
+
+  if (!links.length) return null;
+  return (
+    <div className="space-y-2.5 mb-3">
+      {links.map((l) => (
+        <a key={l.href} href={l.href}
+          className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-white/10
+                     hover:bg-white/10 transition-all active:scale-[0.98]"
+          style={{ borderColor: `${primary}30` }}>
+          <l.icon className="w-5 h-5 shrink-0" style={{ color: primary }} />
+          <span className="flex-1 text-sm font-medium text-white">{l.label}</span>
+          <ExternalLink className="w-4 h-4 text-white/30 shrink-0" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// نوار فلش‌سیل فعال (از رکوردهای داشبورد فلش‌سیل)
+function FlashSaleStrip({ slug, primary }: { slug: string; primary: string }) {
+  const [sales, setSales] = useState<any[]>([]);
+  useEffect(() => {
+    fetch(`${API}/api/v1/flash-sales/public/${slug}`).then((r) => r.json()).then((d) => setSales(unwrap(d))).catch(() => {});
+  }, [slug]);
+  const active = sales.filter((s) => s.isActive !== false && new Date(s.endsAt) > new Date());
+  if (!active.length) return null;
+  return (
+    <div className="space-y-2.5 mb-3">
+      {active.map((s) => <FlashCard key={s.id} sale={s} primary={primary} />)}
+    </div>
+  );
+}
+
+function FlashCard({ sale, primary }: { sale: any; primary: string }) {
+  const [left, setLeft] = useState(0);
+  useEffect(() => {
+    const tick = () => setLeft(Math.max(0, new Date(sale.endsAt).getTime() - Date.now()));
+    tick(); const id = setInterval(tick, 1000); return () => clearInterval(id);
+  }, [sale.endsAt]);
+  if (left <= 0) return null;
+  const s = Math.floor(left / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const disc = sale.originalPrice && sale.salePrice
+    ? Math.round((1 - Number(sale.salePrice) / Number(sale.originalPrice)) * 100) : 0;
+  return (
+    <div className="w-full px-4 py-3.5 rounded-2xl border text-center space-y-2"
+      style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.05))", borderColor: "rgba(239,68,68,0.3)" }}>
+      <div className="flex items-center justify-center gap-2">
+        <Zap className="w-4 h-4 text-red-400" />
+        <span className="text-sm font-bold text-white">{sale.title}</span>
+        {disc > 0 && <span className="px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white">{disc}٪ تخفیف</span>}
+      </div>
+      {sale.salePrice && (
+        <div className="flex items-center justify-center gap-2 text-sm">
+          <span className="text-white/40 line-through">{Number(sale.originalPrice).toLocaleString("fa-IR")}</span>
+          <span className="font-black" style={{ color: primary }}>{Number(sale.salePrice).toLocaleString("fa-IR")} تومان</span>
+        </div>
+      )}
+      <div className="flex items-center justify-center gap-1.5 text-white/80 text-sm font-mono">
+        <span className="px-2 py-1 rounded-lg bg-white/10 font-black">{pad(h)}</span>:
+        <span className="px-2 py-1 rounded-lg bg-white/10 font-black">{pad(m)}</span>:
+        <span className="px-2 py-1 rounded-lg bg-white/10 font-black">{pad(sec)}</span>
+      </div>
+    </div>
+  );
+}
 
 interface Shop {
   id: string;
@@ -70,6 +161,10 @@ export function BioPageClient({ shop }: { shop: Shop }) {
             </p>
           )}
         </div>
+
+        {/* فلش‌سیل فعال + لینک فروشگاه/فایل/دوره */}
+        <FlashSaleStrip slug={shop.slug} primary={primary} />
+        <StorefrontLinks slug={shop.slug} primary={primary} />
 
         {/* Blocks */}
         <div className="space-y-2.5">
