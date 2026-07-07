@@ -77,17 +77,17 @@ export class UpdateShopDto {
   @IsOptional()
   @IsString()
   @MaxLength(30)
-  cardNumber?: string;
+  settlementSheba?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(60)
-  cardHolder?: string;
+  settlementHolder?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(40)
-  bankName?: string;
+  settlementBankName?: string;
 
   @IsOptional()
   @IsString()

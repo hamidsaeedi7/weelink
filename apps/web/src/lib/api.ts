@@ -87,6 +87,16 @@ export const shopsApi = {
   checkSlug: (slug: string) => api.get(`/shops/check-slug?slug=${slug}`),
 };
 
+// ─── Bank cards (card-to-card, up to 4 per shop) ──────────────────────────────
+export const bankCardsApi = {
+  list: () => api.get("/me/shop/bank-cards"),
+  create: (data: { cardNumber: string; cardHolder: string; bankName: string }) =>
+    api.post("/me/shop/bank-cards", data),
+  update: (id: string, data: Record<string, any>) => api.put(`/me/shop/bank-cards/${id}`, data),
+  remove: (id: string) => api.delete(`/me/shop/bank-cards/${id}`),
+  activate: (id: string) => api.post(`/me/shop/bank-cards/${id}/activate`),
+};
+
 // ─── Blocks ──────────────────────────────────────────────────────────────────
 export const blocksApi = {
   getAll: () => api.get("/blocks"),

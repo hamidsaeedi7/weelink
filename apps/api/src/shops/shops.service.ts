@@ -7,7 +7,10 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
+import { CreateBankCardDto, UpdateBankCardDto } from "./dto/bank-card.dto";
 import { ProRequiredException } from "../common/exceptions/pro-required.exception";
+
+const MAX_BANK_CARDS = 4;
 
 @Injectable()
 export class ShopsService {
@@ -33,13 +36,22 @@ export class ShopsService {
           where: { isActive: true },
           orderBy: { sortOrder: "asc" },
         },
+        bankCards: { where: { isActive: true }, take: 1 },
         user: { select: { plan: true } },
       },
     });
     if (!shop || !shop.isActive) throw new NotFoundException("صفحه بیو یافت نشد");
     // Expose only the owner's plan (drives the free "Made with Weelink" badge)
-    const { user, ...rest } = shop as any;
-    return { ...rest, ownerPlan: user?.plan ?? "FREE" };
+    const { user, bankCards, ...rest } = shop as any;
+    const activeCard = bankCards?.[0];
+    return {
+      ...rest,
+      ownerPlan: user?.plan ?? "FREE",
+      // Flattened for backward compat with checkout/booking/PurchaseModal
+      cardNumber: activeCard?.cardNumber ?? null,
+      cardHolder: activeCard?.cardHolder ?? null,
+      bankName: activeCard?.bankName ?? null,
+    };
   }
 
   async findByUser(userId: string) {
@@ -47,6 +59,7 @@ export class ShopsService {
       where: { userId },
       include: {
         blocks: { orderBy: { sortOrder: "asc" } },
+        bankCards: { orderBy: { sortOrder: "asc" } },
         _count: { select: { products: true, orders: true } },
       },
     });
@@ -73,9 +86,62 @@ export class ShopsService {
       data: { userId, name: "صفحه من", slug },
       include: {
         blocks: { orderBy: { sortOrder: "asc" } },
+        bankCards: { orderBy: { sortOrder: "asc" } },
         _count: { select: { products: true, orders: true } },
       },
     });
+  }
+
+  async listBankCards(userId: string) {
+    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+    if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    return this.prisma.bankCard.findMany({ where: { shopId: shop.id }, orderBy: { sortOrder: "asc" } });
+  }
+
+  async createBankCard(userId: string, dto: CreateBankCardDto) {
+    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+    if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    const count = await this.prisma.bankCard.count({ where: { shopId: shop.id } });
+    if (count >= MAX_BANK_CARDS) throw new ConflictException("حداکثر ۴ کارت بانکی می‌توانید ثبت کنید");
+    return this.prisma.bankCard.create({
+      data: { shopId: shop.id, ...dto, isActive: count === 0, sortOrder: count },
+    });
+  }
+
+  async updateBankCard(userId: string, cardId: string, dto: UpdateBankCardDto) {
+    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+    if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    const card = await this.prisma.bankCard.findUnique({ where: { id: cardId } });
+    if (!card || card.shopId !== shop.id) throw new NotFoundException("کارت یافت نشد");
+    return this.prisma.bankCard.update({ where: { id: cardId }, data: dto });
+  }
+
+  async deleteBankCard(userId: string, cardId: string) {
+    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+    if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    const card = await this.prisma.bankCard.findUnique({ where: { id: cardId } });
+    if (!card || card.shopId !== shop.id) throw new NotFoundException("کارت یافت نشد");
+    await this.prisma.bankCard.delete({ where: { id: cardId } });
+    if (card.isActive) {
+      const next = await this.prisma.bankCard.findFirst({
+        where: { shopId: shop.id },
+        orderBy: { sortOrder: "asc" },
+      });
+      if (next) await this.prisma.bankCard.update({ where: { id: next.id }, data: { isActive: true } });
+    }
+    return { success: true };
+  }
+
+  async activateBankCard(userId: string, cardId: string) {
+    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+    if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    const card = await this.prisma.bankCard.findUnique({ where: { id: cardId } });
+    if (!card || card.shopId !== shop.id) throw new NotFoundException("کارت یافت نشد");
+    await this.prisma.$transaction([
+      this.prisma.bankCard.updateMany({ where: { shopId: shop.id, isActive: true }, data: { isActive: false } }),
+      this.prisma.bankCard.update({ where: { id: cardId }, data: { isActive: true } }),
+    ]);
+    return { success: true };
   }
 
   async update(userId: string, dto: UpdateShopDto) {

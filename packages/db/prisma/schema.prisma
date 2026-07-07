@@ -133,17 +133,18 @@ model Shop {
   metaTitle    String?
   metaDesc     String?  @db.VarChar(200)
   ogImage      String?
-  cardNumber   String?  // شماره کارت برای پرداخت کارت‌به‌کارت
-  cardHolder   String?  // نام صاحب کارت
-  bankName     String?  // نام بانک
   deliveryType    String?  // راه ارتباطی تحویل: telegram/bale/rubika/eitaa/whatsapp
   deliveryContact String?  // یوزرنیم یا لینک راه ارتباطی
   deliveryNote    String?  // توضیح تحویل به مشتری
+  settlementSheba     String?  // شماره شبا برای تسویه‌حساب هفتگی
+  settlementHolder    String?  // نام صاحب حساب شبا
+  settlementBankName  String?  // نام بانک شبا
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankCards        BankCard[]
   blocks           Block[]
   products         Product[]
   orders           Order[]
@@ -161,6 +162,24 @@ model Shop {
 
   @@index([slug])
   @@index([userId])
+}
+
+// ─── BankCard (up to 4 per shop, one active for card-to-card checkout) ───────
+
+model BankCard {
+  id         String   @id @default(uuid())
+  shopId     String
+  cardNumber String
+  cardHolder String
+  bankName   String
+  isActive   Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
 }
 
 // ─── Block ───────────────────────────────────────────────────────────────────

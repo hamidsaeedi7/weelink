@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Upload, Loader2, Camera, ExternalLink, Palette, Video,
-  BarChart3, X, Image as ImageIcon, Check,
+  BarChart3, X, Image as ImageIcon, Check, Plus, Landmark,
 } from "lucide-react";
-import { shopsApi, uploadApi } from "@/lib/api";
+import { shopsApi, bankCardsApi, uploadApi } from "@/lib/api";
 
 // فونت‌های فارسی self-hosted (فایل‌ها در public/fonts + @font-face در globals.css)
 const FONTS = [
@@ -39,7 +39,7 @@ const THEMES = [
   { id: "crimson",   label: "قرمز",       preview: ["#EF4444", "#1A0505"] },
 ];
 
-type Tab = "profile" | "media" | "tracking" | "payment";
+type Tab = "profile" | "media" | "tracking" | "payment" | "settlement";
 
 export default function ShopSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -51,6 +51,11 @@ export default function ShopSettingsPage() {
   const [bannerUploading, setBannerUploading] = useState(false);
   const [avatarVideoUploading, setAvatarVideoUploading] = useState(false);
   const [bgVideoUploading, setBgVideoUploading] = useState(false);
+
+  const [bankCards, setBankCards] = useState<any[]>([]);
+  const [addingCard, setAddingCard] = useState(false);
+  const [newCard, setNewCard] = useState({ cardNumber: "", cardHolder: "", bankName: "" });
+  const [cardSaving, setCardSaving] = useState(false);
 
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -65,6 +70,7 @@ export default function ShopSettingsPage() {
   useEffect(() => {
     shopsApi.getMine().then((data: any) => {
       setShop(data);
+      setBankCards(data?.bankCards || []);
       if (data) {
         setValue("name",           data.name || "");
         setValue("slug",           data.slug || "");
@@ -75,15 +81,56 @@ export default function ShopSettingsPage() {
         setValue("fontFamily",     data.fontFamily     || "Vazirmatn");
         setValue("gaId",           data.gaId           || "");
         setValue("metaPixel",      data.metaPixel      || "");
-        setValue("cardNumber",     data.cardNumber     || "");
-        setValue("cardHolder",     data.cardHolder     || "");
-        setValue("bankName",       data.bankName       || "");
         setValue("deliveryType",   data.deliveryType   || "telegram");
         setValue("deliveryContact",data.deliveryContact|| "");
         setValue("deliveryNote",   data.deliveryNote   || "");
+        setValue("settlementSheba",    data.settlementSheba    || "");
+        setValue("settlementHolder",   data.settlementHolder   || "");
+        setValue("settlementBankName", data.settlementBankName || "");
       }
     }).finally(() => setLoading(false));
   }, [setValue]);
+
+  const addBankCard = async () => {
+    if (bankCards.length >= 4) return;
+    if (!newCard.cardNumber || !newCard.cardHolder || !newCard.bankName) {
+      toast.error("همه فیلدهای کارت الزامی است");
+      return;
+    }
+    setCardSaving(true);
+    try {
+      const created = await bankCardsApi.create(newCard);
+      setBankCards((c) => [...c, created]);
+      setNewCard({ cardNumber: "", cardHolder: "", bankName: "" });
+      setAddingCard(false);
+      toast.success("کارت اضافه شد");
+    } catch (e: any) {
+      toast.error(e?.message || "خطا در افزودن کارت");
+    } finally {
+      setCardSaving(false);
+    }
+  };
+
+  const removeBankCard = async (id: string) => {
+    try {
+      await bankCardsApi.remove(id);
+      const list: any = await bankCardsApi.list();
+      setBankCards(list || []);
+      toast.success("کارت حذف شد");
+    } catch {
+      toast.error("خطا در حذف کارت");
+    }
+  };
+
+  const activateBankCard = async (id: string) => {
+    try {
+      await bankCardsApi.activate(id);
+      setBankCards((c) => c.map((x) => ({ ...x, isActive: x.id === id })));
+      toast.success("کارت فعال شد");
+    } catch {
+      toast.error("خطا در فعال‌سازی کارت");
+    }
+  };
 
   const onSubmit = async (data: any) => {
     setSaving(true);
@@ -125,10 +172,11 @@ export default function ShopSettingsPage() {
   );
 
   const TABS: { id: Tab; label: string }[] = [
-    { id: "profile",  label: "پروفایل" },
-    { id: "media",    label: "رسانه" },
-    { id: "payment",  label: "کارت بانکی" },
-    { id: "tracking", label: "آمارگیری" },
+    { id: "profile",    label: "پروفایل" },
+    { id: "media",      label: "رسانه" },
+    { id: "payment",    label: "کارت بانکی" },
+    { id: "settlement", label: "تسویه و حساب" },
+    { id: "tracking",   label: "آمارگیری" },
   ];
 
   return (
@@ -423,64 +471,176 @@ export default function ShopSettingsPage() {
         </div>
       )}
 
-      {/* ─── Tab: Payment (bank card) ──────────────────────────────────────────── */}
+      {/* ─── Tab: Payment (bank cards) ─────────────────────────────────────────── */}
       {tab === "payment" && (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="space-y-5">
           <div className="glass-card p-5 space-y-4">
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">کارت بانکی (کارت‌به‌کارت)</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">کارت‌های بانکی (کارت‌به‌کارت)</h3>
               <p className="text-xs text-gray-500 mt-1">
-                این اطلاعات هنگام تسویه‌حساب محصولات فیزیکی و فروش فایل دیجیتال به خریدار نمایش داده می‌شود
-                تا بتواند کارت‌به‌کارت واریز کند.
+                تا ۴ کارت می‌توانید ثبت کنید. کارت فعال هنگام تسویه‌حساب محصولات فیزیکی و فروش فایل دیجیتال
+                به خریدار نمایش داده می‌شود تا بتواند کارت‌به‌کارت واریز کند.
               </p>
             </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">شماره کارت</label>
-              <input {...register("cardNumber")} inputMode="numeric" dir="ltr"
-                className="input-base font-mono tracking-widest text-left"
-                placeholder="6037-9974-xxxx-xxxx" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1.5">نام صاحب کارت</label>
-                <input {...register("cardHolder")} className="input-base" placeholder="مثال: علی رضایی" />
+
+            {bankCards.length > 0 && (
+              <div className="space-y-2.5">
+                {bankCards.map((c) => (
+                  <div key={c.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                      c.isActive
+                        ? "border-accent-500 bg-accent-500/5"
+                        : "border-gray-200 dark:border-white/10"
+                    }`}>
+                    <button type="button" onClick={() => activateBankCard(c.id)}
+                      title="انتخاب به‌عنوان کارت فعال"
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                        c.isActive ? "border-accent-500 bg-accent-500" : "border-gray-300 dark:border-white/20"
+                      }`}>
+                      {c.isActive && <Check className="w-3 h-3 text-white" />}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-mono text-sm tracking-widest text-gray-900 dark:text-white" dir="ltr">
+                        {String(c.cardNumber).replace(/\D/g, "").replace(/(\d{4})(?=\d)/g, "$1-")}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">{c.cardHolder} · {c.bankName}</div>
+                    </div>
+                    {c.isActive && (
+                      <span className="text-[10px] bg-accent-500/20 text-accent-500 px-1.5 py-0.5 rounded-md shrink-0">فعال</span>
+                    )}
+                    <button type="button" onClick={() => removeBankCard(c.id)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400
+                                 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
-                <input {...register("bankName")} className="input-base" placeholder="مثال: بانک ملت" />
-              </div>
-            </div>
+            )}
+
+            {bankCards.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-2">هنوز کارتی ثبت نشده است</p>
+            )}
+
+            {bankCards.length < 4 && (
+              addingCard ? (
+                <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-white/10">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5">شماره کارت</label>
+                    <input value={newCard.cardNumber}
+                      onChange={(e) => setNewCard((s) => ({ ...s, cardNumber: e.target.value }))}
+                      inputMode="numeric" dir="ltr" className="input-base font-mono tracking-widest text-left"
+                      placeholder="6037-9974-xxxx-xxxx" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5">نام صاحب کارت</label>
+                      <input value={newCard.cardHolder}
+                        onChange={(e) => setNewCard((s) => ({ ...s, cardHolder: e.target.value }))}
+                        className="input-base" placeholder="مثال: علی رضایی" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
+                      <input value={newCard.bankName}
+                        onChange={(e) => setNewCard((s) => ({ ...s, bankName: e.target.value }))}
+                        className="input-base" placeholder="مثال: بانک ملت" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={cardSaving} onClick={addBankCard}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500 hover:bg-accent-400
+                                 text-white text-sm font-bold disabled:opacity-60 transition-all">
+                      {cardSaving && <Loader2 className="w-4 h-4 animate-spin" />} ذخیره کارت
+                    </button>
+                    <button type="button"
+                      onClick={() => { setAddingCard(false); setNewCard({ cardNumber: "", cardHolder: "", bankName: "" }); }}
+                      className="px-4 py-2 rounded-xl text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                      انصراف
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setAddingCard(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed
+                             border-gray-200 dark:border-white/10 text-sm text-gray-500
+                             hover:border-accent-500/50 hover:text-accent-500 transition-all">
+                  <Plus className="w-4 h-4" /> افزودن کارت جدید
+                </button>
+              )
+            )}
           </div>
 
           {/* راه ارتباطی تحویل (فایل/دوره/محصول) */}
-          <div className="glass-card p-5 space-y-4">
-            <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">راه ارتباطی تحویل</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                مشتری پس از پرداخت، رسید را به این راه ارتباطی می‌فرستد تا فایل/دسترسی/سفارش را دریافت کند.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="glass-card p-5 space-y-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1.5">پیام‌رسان</label>
-                <select {...register("deliveryType")}
-                  className="input-base bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                  {[["telegram","تلگرام"],["bale","بله"],["rubika","روبیکا"],["eitaa","ایتا"],["whatsapp","واتساپ"]].map(([v,l]) => (
-                    <option key={v} value={v} className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{l}</option>
-                  ))}
-                </select>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">راه ارتباطی تحویل</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  مشتری پس از پرداخت، رسید را به این راه ارتباطی می‌فرستد تا فایل/دسترسی/سفارش را دریافت کند.
+                </p>
               </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-gray-500 mb-1.5">یوزرنیم یا لینک</label>
-                <input {...register("deliveryContact")} dir="ltr" className="input-base text-left"
-                  placeholder="@myusername یا https://t.me/myusername" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">پیام‌رسان</label>
+                  <select {...register("deliveryType")}
+                    className="input-base bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                    {[["telegram","تلگرام"],["bale","بله"],["rubika","روبیکا"],["eitaa","ایتا"],["whatsapp","واتساپ"]].map(([v,l]) => (
+                      <option key={v} value={v} className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{l}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-gray-500 mb-1.5">یوزرنیم یا لینک</label>
+                  <input {...register("deliveryContact")} dir="ltr" className="input-base text-left"
+                    placeholder="@myusername یا https://t.me/myusername" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">توضیح تحویل (اختیاری)</label>
+                <input {...register("deliveryNote")} className="input-base"
+                  placeholder="مثال: پس از ارسال رسید، فایل تا ۱ ساعت ارسال می‌شود" />
               </div>
             </div>
+            <button type="submit" disabled={saving}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
+                         bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
+                         transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+              ذخیره
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* ─── Tab: Settlement (تسویه و حساب) ────────────────────────────────────── */}
+      {tab === "settlement" && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="glass-card p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Landmark className="w-4 h-4 text-accent-500" />
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">تسویه و حساب</h3>
+            </div>
+            <p className="text-xs text-gray-500">
+              این اطلاعات برای واریز درآمد شما از فروش‌های درگاه پرداخت ویلینک استفاده می‌شود.
+            </p>
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">توضیح تحویل (اختیاری)</label>
-              <input {...register("deliveryNote")} className="input-base"
-                placeholder="مثال: پس از ارسال رسید، فایل تا ۱ ساعت ارسال می‌شود" />
+              <label className="block text-xs text-gray-500 mb-1.5">شماره شبا</label>
+              <input {...register("settlementSheba")} inputMode="numeric" dir="ltr"
+                className="input-base font-mono tracking-widest text-left" placeholder="IRxxxxxxxxxxxxxxxxxxxxxxxx" />
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">نام صاحب حساب</label>
+                <input {...register("settlementHolder")} className="input-base" placeholder="مثال: علی رضایی" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
+                <input {...register("settlementBankName")} className="input-base" placeholder="مثال: بانک ملت" />
+              </div>
+            </div>
+            <p className="text-sm font-bold text-gray-900 dark:text-white bg-accent-500/10 border border-accent-500/20 rounded-xl px-4 py-3">
+              تسویه‌حساب‌ها به صورت هفتگی می‌باشد.
+            </p>
           </div>
           <button type="submit" disabled={saving}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
