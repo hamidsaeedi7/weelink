@@ -3,6 +3,7 @@ import { Response } from "express";
 import { PaymentsService } from "../payments/payments.service";
 import { DigitalFilesService } from "../digital-files/digital-files.service";
 import { CoursesService } from "../courses/courses.service";
+import { OrdersService } from "../orders/orders.service";
 
 const WEB_URL = process.env.WEB_URL || process.env.FRONTEND_URL || "http://localhost:3000";
 
@@ -10,8 +11,8 @@ const WEB_URL = process.env.WEB_URL || process.env.FRONTEND_URL || "http://local
  * Weelink Zarinpal gateway — shared platform merchant used for digital-file/course/product
  * purchases (10% platform fee ledger). Zarinpal redirects the buyer's browser here via GET
  * with ?Authority=...&Status=OK|NOK after they finish/cancel payment. Lives in its own module
- * (rather than PaymentsModule) so it can depend on DigitalFilesModule/CoursesModule without
- * creating a circular import (those modules depend on PaymentsModule, not the other way around).
+ * (rather than PaymentsModule) so it can depend on DigitalFilesModule/CoursesModule/OrdersModule
+ * without creating a circular import (those modules depend on PaymentsModule, not vice versa).
  */
 @Controller("payments/gateway")
 export class GatewayCallbackController {
@@ -19,6 +20,7 @@ export class GatewayCallbackController {
     private payments: PaymentsService,
     private digitalFiles: DigitalFilesService,
     private courses: CoursesService,
+    private orders: OrdersService,
   ) {}
 
   @Get("callback")
@@ -38,6 +40,12 @@ export class GatewayCallbackController {
           status: "success", type: "COURSE", license: licenseCode, courseId, shopSlug,
         });
         res.redirect(302, `${WEB_URL}/payment/result?${params.toString()}`);
+        return;
+      }
+
+      if (result.type === "PRODUCT" && result.refId) {
+        const { orderNumber } = await this.orders.finalizeOrder(result.refId);
+        res.redirect(302, `${WEB_URL}/payment/result?status=success&type=PRODUCT&orderNumber=${encodeURIComponent(orderNumber)}`);
         return;
       }
 

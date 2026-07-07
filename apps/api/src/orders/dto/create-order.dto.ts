@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional, IsNumber, ValidateNested, Min, Matches } from "class-validator";
+import { IsString, IsArray, IsOptional, IsNumber, ValidateNested, Min, MinLength, Matches } from "class-validator";
 import { Type } from "class-transformer";
 
 export class OrderItemDto {
@@ -29,7 +29,12 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(5, { message: "آدرس را کامل وارد کنید" })
   customerAddress?: string;
+
+  @IsOptional()
+  @Matches(/^\d{10}$/, { message: "کد پستی باید ۱۰ رقم باشد" })
+  customerPostalCode?: string;
 
   @IsArray()
   @ValidateNested({ each: true })

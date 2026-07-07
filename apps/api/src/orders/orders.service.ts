@@ -2,8 +2,11 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from "../prisma/prisma.service";
 import { CouponsService } from "../coupons/coupons.service";
 import { SmsService } from "../sms/sms.service";
+import { PaymentsService } from "../payments/payments.service";
 import { CreateOrderDto, UpdateOrderStatusDto } from "./dto/create-order.dto";
 import { OrderStatus } from "@prisma/client";
+
+const API_URL = process.env.API_URL || "http://localhost:4000";
 
 @Injectable()
 export class OrdersService {
@@ -11,6 +14,7 @@ export class OrdersService {
     private prisma: PrismaService,
     private coupons: CouponsService,
     private sms: SmsService,
+    private payments: PaymentsService,
   ) {}
 
   async create(dto: CreateOrderDto) {
@@ -20,17 +24,38 @@ export class OrdersService {
     });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
 
-    const totalPrice = dto.items.reduce((s, i) => s + i.price * i.qty, 0);
+    const realItemIds = dto.items.map((i) => i.productId).filter((id) => id !== "custom");
+    const products = realItemIds.length
+      ? await this.prisma.product.findMany({ where: { id: { in: realItemIds }, shopId: shop.id } })
+      : [];
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    // Real cart checkout (has actual products) requires full shipping info + a single consistent payment method.
+    let paymentMethod = "CARD_TO_CARD";
+    if (realItemIds.length) {
+      if (products.length !== realItemIds.length) throw new BadRequestException("برخی محصولات یافت نشدند");
+      if (!dto.customerAddress || !dto.customerPostalCode) {
+        throw new BadRequestException("آدرس و کد پستی الزامی است");
+      }
+      const methods = new Set(products.map((p) => p.paymentMethod));
+      if (methods.size > 1) {
+        throw new BadRequestException("محصولات این سبد روش پرداخت متفاوتی دارند — لطفاً جداگانه خرید کنید");
+      }
+      paymentMethod = products[0].paymentMethod;
+    }
+
+    // Server-side authoritative price for real products (never trust client-submitted price).
+    const totalPrice = dto.items.reduce((s, i) => {
+      const p = productMap.get(i.productId);
+      const price = p ? Number(p.price) : i.price;
+      return s + price * i.qty;
+    }, 0);
     let discount = 0;
 
     if (dto.couponCode) {
       try {
         const result = await this.coupons.validate({ code: dto.couponCode, total: totalPrice });
         discount = result.discount;
-        await this.prisma.coupon.update({
-          where: { code: dto.couponCode.toUpperCase() },
-          data: { usedCount: { increment: 1 } },
-        });
       } catch {
         throw new BadRequestException("کد تخفیف معتبر نیست");
       }
@@ -44,6 +69,8 @@ export class OrdersService {
         customerName: dto.customerName,
         customerPhone: dto.customerPhone,
         customerAddress: dto.customerAddress,
+        customerPostalCode: dto.customerPostalCode,
+        paymentMethod,
         items: dto.items as any,
         totalPrice: BigInt(totalPrice),
         discount: BigInt(discount),
@@ -51,6 +78,28 @@ export class OrdersService {
         note: dto.note,
       },
     });
+
+    if (paymentMethod === "GATEWAY" && totalPrice - discount > 0) {
+      const { authority, gatewayUrl } = await this.payments.requestGatewayPayment({
+        shopId: shop.id,
+        type: "PRODUCT",
+        refId: order.id,
+        amount: (totalPrice - discount) * 10, // Toman → Rial
+        buyerName: dto.customerName,
+        buyerPhone: dto.customerPhone,
+        description: `سفارش ${orderNumber}`,
+        callbackUrl: `${API_URL}/api/v1/payments/gateway/callback`,
+      });
+      await this.prisma.order.update({ where: { id: order.id }, data: { paymentRef: authority } });
+      return { ...this.serialize(order), paymentMethod, gatewayUrl };
+    }
+
+    let finalOrder = order;
+    if (paymentMethod === "GATEWAY") {
+      // fully covered by coupon — no gateway trip needed
+      await this.finalizeOrder(order.id);
+      finalOrder = await this.prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    }
 
     // Notify shop owner via SMS
     if (shop.user.phone) {
@@ -60,13 +109,45 @@ export class OrdersService {
       ).catch(() => {});
     }
 
-    return { ...order, totalPrice: Number(order.totalPrice), discount: Number(order.discount) };
+    return { ...this.serialize(finalOrder), paymentMethod };
   }
 
-  async findAllForOwner(userId: string, page = 1, status?: string) {
+  /** Called by the gateway callback once Zarinpal confirms payment, or directly for free/coupon-covered orders. */
+  async finalizeOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new NotFoundException("سفارش یافت نشد");
+    if (order.paymentStatus !== "PAID") {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: "PAID", status: "CONFIRMED" },
+      });
+      if (order.couponCode) await this.coupons.incrementUsage(order.couponCode);
+    }
+    return { orderNumber: order.orderNumber };
+  }
+
+  /** Seller manually confirms a card-to-card bank transfer was received. */
+  async markPaid(userId: string, orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { shop: { select: { userId: true } } },
+    });
+    if (!order) throw new NotFoundException();
+    if (order.shop.userId !== userId) throw new ForbiddenException();
+    if (order.paymentStatus === "PAID") return this.serialize(order);
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: "PAID", status: order.status === "PENDING" ? "CONFIRMED" : order.status },
+    });
+    if (order.couponCode) await this.coupons.incrementUsage(order.couponCode);
+    return this.serialize(updated);
+  }
+
+  async findAllForOwner(userId: string, page?: number, status?: string) {
     const shop = await this.prisma.shop.findUnique({ where: { userId }, select: { id: true } });
     if (!shop) return { orders: [], total: 0 };
 
+    const safePage = Number(page) > 0 ? Number(page) : 1;
     const where: any = { shopId: shop.id };
     if (status) where.status = status;
 
@@ -74,7 +155,7 @@ export class OrdersService {
       this.prisma.order.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        skip: (page - 1) * 20,
+        skip: (safePage - 1) * 20,
         take: 20,
       }),
       this.prisma.order.count({ where }),
@@ -83,7 +164,7 @@ export class OrdersService {
     return {
       orders: orders.map(this.serialize),
       total,
-      page,
+      page: safePage,
       pages: Math.ceil(total / 20),
     };
   }
@@ -101,17 +182,6 @@ export class OrdersService {
       data: { status: dto.status as OrderStatus },
     });
     return this.serialize(updated);
-  }
-
-  async updatePayment(orderNumber: string, paymentRef: string) {
-    const order = await this.prisma.order.findUnique({ where: { orderNumber } });
-    if (!order) throw new NotFoundException();
-    return this.serialize(
-      await this.prisma.order.update({
-        where: { orderNumber },
-        data: { paymentStatus: "PAID", paymentRef, status: "CONFIRMED" },
-      }),
-    );
   }
 
   private serialize(o: any) {

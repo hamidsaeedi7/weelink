@@ -29,11 +29,12 @@ interface Product {
   prepTime?: string;
   type: "PHYSICAL" | "DIGITAL";
   isAvailable: boolean;
+  paymentMethod: "CARD_TO_CARD" | "GATEWAY";
 }
 
 const CATEGORIES = PRODUCT_CATEGORIES;
 
-const EMPTY: Partial<Product> = { type: "PHYSICAL", images: [], stock: 1, isAvailable: true, category: "" };
+const EMPTY: Partial<Product> = { type: "PHYSICAL", images: [], stock: 1, isAvailable: true, category: "", paymentMethod: "CARD_TO_CARD" };
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -97,6 +98,7 @@ export default function ProductsPage() {
       isAvailable: form.isAvailable ?? true,
       prepTime: form.prepTime || undefined,
       weight: form.weight ? Number(form.weight) : undefined,
+      paymentMethod: form.paymentMethod || "CARD_TO_CARD",
     };
     try {
       if (editing) {
@@ -262,6 +264,30 @@ export default function ProductsPage() {
                     <input {...register("stock")}
                       type="number" placeholder="۱" className="input-base" />
                   </div>
+                </div>
+
+                {/* روش پرداخت — الزامی، هنگام ساخت محصول انتخاب می‌شود */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">روش پرداخت *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { v: "CARD_TO_CARD", l: "کارت به کارت" },
+                      { v: "GATEWAY", l: "درگاه پرداخت ویلینک" },
+                    ].map((o) => (
+                      <label key={o.v}
+                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm cursor-pointer transition-all ${
+                          watch("paymentMethod") === o.v
+                            ? "border-accent-500 bg-accent-500/10 text-accent-500 font-bold"
+                            : "border-gray-200 dark:border-white/10 text-gray-500"
+                        }`}>
+                        <input type="radio" value={o.v} {...register("paymentMethod", { required: true })} className="hidden" />
+                        {o.l}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-[10px] text-gray-400">
+                    کارت‌به‌کارت یعنی خریدار مستقیم به کارت شما واریز می‌کند و باید پرداخت را دستی تأیید کنید. درگاه ویلینک یعنی پرداخت آنلاین با کارمزد ۱۰٪ و واریز خودکار به حساب شما.
+                  </p>
                 </div>
 
                 {/* اطلاعات ارسال */}

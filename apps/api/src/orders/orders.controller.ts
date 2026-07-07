@@ -38,6 +38,13 @@ export class OrdersController {
     return this.orders.updateStatus(user.id, id, dto);
   }
 
+  /** Seller manually confirms a card-to-card bank transfer was received. */
+  @Put(":id/mark-paid")
+  @UseGuards(JwtAuthGuard)
+  markPaid(@CurrentUser() user: { id: string }, @Param("id") id: string) {
+    return this.orders.markPaid(user.id, id);
+  }
+
   @Get(":id/invoice")
   @UseGuards(JwtAuthGuard)
   async getInvoice(

@@ -35,6 +35,9 @@ export class DigitalFilesController {
   @Get()
   findAll(@CurrentUser() user: { id: string }) { return this.svc.findAll(user.id); }
 
+  @Get("purchases")
+  findPurchases(@CurrentUser() user: { id: string }) { return this.svc.findPurchasesForOwner(user.id); }
+
   @Post()
   create(@CurrentUser() user: { id: string }, @Body() dto: CreateDigitalFileDto) { return this.svc.create(user.id, dto); }
 

@@ -222,6 +222,7 @@ model Product {
   stock       Int         @default(1)
   weight      Int?        // وزن به گرم (برای محاسبه ارسال)
   prepTime    String?     // زمان آماده‌سازی ارسال، مثلاً «۱ تا ۳ روز کاری»
+  paymentMethod String    @default("CARD_TO_CARD") // CARD_TO_CARD | GATEWAY — انتخاب فروشنده هنگام ساخت محصول
   fileUrl     String?
   isAvailable Boolean     @default(true)
   sortOrder   Int         @default(0)
@@ -242,6 +243,8 @@ model Order {
   customerName    String
   customerPhone   String
   customerAddress String?
+  customerPostalCode String?
+  paymentMethod   String      @default("CARD_TO_CARD") // CARD_TO_CARD | GATEWAY — از محصولات سبد گرفته می‌شود
   items           Json
   totalPrice      BigInt
   discount        BigInt      @default(0)

@@ -65,6 +65,26 @@ export class DigitalFilesService {
     return this.serialize(await this.prisma.digitalFile.update({ where: { id }, data }));
   }
 
+  /** Seller-facing list of buyers who purchased any of their digital files. */
+  async findPurchasesForOwner(userId: string) {
+    const shopId = await this.getShopId(userId);
+    const purchases = await this.prisma.digitalPurchase.findMany({
+      where: { file: { shopId } },
+      include: { file: { select: { title: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return purchases.map((p) => ({
+      id: p.id,
+      fileTitle: p.file.title,
+      customerName: p.customerName,
+      customerPhone: p.customerPhone,
+      amountPaid: Number(p.amountPaid),
+      paymentStatus: p.paymentStatus,
+      couponCode: p.couponCode,
+      createdAt: p.createdAt,
+    }));
+  }
+
   async remove(userId: string, id: string) {
     const file = await this.prisma.digitalFile.findUnique({
       where: { id },

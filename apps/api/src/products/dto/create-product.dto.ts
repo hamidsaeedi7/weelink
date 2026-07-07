@@ -1,6 +1,6 @@
 import {
   IsString, IsNumber, IsOptional, IsArray,
-  IsBoolean, IsEnum, Min, MaxLength,
+  IsBoolean, IsEnum, IsIn, Min, MaxLength,
 } from "class-validator";
 import { ProductType } from "@prisma/client";
 
@@ -49,6 +49,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   fileUrl?: string;
+
+  @IsOptional()
+  @IsIn(["CARD_TO_CARD", "GATEWAY"])
+  paymentMethod?: "CARD_TO_CARD" | "GATEWAY";
 
   @IsOptional()
   @IsBoolean()

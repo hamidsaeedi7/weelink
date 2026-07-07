@@ -101,6 +101,9 @@ export class CoursesController {
   @Get()
   findAll(@CurrentUser() user: { id: string }) { return this.svc.findAll(user.id); }
 
+  @Get("enrollments")
+  findEnrollments(@CurrentUser() user: { id: string }) { return this.svc.findEnrollmentsForOwner(user.id); }
+
   @Post()
   create(@CurrentUser() user: { id: string }, @Body() dto: any) { return this.svc.create(user.id, dto); }
 

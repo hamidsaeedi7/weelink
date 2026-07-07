@@ -106,6 +106,27 @@ export class CoursesService {
     return this.serialize(await this.prisma.course.update({ where: { id }, data }));
   }
 
+  /** Seller-facing list of buyers enrolled in any of their courses. */
+  async findEnrollmentsForOwner(userId: string) {
+    const shopId = await this.getShopId(userId);
+    const enrollments = await this.prisma.courseEnrollment.findMany({
+      where: { course: { shopId } },
+      include: { course: { select: { title: true } }, license: { select: { code: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return enrollments.map((e) => ({
+      id: e.id,
+      courseTitle: e.course.title,
+      customerName: e.customerName,
+      customerPhone: e.customerPhone,
+      amountPaid: Number(e.amountPaid),
+      paymentStatus: e.paymentStatus,
+      couponCode: e.couponCode,
+      licenseCode: e.license?.code,
+      createdAt: e.createdAt,
+    }));
+  }
+
   async remove(userId: string, id: string) {
     const course = await this.prisma.course.findUnique({
       where: { id },

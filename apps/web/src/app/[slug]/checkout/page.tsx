@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter, useParams } from "next/navigation";
-import { ShoppingCart, Tag, Loader2, Trash2, CheckCircle, CreditCard, Copy } from "lucide-react";
+import { useParams } from "next/navigation";
+import { ShoppingCart, Tag, Loader2, Trash2, CheckCircle, CreditCard, Copy, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart";
 import { formatPrice, toPersianNumber } from "@/lib/utils";
+import { BrandLogo } from "@/components/blocks/brand-icons";
 import axios from "axios";
 
 // کارت‌به‌کارت فروشنده — شماره کارت و مبلغ، هر دو قابل کپی
@@ -49,27 +50,49 @@ function BankCardBox({ card, holder, bank, amount }: { card: string; holder?: st
   );
 }
 
+function DeliveryContact({ type, contact, note }: { type?: string; contact?: string; note?: string }) {
+  if (!contact) return null;
+  const prefixes: Record<string, string> = {
+    telegram: "https://t.me/", bale: "https://ble.ir/", rubika: "https://rubika.ir/",
+    eitaa: "https://eitaa.com/", whatsapp: "https://wa.me/",
+  };
+  const raw = contact.replace(/^@/, "");
+  const href = raw.startsWith("http") ? raw : (prefixes[type || "telegram"] || "") + raw;
+  return (
+    <div className="space-y-1.5">
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:border-orange-500/40 transition-all">
+        <BrandLogo platform={type || "telegram"} size={22} />
+        <span className="flex-1 text-sm text-gray-900 dark:text-white text-left" dir="ltr">{contact}</span>
+        <Send className="w-4 h-4 text-orange-500" />
+      </a>
+      {note && <p className="text-[11px] text-gray-400">{note}</p>}
+    </div>
+  );
+}
+
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface CheckoutForm {
   customerName: string;
   customerPhone: string;
-  customerAddress?: string;
+  customerAddress: string;
+  customerPostalCode: string;
   note?: string;
 }
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
 
-  const { items, clear, total, remove, update, shopSlug } = useCart();
-  const [shopBank, setShopBank] = useState<{ cardNumber?: string; cardHolder?: string; bankName?: string } | null>(null);
+  const { items, clear, total, remove, update } = useCart();
+  const [shop, setShop] = useState<any>(null);
   const [coupon, setCoupon] = useState("");
+  const [orderDone, setOrderDone] = useState<{ orderNumber: string } | null>(null);
 
   useEffect(() => {
     axios.get(`${API}/api/v1/shops/${slug}`)
-      .then((r) => { const s = r.data?.data || r.data; setShopBank({ cardNumber: s?.cardNumber, cardHolder: s?.cardHolder, bankName: s?.bankName }); })
+      .then((r) => setShop(r.data?.data || r.data))
       .catch(() => {});
   }, [slug]);
   const [couponResult, setCouponResult] = useState<any>(null);
@@ -81,15 +104,39 @@ export default function CheckoutPage() {
   const finalTotal = couponResult?.finalPrice ?? total();
   const discount = couponResult?.discount ?? 0;
 
+  if (orderDone) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0F] flex items-center justify-center p-4">
+        <div className="max-w-sm w-full text-center space-y-6">
+          <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center bg-green-500/20 border border-green-500/30">
+            <CheckCircle className="w-10 h-10 text-green-400" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-green-500">سفارش ثبت شد</h1>
+            <p className="text-gray-500 text-sm">شماره سفارش: <span className="font-mono font-bold">{orderDone.orderNumber}</span></p>
+          </div>
+          {shop?.cardNumber && (
+            <BankCardBox card={shop.cardNumber} holder={shop.cardHolder} bank={shop.bankName} amount={finalTotal} />
+          )}
+          <DeliveryContact type={shop?.deliveryType} contact={shop?.deliveryContact} note={shop?.deliveryNote} />
+          <a href={`/${slug}/shop`}
+            className="block py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 text-sm font-bold hover:border-orange-500/30 hover:text-orange-500 transition-all">
+            بازگشت به فروشگاه
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   if (!items.length) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-gray-500">
         <ShoppingCart className="w-12 h-12 opacity-20" />
         <p>سبد خرید خالی است</p>
-        <button onClick={() => router.push(`/${slug}/shop`)}
+        <a href={`/${slug}/shop`}
           className="px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-400 transition-all">
           رفتن به فروشگاه
-        </button>
+        </a>
       </div>
     );
   }
@@ -130,17 +177,14 @@ export default function CheckoutPage() {
       });
 
       const order = orderRes.data || orderRes;
-
-      // Request payment
-      const { data: payRes } = await axios.post(`${API}/api/v1/payments/request`, {
-        orderNumber: order.orderNumber,
-        amount: finalTotal,
-        callbackUrl: `${window.location.origin}/payment/verify`,
-      });
-
-      const payment = payRes.data || payRes;
       clear();
-      router.push(payment.paymentUrl);
+
+      if (order.paymentMethod === "GATEWAY" && order.gatewayUrl) {
+        window.location.href = order.gatewayUrl;
+        return;
+      }
+
+      setOrderDone({ orderNumber: order.orderNumber });
     } catch (e: any) {
       toast.error(e.response?.data?.message || "خطا در ثبت سفارش");
     } finally {
@@ -227,7 +271,7 @@ export default function CheckoutPage() {
         {/* Order Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-4 space-y-4">
-            <h2 className="text-sm font-bold text-gray-700 dark:text-gray-300">اطلاعات تماس</h2>
+            <h2 className="text-sm font-bold text-gray-700 dark:text-gray-300">اطلاعات ارسال</h2>
 
             <div>
               <input {...register("customerName", { required: "نام الزامی است" })}
@@ -247,10 +291,24 @@ export default function CheckoutPage() {
               {errors.customerPhone && <p className="text-xs text-red-500 mt-1">{errors.customerPhone.message}</p>}
             </div>
 
-            <textarea {...register("customerAddress")}
-              placeholder="آدرس (اختیاری)"
-              rows={2}
-              className="input-base text-sm resize-none" />
+            <div>
+              <textarea {...register("customerAddress", { required: "آدرس الزامی است", minLength: { value: 5, message: "آدرس را کامل وارد کنید" } })}
+                placeholder="آدرس کامل پستی *"
+                rows={2}
+                className="input-base text-sm resize-none" />
+              {errors.customerAddress && <p className="text-xs text-red-500 mt-1">{errors.customerAddress.message}</p>}
+            </div>
+
+            <div>
+              <input {...register("customerPostalCode", {
+                required: "کد پستی الزامی است",
+                pattern: { value: /^\d{10}$/, message: "کد پستی باید ۱۰ رقم باشد" }
+              })}
+                placeholder="کد پستی ۱۰ رقمی *"
+                dir="ltr" inputMode="numeric" maxLength={10}
+                className="input-base text-sm" />
+              {errors.customerPostalCode && <p className="text-xs text-red-500 mt-1">{errors.customerPostalCode.message}</p>}
+            </div>
 
             <textarea {...register("note")}
               placeholder="توضیحات سفارش (اختیاری)"
@@ -276,17 +334,12 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* پرداخت کارت‌به‌کارت فروشنده (در صورت تنظیم) */}
-          {shopBank?.cardNumber && (
-            <BankCardBox card={shopBank.cardNumber} holder={shopBank.cardHolder} bank={shopBank.bankName} amount={finalTotal} />
-          )}
-
           <button type="submit" disabled={submitting}
             className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl
                        bg-orange-500 hover:bg-orange-400 text-white font-black text-base
                        transition-all disabled:opacity-60 shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            {submitting ? "در حال پردازش..." : `پرداخت آنلاین ${formatPrice(finalTotal)}`}
+            {submitting ? "در حال پردازش..." : `ثبت سفارش ${formatPrice(finalTotal)}`}
           </button>
         </form>
       </div>
