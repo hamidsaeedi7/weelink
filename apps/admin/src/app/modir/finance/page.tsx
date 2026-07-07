@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi, fmtPrice, fmtDate } from "@/lib/api";
-import { DollarSign, ShoppingCart, CreditCard, RefreshCw } from "lucide-react";
+import { DollarSign, ShoppingCart, CreditCard, RefreshCw, Landmark, Percent } from "lucide-react";
 
 type OrderStatus = "PENDING" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
 type PaymentStatus = "PAID" | "UNPAID" | "REFUNDED";
@@ -92,16 +92,38 @@ function paymentStatusBadge(status: PaymentStatus) {
   );
 }
 
+interface GatewayRow {
+  shopId: string;
+  shopName: string;
+  shopSlug: string;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  settlementSheba: string | null;
+  settlementHolder: string | null;
+  settlementBankName: string | null;
+  transactionCount: number;
+  gross: number;
+  platformFee: number;
+  net: number;
+}
+
+interface GatewayReport {
+  rows: GatewayRow[];
+  totals: { gross: number; platformFee: number; net: number; transactionCount: number };
+}
+
 export default function FinancePage() {
   const [data, setData] = useState<FinanceData | null>(null);
+  const [gateway, setGateway] = useState<GatewayReport | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"orders" | "subscriptions">("orders");
+  const [tab, setTab] = useState<"orders" | "subscriptions" | "gateway">("orders");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await adminApi.getFinance();
+      const [result, gwResult] = await Promise.all([adminApi.getFinance(), adminApi.getGatewayReport()]);
       setData(result);
+      setGateway(gwResult);
     } catch {
       console.error("خطا در دریافت اطلاعات مالی");
     } finally {
@@ -135,6 +157,13 @@ export default function FinancePage() {
       color: "text-orange-600 dark:text-orange-400",
       bg: "bg-orange-100 dark:bg-orange-900/40",
     },
+    {
+      label: "کارمزد درگاه ویلینک",
+      value: gateway ? fmtPrice(gateway.totals.platformFee) : "—",
+      icon: Percent,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-100 dark:bg-purple-900/40",
+    },
   ];
 
   return (
@@ -148,7 +177,7 @@ export default function FinancePage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((s) => (
           <div key={s.label} className="glass-card p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center flex-shrink-0`}>
@@ -164,7 +193,7 @@ export default function FinancePage() {
 
       {/* Tab switcher */}
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-6 w-fit">
-        {(["orders", "subscriptions"] as const).map((t) => (
+        {(["orders", "subscriptions", "gateway"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -174,7 +203,7 @@ export default function FinancePage() {
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
-            {t === "orders" ? "سفارشات" : "اشتراک‌ها"}
+            {t === "orders" ? "سفارشات" : t === "subscriptions" ? "اشتراک‌ها" : "درگاه ویلینک"}
           </button>
         ))}
       </div>
@@ -226,7 +255,7 @@ export default function FinancePage() {
             </table>
           </div>
         </div>
-      ) : (
+      ) : tab === "subscriptions" ? (
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -274,6 +303,80 @@ export default function FinancePage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="glass-card p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
+                <DollarSign size={22} className="text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">فروش ناخالص</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{gateway ? fmtPrice(gateway.totals.gross) : "—"}</p>
+              </div>
+            </div>
+            <div className="glass-card p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center flex-shrink-0">
+                <Percent size={22} className="text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">کارمزد پلتفرم (۱۰٪)</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{gateway ? fmtPrice(gateway.totals.platformFee) : "—"}</p>
+              </div>
+            </div>
+            <div className="glass-card p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
+                <Landmark size={22} className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">قابل واریز به فروشندگان</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{gateway ? fmtPrice(gateway.totals.net) : "—"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    {["فروشگاه", "مالک", "تراکنش", "ناخالص", "کارمزد", "خالص قابل تسویه", "شبا"].map((h) => (
+                      <th key={h} className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {(gateway?.rows ?? []).length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-12 text-gray-400">
+                        هنوز تراکنش موفقی از درگاه ویلینک ثبت نشده است
+                      </td>
+                    </tr>
+                  ) : (
+                    (gateway?.rows ?? []).map((r) => (
+                      <tr key={r.shopId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="px-4 py-3 text-gray-900 dark:text-white">
+                          {r.shopName}
+                          <span className="block text-xs text-gray-400 font-mono" dir="ltr">{r.shopSlug}</span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{r.ownerEmail || r.ownerPhone || "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.transactionCount.toLocaleString("fa-IR")}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{fmtPrice(r.gross)}</td>
+                        <td className="px-4 py-3 text-purple-600 dark:text-purple-400">{fmtPrice(r.platformFee)}</td>
+                        <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{fmtPrice(r.net)}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs" dir="ltr">
+                          {r.settlementSheba || <span className="text-red-500">ثبت نشده</span>}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

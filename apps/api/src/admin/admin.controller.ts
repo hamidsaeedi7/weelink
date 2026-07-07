@@ -44,6 +44,7 @@ export class AdminController {
 
   // Finance
   @Get("finance") getFinance(@Query("page") page?: string) { return this.admin.getFinance(parseInt(page ?? "1") || 1); }
+  @Get("finance/gateway") getGatewayReport() { return this.admin.getGatewayReport(); }
 
   // Tickets
   @Get("tickets") getAllTickets(@Query("status") status?: string) { return this.admin.getAllTickets(status); }

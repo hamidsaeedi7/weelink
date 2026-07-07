@@ -165,6 +165,62 @@ export class AdminService {
     };
   }
 
+  // ─── Weelink gateway ledger — per-shop gross/fee/net (10% platform fee) ────
+
+  async getGatewayReport() {
+    const grouped = await this.prisma.gatewayTransaction.groupBy({
+      by: ["shopId"],
+      where: { status: "PAID" },
+      _sum: { amount: true, platformFee: true, sellerPayable: true },
+      _count: { id: true },
+    });
+
+    const shopIds = grouped.map((g) => g.shopId);
+    const shops = shopIds.length
+      ? await this.prisma.shop.findMany({
+          where: { id: { in: shopIds } },
+          select: {
+            id: true, name: true, slug: true,
+            settlementSheba: true, settlementHolder: true, settlementBankName: true,
+            user: { select: { email: true, phone: true } },
+          },
+        })
+      : [];
+    const shopMap = new Map(shops.map((s) => [s.id, s]));
+
+    const rows = grouped
+      .map((g) => {
+        const shop = shopMap.get(g.shopId);
+        return {
+          shopId: g.shopId,
+          shopName: shop?.name || "—",
+          shopSlug: shop?.slug || "",
+          ownerEmail: shop?.user?.email || null,
+          ownerPhone: shop?.user?.phone || null,
+          settlementSheba: shop?.settlementSheba || null,
+          settlementHolder: shop?.settlementHolder || null,
+          settlementBankName: shop?.settlementBankName || null,
+          transactionCount: g._count.id,
+          gross: Number(g._sum.amount || 0),
+          platformFee: Number(g._sum.platformFee || 0),
+          net: Number(g._sum.sellerPayable || 0),
+        };
+      })
+      .sort((a, b) => b.gross - a.gross);
+
+    const totals = rows.reduce(
+      (acc, r) => ({
+        gross: acc.gross + r.gross,
+        platformFee: acc.platformFee + r.platformFee,
+        net: acc.net + r.net,
+        transactionCount: acc.transactionCount + r.transactionCount,
+      }),
+      { gross: 0, platformFee: 0, net: 0, transactionCount: 0 },
+    );
+
+    return { rows, totals };
+  }
+
   // ─── Tickets ──────────────────────────────────────────────────────────────
 
   async getAllTickets(status?: string) {
