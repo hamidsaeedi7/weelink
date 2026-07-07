@@ -101,6 +101,8 @@ export default function CheckoutPage() {
       const { data } = await axios.post(`${API}/api/v1/coupons/validate`, {
         code: coupon,
         total: total(),
+        itemType: "PRODUCT",
+        itemIds: items.map((i) => i.productId),
       });
       setCouponResult(data.data || data);
       toast.success(`کد تخفیف اعمال شد: ${formatPrice(data.data?.discount || data.discount)} تخفیف`);

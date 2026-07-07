@@ -104,7 +104,7 @@ export default function CourseDetailPage() {
         </div>
       </div>
 
-      {buy && <PurchaseModal item={course} shop={shop} onClose={() => setBuy(false)} />}
+      {buy && <PurchaseModal item={course} shop={shop} onClose={() => setBuy(false)} kind="COURSE" />}
     </div>
   );
 }

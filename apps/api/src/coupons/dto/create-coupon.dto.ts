@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsIn, Min } from "class-validator";
+import { IsString, IsNumber, IsOptional, IsIn, Min, IsArray } from "class-validator";
 
 export class CreateCouponDto {
   @IsString()
@@ -19,6 +19,23 @@ export class CreateCouponDto {
 
   @IsOptional()
   expiresAt?: string;
+
+  // هدف‌گذاری: ALL (پیش‌فرض) | PRODUCT | DIGITAL_FILE | COURSE | CATEGORY
+  @IsOptional()
+  @IsIn(["ALL", "PRODUCT", "DIGITAL_FILE", "COURSE", "CATEGORY"])
+  scopeType?: string;
+
+  @IsOptional()
+  @IsString()
+  scopeId?: string;
+
+  @IsOptional()
+  @IsString()
+  scopeName?: string;
+
+  @IsOptional()
+  @IsString()
+  scopeCategory?: string;
 }
 
 export class ValidateCouponDto {
@@ -31,4 +48,13 @@ export class ValidateCouponDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  // اقلام سبد/آیتم در حال خرید، برای بررسی تطابق با هدف کد تخفیف
+  @IsOptional()
+  @IsIn(["PRODUCT", "DIGITAL_FILE", "COURSE"])
+  itemType?: string;
+
+  @IsOptional()
+  @IsArray()
+  itemIds?: string[];
 }

@@ -295,6 +295,11 @@ model Coupon {
   usedCount   Int      @default(0)
   expiresAt   DateTime?
   isActive    Boolean  @default(true)
+  // هدف‌گذاری کد تخفیف: ALL | PRODUCT | DIGITAL_FILE | COURSE | CATEGORY
+  scopeType     String   @default("ALL")
+  scopeId       String?  // شناسه محصول/فایل/دوره خاص (وقتی scopeType هدف‌مند است)
+  scopeName     String?  // عنوان مورد هدف، برای نمایش در لیست بدون join مجدد
+  scopeCategory String?  // دسته محصول فیزیکی (وقتی scopeType=CATEGORY)
   createdAt   DateTime @default(now())
 
   shop Shop? @relation(fields: [shopId], references: [id], onDelete: SetNull)

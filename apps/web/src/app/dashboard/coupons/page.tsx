@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { toPersianNumber } from "@/lib/utils";
 import { JalaliDatePicker } from "@/components/JalaliDatePicker";
+import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -15,15 +16,33 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+const SCOPE_OPTIONS = [
+  { value: "ALL", label: "همهٔ محصولات" },
+  { value: "PRODUCT", label: "یک محصول فیزیکی خاص" },
+  { value: "DIGITAL_FILE", label: "یک فایل دیجیتال خاص" },
+  { value: "COURSE", label: "یک دورهٔ آموزشی خاص" },
+  { value: "CATEGORY", label: "یک دستهٔ محصول فیزیکی" },
+];
+
+const SCOPE_LABELS: Record<string, string> = {
+  ALL: "همه محصولات", PRODUCT: "محصول", DIGITAL_FILE: "فایل دیجیتال", COURSE: "دوره", CATEGORY: "دسته",
+};
+
 export default function CouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [expiresAt, setExpiresAt] = useState("");   // ISO date from the Jalali picker
   const { register, handleSubmit, reset, watch, formState: { isSubmitting } } = useForm({
-    defaultValues: { code: "", type: "percent", value: 10, maxUses: -1 },
+    defaultValues: { code: "", type: "percent", value: 10, maxUses: -1, scopeType: "ALL", scopeId: "", scopeCategory: "" },
   });
   const couponType = watch("type");
+  const scopeType = watch("scopeType");
+
+  // گزینه‌های هدف‌گذاری (فقط وقتی لازم است بارگذاری می‌شوند)
+  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const [files, setFiles] = useState<{ id: string; title: string }[]>([]);
+  const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
 
   const load = async () => {
     try {
@@ -35,12 +54,49 @@ export default function CouponsPage() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    const h = authHeaders();
+    if (scopeType === "PRODUCT" && products.length === 0) {
+      axios.get(`${API}/api/v1/products`, { headers: h }).then((r) => {
+        const d = r.data?.data ?? r.data;
+        setProducts(Array.isArray(d) ? d : []);
+      }).catch(() => {});
+    }
+    if (scopeType === "DIGITAL_FILE" && files.length === 0) {
+      axios.get(`${API}/api/v1/digital-files`, { headers: h }).then((r) => {
+        const d = r.data?.data ?? r.data;
+        setFiles(Array.isArray(d) ? d : []);
+      }).catch(() => {});
+    }
+    if (scopeType === "COURSE" && courses.length === 0) {
+      axios.get(`${API}/api/v1/courses`, { headers: h }).then((r) => {
+        const d = r.data?.data ?? r.data;
+        setCourses(Array.isArray(d) ? d : []);
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scopeType]);
+
   const onSubmit = async (form: any) => {
     const value = Number(form.value);
     if (form.type === "percent" && (value < 1 || value > 100)) {
       toast.error("درصد تخفیف باید بین ۱ تا ۱۰۰ باشد");
       return;
     }
+    if (form.scopeType !== "ALL" && form.scopeType !== "CATEGORY" && !form.scopeId) {
+      toast.error("مورد هدف کد تخفیف را انتخاب کنید");
+      return;
+    }
+    if (form.scopeType === "CATEGORY" && !form.scopeCategory) {
+      toast.error("دستهٔ محصول هدف را انتخاب کنید");
+      return;
+    }
+    // عنوان مورد هدف برای نمایش در لیست
+    let scopeName = "";
+    if (form.scopeType === "PRODUCT") scopeName = products.find((p) => p.id === form.scopeId)?.name || "";
+    if (form.scopeType === "DIGITAL_FILE") scopeName = files.find((f) => f.id === form.scopeId)?.title || "";
+    if (form.scopeType === "COURSE") scopeName = courses.find((c) => c.id === form.scopeId)?.title || "";
+
     try {
       const { data } = await axios.post(`${API}/api/v1/coupons`, {
         code: form.code.toUpperCase(),
@@ -48,6 +104,10 @@ export default function CouponsPage() {
         value,
         maxUses: Number(form.maxUses),
         expiresAt: expiresAt || undefined,
+        scopeType: form.scopeType,
+        scopeId: form.scopeType === "ALL" || form.scopeType === "CATEGORY" ? undefined : form.scopeId,
+        scopeName: scopeName || undefined,
+        scopeCategory: form.scopeType === "CATEGORY" ? form.scopeCategory : undefined,
       }, { headers: authHeaders() });
       setCoupons((prev) => [data.data || data, ...prev]);
       toast.success("کد تخفیف ساخته شد");
@@ -114,15 +174,54 @@ export default function CouponsPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <select {...register("type")} className="input-base text-sm">
-                <option value="percent">درصدی</option>
-                <option value="fixed">مبلغ ثابت (تومان)</option>
+              <select {...register("type")} className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                <option value="percent" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">درصدی</option>
+                <option value="fixed" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">مبلغ ثابت (تومان)</option>
               </select>
               <div className="relative">
                 <input {...register("value", { required: true, min: 1 })}
                   type="number" placeholder={couponType === "percent" ? "درصد (۱ تا ۱۰۰)" : "مبلغ (تومان)"}
                   className="input-base" />
               </div>
+            </div>
+
+            {/* هدف‌گذاری کد تخفیف */}
+            <div className="rounded-xl border border-gray-200 dark:border-white/10 p-3 space-y-3">
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">این کد روی چه چیزی اعمال شود؟</label>
+              <select {...register("scopeType")} className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                {SCOPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{o.label}</option>
+                ))}
+              </select>
+
+              {scopeType === "PRODUCT" && (
+                <select {...register("scopeId", { required: true })}
+                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب محصول...</option>
+                  {products.map((p) => <option key={p.id} value={p.id} className="bg-white dark:bg-[#1a1a2e]">{p.name}</option>)}
+                </select>
+              )}
+              {scopeType === "DIGITAL_FILE" && (
+                <select {...register("scopeId", { required: true })}
+                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب فایل...</option>
+                  {files.map((f) => <option key={f.id} value={f.id} className="bg-white dark:bg-[#1a1a2e]">{f.title}</option>)}
+                </select>
+              )}
+              {scopeType === "COURSE" && (
+                <select {...register("scopeId", { required: true })}
+                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب دوره...</option>
+                  {courses.map((c) => <option key={c.id} value={c.id} className="bg-white dark:bg-[#1a1a2e]">{c.title}</option>)}
+                </select>
+              )}
+              {scopeType === "CATEGORY" && (
+                <select {...register("scopeCategory", { required: true })}
+                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب دسته...</option>
+                  {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c} className="bg-white dark:bg-[#1a1a2e]">{c}</option>)}
+                </select>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -174,6 +273,11 @@ export default function CouponsPage() {
                     className="text-gray-400 hover:text-orange-500 transition-colors">
                     <Copy className="w-3.5 h-3.5" />
                   </button>
+                  {coupon.scopeType && coupon.scopeType !== "ALL" && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-bold">
+                      {SCOPE_LABELS[coupon.scopeType]}{coupon.scopeName ? `: ${coupon.scopeName}` : coupon.scopeCategory ? `: ${coupon.scopeCategory}` : ""}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
                   <span className="text-orange-400 font-bold">

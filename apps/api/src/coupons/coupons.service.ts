@@ -12,6 +12,14 @@ export class CouponsService {
     const existing = await this.prisma.coupon.findUnique({ where: { code } });
     if (existing) throw new BadRequestException("این کد قبلاً ثبت شده");
 
+    const scopeType = dto.scopeType ?? "ALL";
+    if (scopeType !== "ALL" && scopeType !== "CATEGORY" && !dto.scopeId) {
+      throw new BadRequestException("مورد هدف کد تخفیف را انتخاب کنید");
+    }
+    if (scopeType === "CATEGORY" && !dto.scopeCategory) {
+      throw new BadRequestException("دستهٔ محصول هدف را انتخاب کنید");
+    }
+
     return this.prisma.coupon.create({
       data: {
         code,
@@ -20,6 +28,10 @@ export class CouponsService {
         maxUses: dto.maxUses ?? -1,
         shopId: shop?.id,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+        scopeType,
+        scopeId: scopeType === "ALL" || scopeType === "CATEGORY" ? null : dto.scopeId,
+        scopeName: scopeType === "ALL" ? null : (dto.scopeName ?? null),
+        scopeCategory: scopeType === "CATEGORY" ? dto.scopeCategory : null,
       },
     });
   }
@@ -43,6 +55,10 @@ export class CouponsService {
     if (coupon.maxUses !== -1 && coupon.usedCount >= coupon.maxUses)
       throw new BadRequestException("ظرفیت کد تخفیف تمام شده");
 
+    if (coupon.scopeType && coupon.scopeType !== "ALL") {
+      await this.assertScopeMatches(coupon, dto);
+    }
+
     const discount =
       coupon.type === "percent"
         ? Math.floor((dto.total * coupon.value) / 100)
@@ -56,6 +72,37 @@ export class CouponsService {
       discount,
       finalPrice: dto.total - discount,
     };
+  }
+
+  /** Ensures the item(s) being purchased match the coupon's target scope. */
+  private async assertScopeMatches(coupon: any, dto: ValidateCouponDto) {
+    const typeMap: Record<string, string> = {
+      PRODUCT: "PRODUCT",
+      DIGITAL_FILE: "DIGITAL_FILE",
+      COURSE: "COURSE",
+    };
+    const scopeKind = typeMap[coupon.scopeType];
+
+    if (coupon.scopeType === "CATEGORY") {
+      if (dto.itemType !== "PRODUCT" || !dto.itemIds?.length) {
+        throw new BadRequestException(`این کد فقط برای دستهٔ «${coupon.scopeCategory}» معتبر است`);
+      }
+      const products = await this.prisma.product.findMany({
+        where: { id: { in: dto.itemIds } },
+        select: { category: true },
+      });
+      const allMatch = products.length === dto.itemIds.length && products.every((p) => p.category === coupon.scopeCategory);
+      if (!allMatch) throw new BadRequestException(`این کد فقط برای دستهٔ «${coupon.scopeCategory}» معتبر است`);
+      return;
+    }
+
+    if (!scopeKind || dto.itemType !== scopeKind || !dto.itemIds?.length) {
+      throw new BadRequestException(`این کد فقط برای «${coupon.scopeName || "یک مورد خاص"}» معتبر است`);
+    }
+    const allMatchId = dto.itemIds.every((id) => id === coupon.scopeId);
+    if (!allMatchId) {
+      throw new BadRequestException(`این کد فقط برای «${coupon.scopeName || "یک مورد خاص"}» معتبر است`);
+    }
   }
 
   async remove(userId: string, id: string) {

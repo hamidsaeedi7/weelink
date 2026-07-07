@@ -8,6 +8,7 @@ import axios from "axios";
 import { formatPrice } from "@/lib/utils";
 import { uploadApi } from "@/lib/api";
 import { ShareBar } from "@/components/ShareBar";
+import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -30,21 +31,7 @@ interface Product {
   isAvailable: boolean;
 }
 
-// دسته‌بندی‌های محصول فیزیکی
-const CATEGORIES = [
-  "پوشاک و مد",
-  "آرایشی و بهداشتی",
-  "دیجیتال و الکترونیک",
-  "لوازم خانگی",
-  "خوراکی و نوشیدنی",
-  "طلا، نقره و زیورآلات",
-  "کتاب و لوازم‌التحریر",
-  "ورزشی و سفر",
-  "کودک و نوزاد",
-  "لوازم یدکی و ابزار",
-  "پت‌شاپ",
-  "سایر",
-];
+const CATEGORIES = PRODUCT_CATEGORIES;
 
 const EMPTY: Partial<Product> = { type: "PHYSICAL", images: [], stock: 1, isAvailable: true, category: "" };
 
