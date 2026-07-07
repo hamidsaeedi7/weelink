@@ -81,4 +81,23 @@ export class PaymentsController {
     await this.orders.updatePayment(body.orderNumber, body.authority);
     return { status: 100, refId: body.authority, message: "پرداخت موفق" };
   }
+
+  /**
+   * Weelink Zarinpal gateway — shared platform merchant used for digital-file/course/product
+   * purchases (10% platform fee ledger). Zarinpal redirects the buyer's browser here via GET
+   * with ?Authority=...&Status=OK|NOK after they finish/cancel payment.
+   */
+  @Get("gateway/callback")
+  async gatewayCallback(
+    @Query("Authority") authority: string,
+    @Query("Status") status: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const result = await this.paymentsService.verifyGatewayPayment(authority, status);
+      res.redirect(302, `${WEB_URL}/payment/result?status=success&ref=${result.refNumber}`);
+    } catch (e: any) {
+      res.redirect(302, `${WEB_URL}/payment/result?status=failed`);
+    }
+  }
 }

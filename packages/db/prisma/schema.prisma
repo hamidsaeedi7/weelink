@@ -145,6 +145,7 @@ model Shop {
 
   user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   bankCards        BankCard[]
+  gatewayTxns      GatewayTransaction[]
   blocks           Block[]
   products         Product[]
   orders           Order[]
@@ -400,6 +401,47 @@ model SiteSettings {
   planPrices      Json?
   customLinks     Json?
   updatedAt       DateTime @updatedAt
+}
+
+// ─── Gateway Transaction (Weelink Zarinpal gateway, 10% platform fee ledger) ──
+// Shared platform merchant (SiteSettings.paymentConfig.zarinpal) used for
+// digital-file/course/product purchases. sellerPayable accrues here until
+// paid out to the seller's settlement Sheba (see Shop.settlementSheba).
+
+enum GatewayTxnType {
+  DIGITAL_FILE
+  COURSE
+  PRODUCT
+}
+
+enum GatewayTxnStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model GatewayTransaction {
+  id             String           @id @default(uuid())
+  shopId         String
+  type           GatewayTxnType
+  refId          String?          // DigitalPurchase/CourseEnrollment/Order id (set by the purchase flow)
+  buyerName      String?
+  buyerPhone     String?
+  amount         BigInt           // total charged, Rial
+  platformFee    BigInt           // 10% of amount, Rial
+  sellerPayable  BigInt           // amount - platformFee, Rial
+  authority      String           @unique // Zarinpal authority token
+  refNumber      String?          // Zarinpal ref_id, set after successful verify
+  status         GatewayTxnStatus @default(PENDING)
+  settledAt      DateTime?        // when sellerPayable was included in a weekly payout
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([status])
+  @@index([authority])
 }
 
 // ─── Blog Post ───────────────────────────────────────────────────────────────
