@@ -6,10 +6,11 @@ import {
   Send, CheckCircle2, Clock, XCircle,
 } from "lucide-react";
 import {
-  toJalali, toGregorian, jalaliMonthDays, jalaliMonthStart,
+  toGregorian, jalaliMonthDays, jalaliMonthStart,
   JALALI_MONTHS, WEEK_DAYS, todayJalali, toPersianNum, isSameDay,
 } from "@/lib/jalali";
 import { BrandLogo, PLATFORM_META } from "@/components/blocks/brand-icons";
+import { JalaliDateTime } from "@/components/JalaliDatePicker";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ContentPlan {
@@ -115,11 +116,14 @@ export default function ContentCalendarPage() {
   const fetchPlans = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch(`${API}?year=${jy}&month=${jm}&view=${view}`);
+      // Fetch ALL plans and filter client-side. The old ?year=&month= passed
+      // JALALI numbers but the API filtered as GREGORIAN, so saved plans never
+      // showed (looked like nothing saved).
+      const data = await apiFetch(`${API}`);
       setPlans(Array.isArray(data) ? data : []);
     } catch { setPlans([]); }
     setLoading(false);
-  }, [jy, jm, view]);
+  }, []);
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
@@ -349,16 +353,9 @@ function PlanModal({
   const today = todayJalali();
   const defaultDate = selected || today;
 
-  const initScheduled = editPlan
-    ? (() => {
-        const d = new Date(editPlan.scheduledAt);
-        const j = toJalali(d);
-        return {
-          jy: j.jy, jm: j.jm, jd: j.jd,
-          time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
-        };
-      })()
-    : { ...defaultDate, time: "12:00" };
+  const initIso = editPlan
+    ? new Date(editPlan.scheduledAt).toISOString()
+    : (() => { const g = toGregorian(defaultDate.jy, defaultDate.jm, defaultDate.jd); g.setHours(12, 0, 0, 0); return g.toISOString(); })();
 
   const [form, setForm] = useState<FormData>({
     title: editPlan?.title ?? "",
@@ -372,7 +369,7 @@ function PlanModal({
     notifyViaEmail: editPlan?.notifyViaEmail ?? false,
     notifyViaTelegram: editPlan?.notifyViaTelegram ?? false,
   });
-  const [jDate, setJDate] = useState(initScheduled);
+  const [scheduledIso, setScheduledIso] = useState(initIso);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -390,10 +387,6 @@ function PlanModal({
     setError("");
     setSaving(true);
     try {
-      const gDate = toGregorian(jDate.jy, jDate.jm, jDate.jd);
-      const [h, mi] = jDate.time.split(":").map(Number);
-      gDate.setHours(h, mi, 0, 0);
-
       // Send only the fields the API expects (channels are handled server-side).
       const body = {
         title: form.title,
@@ -402,7 +395,7 @@ function PlanModal({
         contentType: form.contentType,
         color: form.color,
         notifyBefore: form.notifyBefore,
-        scheduledAt: gDate.toISOString(),
+        scheduledAt: scheduledIso,
       };
 
       if (editPlan) {
@@ -494,29 +487,7 @@ function PlanModal({
           {/* Jalali Date + Time */}
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1.5">تاریخ و ساعت (شمسی)</label>
-            <div className="grid grid-cols-4 gap-2">
-              <input type="number" min={1400} max={1420} value={jDate.jy}
-                onChange={(e) => setJDate((d) => ({ ...d, jy: +e.target.value }))}
-                placeholder="سال"
-                className="px-2 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-center
-                           focus:outline-none focus:border-orange-500/50 transition-all" />
-              <select value={jDate.jm} onChange={(e) => setJDate((d) => ({ ...d, jm: +e.target.value }))}
-                className="px-2 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm
-                           focus:outline-none focus:border-orange-500/50 transition-all">
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>{JALALI_MONTHS[i]}</option>
-                ))}
-              </select>
-              <input type="number" min={1} max={31} value={jDate.jd}
-                onChange={(e) => setJDate((d) => ({ ...d, jd: +e.target.value }))}
-                placeholder="روز"
-                className="px-2 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-center
-                           focus:outline-none focus:border-orange-500/50 transition-all" />
-              <input type="time" value={jDate.time}
-                onChange={(e) => setJDate((d) => ({ ...d, time: e.target.value }))}
-                className="px-2 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-center
-                           focus:outline-none focus:border-orange-500/50 transition-all" dir="ltr" />
-            </div>
+            <JalaliDateTime value={scheduledIso} onChange={setScheduledIso} minToday />
           </div>
 
           {/* Description */}

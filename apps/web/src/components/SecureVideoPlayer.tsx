@@ -37,6 +37,24 @@ export function SecureVideoPlayer({
     left: `${(i % 2 === 0 ? 12 : 58)}%`,
   }));
 
+  // Embeddable links (youtube/aparat) → iframe; uploaded files → native <video>.
+  const embed = (() => {
+    if (!src) return null;
+    const yt = src.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([^&?/]+)/)?.[1];
+    if (/youtu/.test(src) && yt) return `https://www.youtube.com/embed/${yt}`;
+    const ap = src.match(/aparat\.com\/v\/([^/?]+)/)?.[1];
+    if (ap) return `https://www.aparat.com/video/video/embed/videohash/${ap}/vt/frame`;
+    return null;
+  })();
+
+  if (embed) {
+    return (
+      <div ref={wrapRef} className="relative w-full rounded-2xl overflow-hidden bg-black aspect-video">
+        <iframe src={embed} className="w-full h-full" allowFullScreen title="video" />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={wrapRef}

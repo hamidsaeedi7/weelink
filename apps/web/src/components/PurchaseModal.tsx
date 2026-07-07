@@ -1,8 +1,34 @@
 "use client";
 
-import { CreditCard, Copy, X } from "lucide-react";
+import { CreditCard, Copy, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
+import { BrandLogo } from "./blocks/brand-icons";
+
+// دکمهٔ راه ارتباطی تحویل (تلگرام/بله/روبیکا/ایتا/واتساپ)
+function DeliveryContact({ type, contact, note }: { type?: string; contact?: string; note?: string }) {
+  if (!contact) {
+    return <p className="text-[11px] text-white/40">پس از واریز، رسید را برای فروشنده بفرستید تا فایل/دسترسی ارسال شود.</p>;
+  }
+  const prefixes: Record<string, string> = {
+    telegram: "https://t.me/", bale: "https://ble.ir/", rubika: "https://rubika.ir/",
+    eitaa: "https://eitaa.com/", whatsapp: "https://wa.me/",
+  };
+  const raw = contact.replace(/^@/, "");
+  const href = raw.startsWith("http") ? raw : (prefixes[type || "telegram"] || "") + raw;
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[11px] text-white/50">پس از واریز، رسید را از این راه برای فروشنده بفرستید:</p>
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-orange-500/40 transition-all">
+        <BrandLogo platform={type || "telegram"} size={22} />
+        <span className="flex-1 text-sm text-white text-left" dir="ltr">{contact}</span>
+        <Send className="w-4 h-4 text-orange-500" />
+      </a>
+      {note && <p className="text-[11px] text-white/40">{note}</p>}
+    </div>
+  );
+}
 
 // مودال خرید: پرداخت کارت‌به‌کارت (شماره کارت + مبلغ، هر دو قابل کپی)
 export function PurchaseModal({ item, shop, onClose }: { item: any; shop: any; onClose: () => void }) {
@@ -37,10 +63,13 @@ export function PurchaseModal({ item, shop, onClose }: { item: any; shop: any; o
               {shop?.cardHolder && <span>به نام: {shop.cardHolder}</span>}
               {shop?.bankName && <span>{shop.bankName}</span>}
             </div>
-            <p className="text-[11px] text-white/40">پس از واریز، رسید را برای فروشنده بفرستید تا دسترسی/فایل ارسال شود.</p>
+            <DeliveryContact type={shop?.deliveryType} contact={shop?.deliveryContact} note={shop?.deliveryNote} />
           </div>
         ) : (
-          <p className="text-sm text-white/60">فروشنده هنوز روش پرداخت را تنظیم نکرده است. لطفاً مستقیم با او تماس بگیرید.</p>
+          <div className="space-y-3">
+            <p className="text-sm text-white/60">فروشنده هنوز روش پرداخت آنلاین/کارت تنظیم نکرده است.</p>
+            <DeliveryContact type={shop?.deliveryType} contact={shop?.deliveryContact} note={shop?.deliveryNote} />
+          </div>
         )}
       </div>
     </div>

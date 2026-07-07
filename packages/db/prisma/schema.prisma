@@ -136,6 +136,9 @@ model Shop {
   cardNumber   String?  // شماره کارت برای پرداخت کارت‌به‌کارت
   cardHolder   String?  // نام صاحب کارت
   bankName     String?  // نام بانک
+  deliveryType    String?  // راه ارتباطی تحویل: telegram/bale/rubika/eitaa/whatsapp
+  deliveryContact String?  // یوزرنیم یا لینک راه ارتباطی
+  deliveryNote    String?  // توضیح تحویل به مشتری
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

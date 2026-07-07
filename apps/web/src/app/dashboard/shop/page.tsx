@@ -78,6 +78,9 @@ export default function ShopSettingsPage() {
         setValue("cardNumber",     data.cardNumber     || "");
         setValue("cardHolder",     data.cardHolder     || "");
         setValue("bankName",       data.bankName       || "");
+        setValue("deliveryType",   data.deliveryType   || "telegram");
+        setValue("deliveryContact",data.deliveryContact|| "");
+        setValue("deliveryNote",   data.deliveryNote   || "");
       }
     }).finally(() => setLoading(false));
   }, [setValue]);
@@ -446,6 +449,37 @@ export default function ShopSettingsPage() {
                 <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
                 <input {...register("bankName")} className="input-base" placeholder="مثال: بانک ملت" />
               </div>
+            </div>
+          </div>
+
+          {/* راه ارتباطی تحویل (فایل/دوره/محصول) */}
+          <div className="glass-card p-5 space-y-4">
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">راه ارتباطی تحویل</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                مشتری پس از پرداخت، رسید را به این راه ارتباطی می‌فرستد تا فایل/دسترسی/سفارش را دریافت کند.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">پیام‌رسان</label>
+                <select {...register("deliveryType")}
+                  className="input-base bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  {[["telegram","تلگرام"],["bale","بله"],["rubika","روبیکا"],["eitaa","ایتا"],["whatsapp","واتساپ"]].map(([v,l]) => (
+                    <option key={v} value={v} className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{l}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-gray-500 mb-1.5">یوزرنیم یا لینک</label>
+                <input {...register("deliveryContact")} dir="ltr" className="input-base text-left"
+                  placeholder="@myusername یا https://t.me/myusername" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">توضیح تحویل (اختیاری)</label>
+              <input {...register("deliveryNote")} className="input-base"
+                placeholder="مثال: پس از ارسال رسید، فایل تا ۱ ساعت ارسال می‌شود" />
             </div>
           </div>
           <button type="submit" disabled={saving}

@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { formatPrice } from "@/lib/utils";
 import { uploadApi } from "@/lib/api";
+import { ShareBar } from "@/components/ShareBar";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -66,7 +67,12 @@ export default function ProductsPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  const [slug, setSlug] = useState("");
+  useEffect(() => {
+    load();
+    axios.get(`${API}/api/v1/me/shop`, { headers: authHeaders() })
+      .then((r) => setSlug((r.data?.data ?? r.data)?.slug || "")).catch(() => {});
+  }, []);
 
   const openNew = () => {
     reset(EMPTY);
@@ -143,14 +149,17 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">محصولات</h1>
-          <p className="text-sm text-gray-500">{products.length} محصول</p>
+          <h1 className="text-xl font-black text-gray-900 dark:text-white">محصولات فیزیکی</h1>
+          <p className="text-sm text-gray-500">لینک فروشگاه را برای مشتری بفرستید — {products.length} محصول</p>
         </div>
-        <button onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
-          <Plus className="w-4 h-4" />
-          محصول جدید
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {slug && <ShareBar url={`https://weeelink.ir/${slug}/shop`} text="فروشگاه من" />}
+          <button onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+            <Plus className="w-4 h-4" />
+            محصول جدید
+          </button>
+        </div>
       </div>
 
       {/* Product list */}

@@ -90,6 +90,21 @@ export class UpdateShopDto {
   bankName?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  deliveryType?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  deliveryContact?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  deliveryNote?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }

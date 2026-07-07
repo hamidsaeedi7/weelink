@@ -87,7 +87,9 @@ export class UploadController {
     return {
       url: `/uploads/files/${file.filename}`,
       filename: file.filename,
-      originalName: file.originalname,
+      // multer/busboy decodes originalname as latin1 → Persian names garble.
+      // Re-decode as UTF-8 so the original filename displays correctly.
+      originalName: Buffer.from(file.originalname, "latin1").toString("utf8"),
       size: file.size,
     };
   }
