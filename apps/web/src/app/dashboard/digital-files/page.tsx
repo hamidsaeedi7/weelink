@@ -244,6 +244,7 @@ export default function DigitalFilesPage() {
                 <input ref={fileRef} type="file" accept={FILE_ACCEPT} className="hidden"
                   onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], "file")} />
                 <p className="mt-1.5 text-[10px] text-gray-400">فرمت‌های مجاز: zip, rar, pdf, ai, figma, mp3, jpeg, excel, word, powerpoint — حداکثر ۵۰۰ مگابایت</p>
+                <p className="mt-1 text-[10px] text-amber-500">هر محصول فقط یک فایل می‌پذیرد — اگر چند فایل دارید، همه را در یک zip فشرده کنید و همان را آپلود کنید.</p>
               </div>
 
               <div>

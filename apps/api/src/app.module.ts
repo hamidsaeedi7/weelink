@@ -15,6 +15,7 @@ import { ProductsModule } from "./products/products.module";
 import { OrdersModule } from "./orders/orders.module";
 import { CouponsModule } from "./coupons/coupons.module";
 import { PaymentsModule } from "./payments/payments.module";
+import { GatewayCallbackModule } from "./gateway-callback/gateway-callback.module";
 import { AnalyticsModule } from "./analytics/analytics.module";
 import { TicketsModule } from "./tickets/tickets.module";
 import { AdminModule } from "./admin/admin.module";
@@ -56,6 +57,7 @@ import { GrowthModule } from "./growth/growth.module";
     OrdersModule,
     CouponsModule,
     PaymentsModule,
+    GatewayCallbackModule,
     AnalyticsModule,
     TicketsModule,
     AdminModule,

@@ -105,6 +105,14 @@ export class CouponsService {
     }
   }
 
+  /** Called once a coupon-discounted purchase is actually paid for (not on validate). */
+  async incrementUsage(code: string) {
+    await this.prisma.coupon.updateMany({
+      where: { code: code.toUpperCase() },
+      data: { usedCount: { increment: 1 } },
+    });
+  }
+
   async remove(userId: string, id: string) {
     const shop = await this.prisma.shop.findUnique({ where: { userId }, select: { id: true } });
     await this.prisma.coupon.deleteMany({ where: { id, shopId: shop?.id } });

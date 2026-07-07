@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateDigitalFileDto {
   @IsString()
@@ -35,6 +35,21 @@ export class CreateDigitalFileDto {
   @IsOptional()
   @IsInt()
   sortOrder?: number;
+}
+
+export class PurchaseDigitalFileDto {
+  @IsString()
+  @MinLength(2, { message: "نام و نام خانوادگی را وارد کنید" })
+  @MaxLength(60)
+  buyerName: string;
+
+  @IsString()
+  @Matches(/^09\d{9}$/, { message: "شماره موبایل معتبر نیست" })
+  buyerPhone: string;
+
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 }
 
 export class UpdateDigitalFileDto {

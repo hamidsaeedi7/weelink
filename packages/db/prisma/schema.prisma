@@ -601,10 +601,12 @@ model DigitalFile {
 model DigitalPurchase {
   id            String      @id @default(uuid())
   fileId        String
-  customerEmail String
+  customerEmail String?
   customerName  String?
+  customerPhone String      @default("")
   amountPaid    BigInt      @default(0)
   paymentRef    String?
+  couponCode    String?
   paymentStatus PayStatus   @default(UNPAID)
   downloadToken String      @unique @default(uuid())
   downloadedAt  DateTime?
@@ -638,6 +640,7 @@ model Course {
   shop     Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
   chapters CourseChapter[]
   enrollments CourseEnrollment[]
+  licenses    License[]
 
   @@index([shopId, isActive])
 }
@@ -661,17 +664,40 @@ model CourseChapter {
 model CourseEnrollment {
   id            String    @id @default(uuid())
   courseId      String
-  customerEmail String
+  customerEmail String?
   customerName  String?
+  customerPhone String    @default("")
   amountPaid    BigInt    @default(0)
   paymentRef    String?
+  couponCode    String?
   paymentStatus PayStatus @default(UNPAID)
   accessToken   String    @unique @default(uuid())
   createdAt     DateTime  @default(now())
 
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  license License?
 
   @@index([courseId])
+}
+
+// ─── License (course access redemption code, tied to one enrollment) ─────────
+
+model License {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  courseId     String
+  enrollmentId String    @unique
+  buyerName    String
+  buyerPhone   String
+  isActive     Boolean   @default(true)
+  lastAccessAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  course     Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([code])
 }
 
 // ─── Appointment ──────────────────────────────────────────────────────────────

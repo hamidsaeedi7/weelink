@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from "@nestjs/common";
+import { Response } from "express";
 import { DigitalFilesService } from "./digital-files.service";
-import { CreateDigitalFileDto, UpdateDigitalFileDto } from "./dto/digital-file.dto";
+import { CreateDigitalFileDto, UpdateDigitalFileDto, PurchaseDigitalFileDto } from "./dto/digital-file.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 
@@ -8,6 +9,22 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 export class DigitalFilesPublicController {
   constructor(private svc: DigitalFilesService) {}
   @Get() findPublic(@Param("slug") slug: string) { return this.svc.findAllPublic(slug); }
+
+  @Post(":id/purchase")
+  purchase(@Param("slug") slug: string, @Param("id") id: string, @Body() dto: PurchaseDigitalFileDto) {
+    return this.svc.purchase(slug, id, dto);
+  }
+}
+
+@Controller("digital-files/download")
+export class DigitalFilesDownloadController {
+  constructor(private svc: DigitalFilesService) {}
+
+  @Get(":token")
+  async download(@Param("token") token: string, @Res() res: Response) {
+    const fileUrl = await this.svc.getDownloadRedirect(token);
+    res.redirect(302, fileUrl);
+  }
 }
 
 @Controller("digital-files")

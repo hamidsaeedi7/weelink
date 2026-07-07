@@ -111,7 +111,7 @@ export class PaymentsService {
     if (!txn) throw new NotFoundException("تراکنش یافت نشد");
 
     if (txn.status === "PAID") {
-      return { success: true, refNumber: txn.refNumber, alreadyVerified: true };
+      return { success: true, refNumber: txn.refNumber, shopId: txn.shopId, type: txn.type, refId: txn.refId, alreadyVerified: true };
     }
 
     if (status !== "OK") {
