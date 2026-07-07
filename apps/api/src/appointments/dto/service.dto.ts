@@ -1,4 +1,6 @@
-import { IsBoolean, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min } from "class-validator";
+import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min } from "class-validator";
+
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export class CreateServiceDto {
   @IsString()
@@ -37,6 +39,27 @@ export class CreateServiceDto {
   @IsOptional()
   @IsInt()
   sortOrder?: number;
+
+  @IsOptional()
+  @IsIn(["DAILY", "WEEKLY", "MONTHLY"])
+  bookingWindow?: string;
+
+  @IsOptional()
+  @IsArray()
+  workDays?: number[];
+
+  @IsOptional()
+  @Matches(TIME_RE, { message: "ساعت شروع نامعتبر است" })
+  startTime?: string;
+
+  @IsOptional()
+  @Matches(TIME_RE, { message: "ساعت پایان نامعتبر است" })
+  endTime?: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsIn([15, 30, 60])
+  slotMinutes?: number;
 }
 
 export class UpdateServiceDto {
@@ -77,6 +100,27 @@ export class UpdateServiceDto {
   @IsOptional()
   @IsInt()
   sortOrder?: number;
+
+  @IsOptional()
+  @IsIn(["DAILY", "WEEKLY", "MONTHLY"])
+  bookingWindow?: string;
+
+  @IsOptional()
+  @IsArray()
+  workDays?: number[];
+
+  @IsOptional()
+  @Matches(TIME_RE, { message: "ساعت شروع نامعتبر است" })
+  startTime?: string;
+
+  @IsOptional()
+  @Matches(TIME_RE, { message: "ساعت پایان نامعتبر است" })
+  endTime?: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsIn([15, 30, 60])
+  slotMinutes?: number;
 }
 
 export class UpdateBookingDto {

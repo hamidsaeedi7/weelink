@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { CalendarCheck, Loader2, Clock, CheckCircle2, CreditCard, Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +9,10 @@ import { JalaliDatePicker } from "@/components/JalaliDatePicker";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-interface Service { id: string; name: string; description?: string; durationMins: number; price: string; isFree: boolean; color: string; }
+interface Service {
+  id: string; name: string; description?: string; durationMins: number; price: string; isFree: boolean; color: string;
+  bookingWindow: string;
+}
 
 export default function BookingPage() {
   const slug = useParams().slug as string;
@@ -18,12 +21,15 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Service | null>(null);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("10:00");
+  const [slot, setSlot] = useState<string | null>(null);
+  const [slots, setSlots] = useState<{ time: string; available: boolean }[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -36,12 +42,35 @@ export default function BookingPage() {
     });
   }, [slug]);
 
+  // وقتی سرویس یا تاریخ عوض می‌شود، اسلات‌های آن روز را می‌گیرد و هر ۵ ثانیه تازه می‌کند
+  // تا اگر مشتری دیگری همان لحظه یک نوبت را گرفت، بلافاصله «گرفته‌شده» دیده شود.
+  const fetchSlots = useCallback(async () => {
+    if (!selected || !date) return;
+    setSlotsLoading(true);
+    try {
+      const r = await fetch(`${API}/api/v1/shops/${slug}/appointments/services/${selected.id}/slots?date=${date}`);
+      const d = await r.json();
+      if (!r.ok) { setSlots([]); return; }
+      setSlots((d?.data ?? d)?.slots || []);
+    } catch { setSlots([]); }
+    finally { setSlotsLoading(false); }
+  }, [selected, date, slug]);
+
+  useEffect(() => {
+    setSlot(null);
+    fetchSlots();
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (selected && date) timerRef.current = setInterval(fetchSlots, 5000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [fetchSlots, selected, date]);
+
   const submit = async () => {
     if (!selected) { toast.error("سرویس را انتخاب کنید"); return; }
     if (!date) { toast.error("تاریخ را انتخاب کنید"); return; }
+    if (!slot) { toast.error("یک زمان خالی انتخاب کنید"); return; }
     if (!name.trim()) { toast.error("نام الزامی است"); return; }
     if (!/^09[0-9]{9}$/.test(phone)) { toast.error("شماره موبایل معتبر وارد کنید"); return; }
-    const iso = new Date(`${date}T${time}:00`).toISOString();
+    const iso = new Date(`${date}T${slot}:00`).toISOString();
     setSubmitting(true);
     try {
       const r = await fetch(`${API}/api/v1/shops/${slug}/appointments/book`, {
@@ -51,7 +80,11 @@ export default function BookingPage() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.message || "خطا در ثبت نوبت");
       setDone(true);
-    } catch (e: any) { toast.error(e.message || "خطا در ثبت نوبت"); }
+    } catch (e: any) {
+      toast.error(e.message || "خطا در ثبت نوبت");
+      fetchSlots(); // اگر زمان توسط شخص دیگری گرفته شده بود، لیست را تازه کن
+      setSlot(null);
+    }
     finally { setSubmitting(false); }
   };
 
@@ -71,7 +104,7 @@ export default function BookingPage() {
           <div className="rounded-2xl bg-white/5 border border-white/10 p-6 space-y-4 text-center">
             <CheckCircle2 className="w-12 h-12 mx-auto text-green-400" />
             <p className="font-bold">نوبت شما ثبت شد!</p>
-            <p className="text-sm text-white/60">{selected?.name} — {new Date(`${date}T${time}`).toLocaleDateString("fa-IR")} ساعت {time}</p>
+            <p className="text-sm text-white/60">{selected?.name} — {new Date(`${date}T${slot}`).toLocaleDateString("fa-IR")} ساعت {slot}</p>
             {amount > 0 && shop?.cardNumber && <PayBox card={shop.cardNumber} holder={shop.cardHolder} bank={shop.bankName} amount={amount} />}
             <p className="text-xs text-white/40">فروشنده نوبت شما را بررسی و تأیید می‌کند.</p>
           </div>
@@ -96,22 +129,49 @@ export default function BookingPage() {
 
             {selected && (
               <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
-                <p className="text-sm font-bold">زمان و اطلاعات شما</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <JalaliDatePicker value={date} onChange={setDate} placeholder="تاریخ" minToday />
-                  <input type="time" value={time} onChange={(e) => setTime(e.target.value)} step={60} dir="ltr"
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-center focus:outline-none focus:border-orange-500/50" />
-                </div>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="نام و نام خانوادگی"
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-orange-500/50" />
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="شماره موبایل (۰۹...)" dir="ltr" inputMode="numeric"
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-left focus:outline-none focus:border-orange-500/50" />
-                <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="توضیحات (اختیاری)" rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm resize-none focus:outline-none focus:border-orange-500/50" />
-                <button onClick={submit} disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 font-bold text-sm disabled:opacity-60">
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarCheck className="w-4 h-4" />} ثبت نوبت
-                </button>
+                <p className="text-sm font-bold">انتخاب تاریخ</p>
+                <JalaliDatePicker value={date} onChange={setDate} placeholder="تاریخ" minToday />
+
+                {date && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-bold">انتخاب زمان</p>
+                      {slotsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-white/40" />}
+                    </div>
+                    {slots.length === 0 && !slotsLoading ? (
+                      <p className="text-xs text-white/40 py-2">در این روز نوبتی موجود نیست — تاریخ دیگری انتخاب کنید</p>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {slots.map((s) => (
+                          <button key={s.time} disabled={!s.available} onClick={() => setSlot(s.time)}
+                            className={`py-2 rounded-lg text-xs font-mono border transition-all
+                                        ${!s.available ? "bg-white/5 border-white/5 text-white/20 cursor-not-allowed line-through"
+                                          : slot === s.time ? "bg-orange-500 border-orange-500 text-white font-bold"
+                                          : "bg-white/5 border-white/10 text-white/80 hover:border-orange-500/50"}`}
+                            dir="ltr">
+                            {s.time}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-[10px] text-white/30">زمان‌های خط‌خورده قبلاً رزرو شده‌اند — این لیست هر ۵ ثانیه به‌روز می‌شود.</p>
+                  </div>
+                )}
+
+                {slot && (
+                  <div className="space-y-2 pt-2 border-t border-white/10">
+                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="نام و نام خانوادگی"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-orange-500/50" />
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="شماره موبایل (۰۹...)" dir="ltr" inputMode="numeric"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-left focus:outline-none focus:border-orange-500/50" />
+                    <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="توضیحات (اختیاری)" rows={2}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm resize-none focus:outline-none focus:border-orange-500/50" />
+                    <button onClick={submit} disabled={submitting}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 font-bold text-sm disabled:opacity-60">
+                      {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarCheck className="w-4 h-4" />} ثبت نوبت
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>

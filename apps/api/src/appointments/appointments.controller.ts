@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { AppointmentsService } from "./appointments.service";
 import { CreateBookingDto } from "./dto/create-booking.dto";
@@ -12,6 +12,15 @@ export class AppointmentsPublicController {
 
   @Get("services")
   getServicesPublic(@Param("slug") slug: string) { return this.svc.getServicesPublic(slug); }
+
+  @Get("services/:id/slots")
+  getSlotsPublic(
+    @Param("slug") slug: string,
+    @Param("id") id: string,
+    @Query("date") date: string,
+  ) {
+    return this.svc.getSlotsPublic(slug, id, date);
+  }
 
   @Post("book")
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -36,6 +45,15 @@ export class AppointmentsController {
 
   @Delete("services/:id")
   removeService(@CurrentUser() user: { id: string }, @Param("id") id: string) { return this.svc.removeService(user.id, id); }
+
+  @Get("services/:id/slots")
+  getSlotsForOwner(
+    @CurrentUser() user: { id: string },
+    @Param("id") id: string,
+    @Query("date") date: string,
+  ) {
+    return this.svc.getSlotsForOwner(user.id, id, date);
+  }
 
   @Get("bookings")
   getBookings(@CurrentUser() user: { id: string }) { return this.svc.getBookings(user.id); }

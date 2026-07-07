@@ -626,6 +626,12 @@ model AppointmentService {
   isActive     Boolean  @default(true)
   color        String   @default("#F97316")
   sortOrder    Int      @default(0)
+  // بازهٔ زمانی که نوبت‌گیری برای مشتری باز است: DAILY(1 روز)/WEEKLY(۷ روز)/MONTHLY(۳۰ روز)
+  bookingWindow String  @default("WEEKLY")
+  workDays      Json    @default("[0,1,2,3,4,5,6]") // روزهای هفته فعال (JS getDay: 0=یکشنبه..6=شنبه)
+  startTime     String  @default("09:00")
+  endTime       String  @default("18:00")
+  slotMinutes   Int     @default(30) // فاصلهٔ اسلات‌های نوبت به دقیقه (۱۵ یا ۳۰ یا ۶۰)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
