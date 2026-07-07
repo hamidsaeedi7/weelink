@@ -59,7 +59,7 @@ export default function AccountPage() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
     </div>
   );
 
@@ -90,7 +90,7 @@ export default function AccountPage() {
         <div className="flex items-center gap-2 mt-1">
           <span className="text-sm text-gray-500" dir="ltr">{user?.phone}</span>
           {user?.plan === "PRO" && (
-            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-bold">
+            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-accent-500/20 text-accent-400 font-bold">
               <Crown className="w-3 h-3" />
               PRO
             </span>
@@ -104,7 +104,7 @@ export default function AccountPage() {
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-bold transition-all ${
               tab === t.key
-                ? "bg-white dark:bg-white/10 text-orange-500 shadow-sm"
+                ? "bg-gray-100 dark:bg-white/10 text-accent-500 shadow-sm"
                 : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             }`}>
             <t.icon className="w-3.5 h-3.5" />
@@ -115,7 +115,7 @@ export default function AccountPage() {
 
       {/* Profile Tab */}
       {tab === "profile" && (
-        <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
+        <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
           <form onSubmit={profileForm.handleSubmit(onProfileSave)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -146,8 +146,8 @@ export default function AccountPage() {
             </div>
             <button type="submit" disabled={profileForm.formState.isSubmitting}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl
-                         bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm
-                         transition-all disabled:opacity-60 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+                         bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
+                         transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.2)]">
               {profileForm.formState.isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               ذخیره تغییرات
             </button>
@@ -157,7 +157,7 @@ export default function AccountPage() {
 
       {/* Password Tab */}
       {tab === "password" && (
-        <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
+        <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
           <form onSubmit={passForm.handleSubmit(onPasswordChange)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -188,7 +188,7 @@ export default function AccountPage() {
             </div>
             <button type="submit" disabled={passForm.formState.isSubmitting}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl
-                         bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm
+                         bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
                          transition-all disabled:opacity-60">
               {passForm.formState.isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               تغییر رمز عبور
@@ -200,7 +200,7 @@ export default function AccountPage() {
       {/* SEO Tab */}
       {tab === "seo" && (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6 space-y-5">
+          <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6 space-y-5">
             <div>
               <h2 className="font-bold text-gray-900 dark:text-white mb-1">تنظیمات SEO صفحه</h2>
               <p className="text-xs text-gray-500">این اطلاعات در نتایج گوگل و پیش‌نمایش شبکه‌های اجتماعی نمایش داده می‌شوند</p>
@@ -245,7 +245,7 @@ export default function AccountPage() {
       {/* Security Tab */}
       {tab === "security" && (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6 space-y-4">
+          <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6 space-y-4">
             <h2 className="font-bold text-gray-900 dark:text-white">وضعیت امنیتی</h2>
             <div className="space-y-3">
               {[

@@ -41,10 +41,10 @@ function Countdown({ endsAt }: { endsAt: string }) {
 
   return (
     <div className="flex items-center gap-1 text-xs font-mono">
-      {d > 0 && <><span className="text-orange-400 font-bold">{toPersianNumber(d)}</span><span className="text-gray-400">روز</span></>}
-      <span className="text-orange-400 font-bold">{pad(h % 24)}</span><span className="text-gray-400">:</span>
-      <span className="text-orange-400 font-bold">{pad(m % 60)}</span><span className="text-gray-400">:</span>
-      <span className="text-orange-400 font-bold">{pad(s % 60)}</span>
+      {d > 0 && <><span className="text-accent-400 font-bold">{toPersianNumber(d)}</span><span className="text-gray-400">روز</span></>}
+      <span className="text-accent-400 font-bold">{pad(h % 24)}</span><span className="text-gray-400">:</span>
+      <span className="text-accent-400 font-bold">{pad(m % 60)}</span><span className="text-gray-400">:</span>
+      <span className="text-accent-400 font-bold">{pad(s % 60)}</span>
     </div>
   );
 }
@@ -131,7 +131,7 @@ export default function FlashSalePage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-orange-500" />
+            <Zap className="w-5 h-5 text-accent-500" />
             فلش سیل
           </h1>
           <p className="text-sm text-gray-500">فروش ویژه با تایمر شمارش معکوس</p>
@@ -143,7 +143,7 @@ export default function FlashSalePage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : sales.length === 0 ? (
         <div className="glass-card p-12 text-center space-y-3">
           <Zap className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
@@ -175,7 +175,7 @@ export default function FlashSalePage() {
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="text-gray-400 line-through">{formatPrice(Number(s.originalPrice))}</span>
-                    <span className="text-orange-500 font-black">{formatPrice(Number(s.salePrice))}</span>
+                    <span className="text-accent-500 font-black">{formatPrice(Number(s.salePrice))}</span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-1.5 text-gray-500">
                     <Clock className="w-3 h-3 shrink-0" />
@@ -187,8 +187,8 @@ export default function FlashSalePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => toggle(s.id, s.isActive)} className="text-gray-400 hover:text-orange-500 transition-colors">
-                    {s.isActive ? <ToggleRight className="w-5 h-5 text-orange-500" /> : <ToggleLeft className="w-5 h-5" />}
+                  <button onClick={() => toggle(s.id, s.isActive)} className="text-gray-400 hover:text-accent-500 transition-colors">
+                    {s.isActive ? <ToggleRight className="w-5 h-5 text-accent-500" /> : <ToggleLeft className="w-5 h-5" />}
                   </button>
                   <button onClick={() => remove(s.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                     <Trash2 className="w-4 h-4" />
@@ -203,11 +203,11 @@ export default function FlashSalePage() {
       {/* Form modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10
+          <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10
                           w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Zap className="w-4 h-4 text-orange-500" /> فلش سیل جدید
+                <Zap className="w-4 h-4 text-accent-500" /> فلش سیل جدید
               </h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
                 <X className="w-5 h-5" />
@@ -277,7 +277,7 @@ export default function FlashSalePage() {
                 ) : (
                   <button onClick={() => imageRef.current?.click()}
                     className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-4
-                               text-center text-sm text-gray-400 hover:border-orange-500/50 transition-colors">
+                               text-center text-sm text-gray-400 hover:border-accent-500/50 transition-colors">
                     {imageUploading
                       ? <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                       : <><Upload className="w-5 h-5 mx-auto mb-1" /> آپلود تصویر</>}

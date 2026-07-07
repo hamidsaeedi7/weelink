@@ -99,7 +99,7 @@ export default function DomainsPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
       </div>
     );
   }
@@ -111,9 +111,9 @@ export default function DomainsPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-          <Globe className="w-5 h-5 text-orange-500" />
+          <Globe className="w-5 h-5 text-accent-500" />
           دامنه اختصاصی
-          <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-md font-medium">Pro</span>
+          <span className="text-xs bg-accent-500/20 text-accent-400 px-2 py-0.5 rounded-md font-medium">Pro</span>
         </h1>
         <p className="text-sm text-gray-500 mt-1">
           صفحه بیوی خود را روی دامنه‌ی شخصی‌تان نمایش دهید
@@ -131,7 +131,7 @@ export default function DomainsPage() {
                   {info.customDomain}
                 </span>
                 <a href={`https://${info.customDomain}`} target="_blank" rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-orange-500 shrink-0">
+                  className="text-gray-400 hover:text-accent-500 shrink-0">
                   <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
@@ -206,7 +206,7 @@ export default function DomainsPage() {
             </button>
           </div>
           <p className="text-xs text-gray-400">
-            مثال: <code className="text-orange-400">shop.mysite.com</code> یا <code className="text-orange-400">bio.mysite.com</code>
+            مثال: <code className="text-accent-400">shop.mysite.com</code> یا <code className="text-accent-400">bio.mysite.com</code>
           </p>
         </div>
       )}
@@ -216,19 +216,19 @@ export default function DomainsPage() {
         <h3 className="font-semibold text-sm text-gray-900 dark:text-white">چطور کار می‌کند؟</h3>
         <ol className="space-y-2 text-sm text-gray-500">
           <li className="flex gap-2">
-            <span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-bold shrink-0">۱</span>
+            <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۱</span>
             دامنه خود را وارد کنید
           </li>
           <li className="flex gap-2">
-            <span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-bold shrink-0">۲</span>
+            <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۲</span>
             رکوردهای DNS را در پنل مدیریت دامنه‌تان تنظیم کنید
           </li>
           <li className="flex gap-2">
-            <span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-bold shrink-0">۳</span>
+            <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۳</span>
             دکمه «بررسی DNS» را بزنید تا تأیید شود
           </li>
           <li className="flex gap-2">
-            <span className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-bold shrink-0">۴</span>
+            <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۴</span>
             صفحه بیوی شما روی دامنه اختصاصی فعال می‌شود
           </li>
         </ol>
@@ -246,12 +246,12 @@ function DnsRecord({ type, name, value }: { type: string; name: string; value: s
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <span className="px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold">{type}</span>
+        <span className="px-1.5 py-0.5 rounded bg-accent-500/20 text-accent-400 text-[10px] font-bold">{type}</span>
         <span className="text-gray-500">{name}</span>
       </div>
       <div className="flex items-center gap-2 pl-1">
         <span className="text-gray-700 dark:text-gray-300 break-all">{value}</span>
-        <button onClick={copy} className="text-gray-400 hover:text-orange-500 shrink-0">
+        <button onClick={copy} className="text-gray-400 hover:text-accent-500 shrink-0">
           <Copy className="w-3.5 h-3.5" />
         </button>
       </div>

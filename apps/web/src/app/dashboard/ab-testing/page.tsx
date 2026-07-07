@@ -38,7 +38,7 @@ function ProgressBar({ a, b, label }: { a: number; b: number; label: string }) {
       </div>
       <div className="flex gap-1 h-3 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
         <div
-          className="bg-orange-500 transition-all duration-500 flex items-center justify-center"
+          className="bg-accent-500 transition-all duration-500 flex items-center justify-center"
           style={{ width: `${(a / total) * 100}%` }}
           title={`A: ${a}`}
         />
@@ -49,7 +49,7 @@ function ProgressBar({ a, b, label }: { a: number; b: number; label: string }) {
         />
       </div>
       <div className="flex justify-between text-xs">
-        <span className="text-orange-500 font-medium">A: {a}</span>
+        <span className="text-accent-500 font-medium">A: {a}</span>
         <span className="text-blue-500 font-medium">B: {b}</span>
       </div>
     </div>
@@ -134,7 +134,7 @@ export default function ABTestingPage() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow"
+          className="flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow"
         >
           <span className="text-lg leading-none">+</span>
           تست جدید
@@ -143,7 +143,7 @@ export default function ABTestingPage() {
 
       {loading && (
         <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-accent-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
@@ -169,7 +169,7 @@ export default function ABTestingPage() {
           return (
             <div
               key={test.id}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm"
+              className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4 gap-4">
@@ -222,8 +222,8 @@ export default function ABTestingPage() {
 
               {/* Conversion rates */}
               <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="bg-orange-50 dark:bg-orange-900/10 rounded-xl p-3 text-center border border-orange-100 dark:border-orange-900/20">
-                  <div className="text-2xl font-bold text-orange-500">{crA}%</div>
+                <div className="bg-accent-50 dark:bg-accent-900/10 rounded-xl p-3 text-center border border-accent-100 dark:border-accent-900/20">
+                  <div className="text-2xl font-bold text-accent-500">{crA}%</div>
                   <div className="text-xs text-gray-500 mt-0.5">نرخ تبدیل — نسخه A</div>
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-3 text-center border border-blue-100 dark:border-blue-900/20">
@@ -246,7 +246,7 @@ export default function ABTestingPage() {
           className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
           onClick={(e) => e.target === e.currentTarget && setShowCreate(false)}
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl" dir="rtl">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl" dir="rtl">
             <h2 className="text-lg font-bold mb-5">تست A/B جدید</h2>
             <div className="space-y-4">
               <div>
@@ -256,7 +256,7 @@ export default function ABTestingPage() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="مثال: تست دکمه خرید"
-                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-accent-300"
                 />
               </div>
               <div>
@@ -266,7 +266,7 @@ export default function ABTestingPage() {
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   placeholder="مثال: تغییر رنگ دکمه به آبی"
-                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-accent-300"
                 />
               </div>
               <p className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
@@ -277,7 +277,7 @@ export default function ABTestingPage() {
               <button
                 onClick={handleCreate}
                 disabled={creating || !newName.trim()}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                className="flex-1 bg-accent-500 hover:bg-accent-600 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
               >
                 {creating ? "در حال ایجاد..." : "ایجاد تست"}
               </button>
@@ -298,7 +298,7 @@ export default function ABTestingPage() {
           className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
           onClick={(e) => e.target === e.currentTarget && setEndTestId(null)}
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl" dir="rtl">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl" dir="rtl">
             <h2 className="text-lg font-bold mb-2">پایان دادن به تست</h2>
             <p className="text-gray-500 text-sm mb-5">
               نسخه برنده را انتخاب کنید. بلاک‌های برنده جایگزین بلاک‌های فعلی فروشگاه شما می‌شوند.
@@ -311,7 +311,7 @@ export default function ABTestingPage() {
                   className={`py-4 rounded-xl text-lg font-bold border-2 transition-colors ${
                     endWinner === v
                       ? v === "A"
-                        ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-900/20"
+                        ? "border-accent-500 bg-accent-50 text-accent-600 dark:bg-accent-900/20"
                         : "border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20"
                       : "border-gray-200 dark:border-gray-600"
                   }`}

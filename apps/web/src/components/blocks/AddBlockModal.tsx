@@ -48,7 +48,7 @@ export function AddBlockModal({ onSelect, onClose }: Props) {
               placeholder="جستجو..."
               className="w-full pr-9 pl-4 py-2 rounded-xl bg-white/5 border border-white/8
                          text-white text-sm placeholder:text-gray-600 focus:outline-none
-                         focus:border-orange-500/40 transition-all"
+                         focus:border-accent-500/40 transition-all"
             />
           </div>
         </div>
@@ -63,7 +63,7 @@ export function AddBlockModal({ onSelect, onClose }: Props) {
                          hover:bg-white/5 transition-all group text-right">
               <span className="text-xl w-8 text-center">{block.icon}</span>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white group-hover:text-orange-400 transition-colors">
+                <div className="text-sm font-medium text-white group-hover:text-accent-400 transition-colors">
                   {block.label}
                 </div>
                 <div className="text-xs text-gray-600 truncate">{block.description}</div>

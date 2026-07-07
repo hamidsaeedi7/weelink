@@ -61,25 +61,25 @@ function ExpiryBanner({ expiresAt }: { expiresAt: string }) {
         ? "bg-red-500/10 border-red-500/30"
         : warning
         ? "bg-yellow-500/10 border-yellow-500/30"
-        : "bg-orange-500/10 border-orange-500/30"
+        : "bg-accent-500/10 border-accent-500/30"
     }`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {urgent ? (
             <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
           ) : (
-            <Crown className="w-5 h-5 text-orange-400 shrink-0" />
+            <Crown className="w-5 h-5 text-accent-400 shrink-0" />
           )}
           <div>
-            <p className={`font-black text-sm ${urgent ? "text-red-400" : "text-orange-400"}`}>
+            <p className={`font-black text-sm ${urgent ? "text-red-400" : "text-accent-400"}`}>
               حساب PRO فعال
             </p>
-            <p className={`text-xs mt-0.5 ${urgent ? "text-red-300/70" : "text-orange-300/70"}`}>
+            <p className={`text-xs mt-0.5 ${urgent ? "text-red-300/70" : "text-accent-300/70"}`}>
               انقضا: {expiry.toLocaleDateString("fa-IR")}
             </p>
           </div>
         </div>
-        <div className={`text-left ${urgent ? "text-red-400" : warning ? "text-yellow-400" : "text-orange-400"}`}>
+        <div className={`text-left ${urgent ? "text-red-400" : warning ? "text-yellow-400" : "text-accent-400"}`}>
           <p className="text-2xl font-black">{toPersianNumber(daysLeft)}</p>
           <p className="text-xs">روز مانده</p>
         </div>
@@ -87,7 +87,7 @@ function ExpiryBanner({ expiresAt }: { expiresAt: string }) {
       <div className="h-2 rounded-full bg-white/10 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${
-            urgent ? "bg-red-500" : warning ? "bg-yellow-500" : "bg-orange-500"
+            urgent ? "bg-red-500" : warning ? "bg-yellow-500" : "bg-accent-500"
           }`}
           style={{ width: `${pct}%` }}
         />
@@ -134,7 +134,7 @@ export default function PlansPage() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
     </div>
   );
 
@@ -152,7 +152,7 @@ export default function PlansPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
         {/* Free card */}
-        <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.03] p-6 space-y-5">
+        <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/[0.03] p-6 space-y-5">
           <div>
             <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">پلن رایگان</div>
             <div className="text-4xl font-black text-gray-900 dark:text-white">۰</div>
@@ -178,11 +178,11 @@ export default function PlansPage() {
           {/* Gradient border */}
           <div className="absolute -inset-px rounded-2xl"
                style={{ background: "linear-gradient(135deg, #f9731680, #f9731630)" }} />
-          <div className="relative rounded-2xl bg-white dark:bg-[#0D0D18] p-6 space-y-5">
+          <div className="relative rounded-2xl bg-gray-100 dark:bg-[#0D0D18] p-6 space-y-5">
 
             <div className="flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-1.5 mb-1 font-medium text-orange-500 text-sm">
+                <div className="flex items-center gap-1.5 mb-1 font-medium text-accent-500 text-sm">
                   <Star className="w-3.5 h-3.5 fill-current" />
                   پلن Pro
                   {isLifetime && <Infinity className="w-4 h-4 mr-1" />}
@@ -205,7 +205,7 @@ export default function PlansPage() {
                 )}
               </div>
               {current.popular && (
-                <div className="px-3 py-1 rounded-full font-bold text-xs text-white shrink-0 bg-orange-500">
+                <div className="px-3 py-1 rounded-full font-bold text-xs text-white shrink-0 bg-accent-500">
                   محبوب‌ترین
                 </div>
               )}
@@ -229,14 +229,14 @@ export default function PlansPage() {
             <ul className="space-y-2.5">
               {PRO_FEATURES.map((f) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-gray-700 dark:text-gray-300">
-                  <Check className="w-4 h-4 text-orange-500 shrink-0" />
+                  <Check className="w-4 h-4 text-accent-500 shrink-0" />
                   {f}
                 </li>
               ))}
             </ul>
 
             {isPro && (
-              <div className="text-xs text-orange-400/70 text-center">
+              <div className="text-xs text-accent-400/70 text-center">
                 برای تمدید یا ارتقای دوره، پلن را انتخاب کنید
               </div>
             )}
@@ -249,9 +249,9 @@ export default function PlansPage() {
         onClick={handleUpgrade}
         disabled={upgrading}
         className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl
-                   bg-orange-500 hover:bg-orange-400 text-white font-black text-base
+                   bg-accent-500 hover:bg-accent-400 text-white font-black text-base
                    transition-all disabled:opacity-60
-                   shadow-[0_8px_30px_rgba(249,115,22,0.35)]">
+                   shadow-[0_8px_30px_rgb(var(--accent-500-rgb) / 0.35)]">
         {upgrading
           ? <Loader2 className="w-5 h-5 animate-spin" />
           : isLifetime
@@ -282,7 +282,7 @@ export default function PlansPage() {
             <p className="text-gray-500">افیلیت + پاسخ خودکار</p>
           </div>
           <div className="space-y-1.5">
-            <p className="font-bold text-orange-500">PRO اضافه می‌کند ✦</p>
+            <p className="font-bold text-accent-500">PRO اضافه می‌کند ✦</p>
             <p className="text-gray-500">لینک کوتاه</p>
             <p className="text-gray-500">مدیریت مخاطبان</p>
             <p className="text-gray-500">تقویم محتوا</p>

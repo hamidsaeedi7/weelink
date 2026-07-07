@@ -130,7 +130,7 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                         onClick={() => setValue(field.key, o.value)}
                         className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl border transition-all
                                     ${selected
-                                      ? "border-orange-500/60 bg-orange-500/10"
+                                      ? "border-accent-500/60 bg-accent-500/10"
                                       : "border-white/10 bg-white/5 hover:border-white/25"}`}>
                         <BrandLogo platform={o.value} size={26} />
                         <span className="text-[11px] text-white/80">{o.label}</span>
@@ -148,7 +148,7 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                         onClick={() => setValue(field.key, getValue(field.key) === em ? "" : em)}
                         className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center border transition-all
                                     ${getValue(field.key) === em
-                                      ? "border-orange-500/60 bg-orange-500/15"
+                                      ? "border-accent-500/60 bg-accent-500/15"
                                       : "border-white/10 bg-white/5 hover:border-white/25"}`}>
                         {em}
                       </button>
@@ -160,14 +160,14 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                     onChange={(e) => setValue(field.key, e.target.value.slice(0, 2))}
                     placeholder="یا ایموجی دلخواه"
                     className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10
-                               text-white text-sm text-center focus:outline-none focus:border-orange-500/50" />
+                               text-white text-sm text-center focus:outline-none focus:border-accent-500/50" />
                 </div>
               ) : field.type === "select" ? (
                 <select
                   value={getValue(field.key)}
                   onChange={(e) => setValue(field.key, e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10
-                             text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all">
+                             text-white text-sm focus:outline-none focus:border-accent-500/50 transition-all">
                   <option value="" className="bg-[#1a1a2e] text-white">انتخاب کنید</option>
                   {field.options?.map((o) => (
                     <option key={o.value} value={o.value} className="bg-[#1a1a2e] text-white">{o.label}</option>
@@ -181,7 +181,7 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                   placeholder={field.placeholder}
                   className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10
                              text-white text-sm resize-none focus:outline-none
-                             focus:border-orange-500/50 transition-all leading-relaxed"
+                             focus:border-accent-500/50 transition-all leading-relaxed"
                 />
               ) : field.type === "image" ? (
                 <div className="space-y-2">
@@ -194,7 +194,7 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                     onClick={() => fileRefs.current[field.key]?.click()}
                     className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl
                                border border-dashed border-white/15 text-gray-500 text-sm
-                               hover:border-orange-500/40 hover:text-orange-400 transition-all">
+                               hover:border-accent-500/40 hover:text-accent-400 transition-all">
                     {uploading === field.key ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
@@ -218,7 +218,7 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                   placeholder={field.placeholder}
                   dir={field.type === "url" ? "ltr" : "rtl"}
                   className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10
-                             text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all"
+                             text-white text-sm focus:outline-none focus:border-accent-500/50 transition-all"
                 />
               )}
 
@@ -235,8 +235,8 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
               type="button"
               onClick={() => setValue("isActive", !form.isActive)}
               className={`w-10 h-5 rounded-full transition-all duration-200 relative
-                          ${form.isActive ? "bg-orange-500" : "bg-white/10"}`}>
-              <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all
+                          ${form.isActive ? "bg-accent-500" : "bg-white/10"}`}>
+              <span className={`absolute top-0.5 w-4 h-4 bg-gray-100 rounded-full shadow transition-all
                                 ${form.isActive ? "right-0.5" : "left-0.5"}`} />
             </button>
           </div>
@@ -244,10 +244,10 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
           {/* Schedule */}
           <div className="border-t border-white/[0.06] pt-2">
             <button type="button" onClick={() => setShowSchedule(!showSchedule)}
-              className="flex items-center gap-2 text-xs text-gray-500 hover:text-orange-400 transition-colors">
+              className="flex items-center gap-2 text-xs text-gray-500 hover:text-accent-400 transition-colors">
               <Clock className="w-3.5 h-3.5" />
               زمان‌بندی نمایش
-              <span className="text-[10px] text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded-md">اختیاری</span>
+              <span className="text-[10px] text-accent-400 bg-accent-400/10 px-1.5 py-0.5 rounded-md">اختیاری</span>
             </button>
             {showSchedule && (
               <div className="mt-3 space-y-2">
@@ -256,14 +256,14 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
                   <input type="datetime-local" value={form.scheduleStart}
                     onChange={(e) => setValue("scheduleStart", e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs
-                               focus:outline-none focus:border-orange-500/50" />
+                               focus:outline-none focus:border-accent-500/50" />
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-1">تا تاریخ</label>
                   <input type="datetime-local" value={form.scheduleEnd}
                     onChange={(e) => setValue("scheduleEnd", e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs
-                               focus:outline-none focus:border-orange-500/50" />
+                               focus:outline-none focus:border-accent-500/50" />
                 </div>
                 {(form.scheduleStart || form.scheduleEnd) && (
                   <button type="button" onClick={() => { setValue("scheduleStart", ""); setValue("scheduleEnd", ""); }}
@@ -283,7 +283,7 @@ export function BlockEditPanel({ block, onSave, onClose }: Props) {
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl
-                       bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold
+                       bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold
                        transition-all disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "ذخیره"}
           </button>

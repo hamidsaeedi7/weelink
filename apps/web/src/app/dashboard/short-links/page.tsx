@@ -64,8 +64,8 @@ export default function ShortLinksPage() {
         <p className="text-sm text-gray-500">آمارگیری از کلیک‌ها با لینک‌های کوتاه برند شما</p>
       </div>
       <div className="glass-card p-12 text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
-          <Zap className="w-8 h-8 text-orange-500" />
+        <div className="w-16 h-16 rounded-2xl bg-accent-500/10 flex items-center justify-center mx-auto">
+          <Zap className="w-8 h-8 text-accent-500" />
         </div>
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">این ویژگی برای پلن Pro است</h2>
         <p className="text-sm text-gray-500 max-w-sm mx-auto">با ارتقا به پلن Pro می‌توانید لینک‌های کوتاه با آمار کلیک بسازید</p>
@@ -89,7 +89,7 @@ export default function ShortLinksPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : links.length === 0 ? (
         <div className="glass-card p-12 text-center space-y-3">
           <Scissors className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
@@ -129,7 +129,7 @@ export default function ShortLinksPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md">
+          <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">لینک کوتاه جدید</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400"><X className="w-5 h-5" /></button>

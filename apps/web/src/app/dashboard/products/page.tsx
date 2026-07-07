@@ -130,7 +130,7 @@ export default function ProductsPage() {
     } catch { toast.error("خطا"); }
   };
 
-  if (loading) return <div className="flex justify-center h-48 items-center"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>;
+  if (loading) return <div className="flex justify-center h-48 items-center"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>;
 
   return (
     <div className="space-y-6">
@@ -142,7 +142,7 @@ export default function ProductsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           {slug && <ShareBar url={`https://weeelink.ir/${slug}/shop`} text="فروشگاه من" />}
           <button onClick={openNew}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
             <Plus className="w-4 h-4" />
             محصول جدید
           </button>
@@ -154,7 +154,7 @@ export default function ProductsPage() {
         <div className="text-center py-16 text-gray-400 space-y-3">
           <Package className="w-12 h-12 mx-auto opacity-20" />
           <p>هنوز محصولی ندارید</p>
-          <button onClick={openNew} className="px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-bold">
+          <button onClick={openNew} className="px-4 py-2 rounded-xl bg-accent-500 text-white text-sm font-bold">
             افزودن اولین محصول
           </button>
         </div>
@@ -162,7 +162,7 @@ export default function ProductsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((p) => (
             <div key={p.id}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
+              className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
               <div className="aspect-video bg-gray-50 dark:bg-white/5 relative">
                 {p.images[0]
                   ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
@@ -173,15 +173,15 @@ export default function ProductsPage() {
               </div>
               <div className="p-4">
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">{p.name}</h3>
-                <p className="text-orange-500 font-black text-sm mb-3">{formatPrice(p.price)}</p>
+                <p className="text-accent-500 font-black text-sm mb-3">{formatPrice(p.price)}</p>
                 <div className="flex items-center gap-2">
                   <button onClick={() => openEdit(p)}
-                    className="flex-1 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 text-xs hover:border-orange-500/40 hover:text-orange-500 transition-all flex items-center justify-center gap-1">
+                    className="flex-1 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 text-xs hover:border-accent-500/40 hover:text-accent-500 transition-all flex items-center justify-center gap-1">
                     <Pencil className="w-3 h-3" />
                     ویرایش
                   </button>
                   <button onClick={() => toggleAvailable(p)}
-                    className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-500 hover:border-orange-500/40 transition-all">
+                    className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 text-gray-500 hover:border-accent-500/40 transition-all">
                     {p.isAvailable ? <ToggleRight className="w-4 h-4 text-green-400" /> : <ToggleLeft className="w-4 h-4" />}
                   </button>
                   <button onClick={() => handleDelete(p.id)}
@@ -198,7 +198,7 @@ export default function ProductsPage() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60">
-          <div className="w-full max-w-lg bg-white dark:bg-[#111] rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-lg bg-gray-100 dark:bg-[#111] rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-black text-gray-900 dark:text-white">
                 {editing ? "ویرایش محصول" : "محصول جدید"}
@@ -225,7 +225,7 @@ export default function ProductsPage() {
                     ))}
                     <button type="button" onClick={() => fileRef.current?.click()}
                       className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20
-                                 flex items-center justify-center text-gray-400 hover:border-orange-500/40 transition-all">
+                                 flex items-center justify-center text-gray-400 hover:border-accent-500/40 transition-all">
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                     </button>
                     <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden"
@@ -243,10 +243,10 @@ export default function ProductsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">دسته محصول *</label>
                   <select {...register("category", { required: true })}
-                    className="input-base bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                    <option value="" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">انتخاب دسته...</option>
+                    className="input-base bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                    <option value="" className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">انتخاب دسته...</option>
                     {CATEGORIES.map((c) => (
-                      <option key={c} value={c} className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{c}</option>
+                      <option key={c} value={c} className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{c}</option>
                     ))}
                   </select>
                 </div>
@@ -285,7 +285,7 @@ export default function ProductsPage() {
                     انصراف
                   </button>
                   <button type="submit" disabled={isSubmitting}
-                    className="flex-1 py-3 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                    className="flex-1 py-3 rounded-xl bg-accent-500 text-white text-sm font-bold hover:bg-accent-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     {editing ? "ذخیره" : "افزودن"}
                   </button>

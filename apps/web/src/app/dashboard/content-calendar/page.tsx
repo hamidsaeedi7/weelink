@@ -201,7 +201,7 @@ export default function ContentCalendarPage() {
           />
           <button
             onClick={() => { setSelected(today); setEditPlan(null); setShowModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold rounded-xl transition-all">
+            className="flex items-center gap-2 px-4 py-2 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl transition-all">
             <Plus className="w-4 h-4" /> محتوا جدید
           </button>
         </div>
@@ -229,7 +229,7 @@ export default function ContentCalendarPage() {
             { v: "year", l: "سالانه" },
           ].map(({ v, l }) => (
             <button key={v} onClick={() => setView(v as any)}
-              className={`px-3 py-1.5 rounded-md transition-all font-medium ${view === v ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+              className={`px-3 py-1.5 rounded-md transition-all font-medium ${view === v ? "bg-accent-500 text-white" : "text-gray-400 hover:text-white"}`}>
               {l}
             </button>
           ))}
@@ -308,13 +308,13 @@ function MonthGrid({
 
           return (
             <div key={day}
-              className={`aspect-square p-0.5 border border-transparent hover:border-orange-500/20
-                         cursor-pointer group relative ${isFriday ? "text-orange-400" : ""}`}
+              className={`aspect-square p-0.5 border border-transparent hover:border-accent-500/20
+                         cursor-pointer group relative ${isFriday ? "text-accent-400" : ""}`}
               onClick={() => onAddDay(jy, jm, day)}>
               <div className={`w-full h-full rounded-lg flex flex-col p-1 transition-colors
-                              group-hover:bg-white/5 ${isToday ? "bg-orange-500/10 border !border-orange-500/30" : ""}`}>
+                              group-hover:bg-white/5 ${isToday ? "bg-accent-500/10 border !border-accent-500/30" : ""}`}>
                 <span className={`text-xs font-medium leading-none mb-0.5
-                                  ${isToday ? "text-orange-400" : "text-gray-400"}`}>
+                                  ${isToday ? "text-accent-400" : "text-gray-400"}`}>
                   {toPersianNum(day)}
                 </span>
                 <div className="flex flex-col gap-0.5 overflow-hidden">
@@ -445,7 +445,7 @@ function PlanModal({
             <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               required placeholder="مثال: پست معرفی محصول جدید"
               className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm
-                         focus:outline-none focus:border-orange-500/50 transition-all" />
+                         focus:outline-none focus:border-accent-500/50 transition-all" />
           </div>
 
           {/* Platform (logo buttons) */}
@@ -458,7 +458,7 @@ function PlanModal({
                   <button key={p.value} type="button"
                     onClick={() => setForm((f) => ({ ...f, platform: p.value, contentType: CONTENT_TYPES[p.value][0] }))}
                     className={`flex flex-col items-center gap-1 py-2 rounded-xl border transition-all
-                                ${active ? "border-orange-500/60 bg-orange-500/10" : "border-white/10 bg-white/5 hover:border-white/25"}`}>
+                                ${active ? "border-accent-500/60 bg-accent-500/10" : "border-white/10 bg-white/5 hover:border-white/25"}`}>
                     <BrandLogo platform={p.value} size={22} />
                     <span className="text-[10px] text-gray-300">{p.label}</span>
                   </button>
@@ -476,7 +476,7 @@ function PlanModal({
                   onClick={() => setForm((f) => ({ ...f, contentType: t }))}
                   className={`text-xs px-3 py-1.5 rounded-lg border transition-all
                               ${form.contentType === t
-                                ? "bg-orange-500/20 border-orange-500/50 text-orange-400"
+                                ? "bg-accent-500/20 border-accent-500/50 text-accent-400"
                                 : "border-white/10 text-gray-400 hover:border-white/20"}`}>
                   {CONTENT_TYPE_LABELS[t] || t}
                 </button>
@@ -497,7 +497,7 @@ function PlanModal({
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={2} placeholder="ایده‌ها، کپشن پیشنهادی، هشتگ‌ها..."
               className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm
-                         focus:outline-none focus:border-orange-500/50 transition-all resize-none" />
+                         focus:outline-none focus:border-accent-500/50 transition-all resize-none" />
           </div>
 
           {/* Color */}
@@ -515,7 +515,7 @@ function PlanModal({
           {/* Notifications */}
           <div className="border border-white/[0.06] rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
-              <Bell className="w-4 h-4 text-orange-500" /> یادآوری
+              <Bell className="w-4 h-4 text-accent-500" /> یادآوری
             </div>
 
             <div>
@@ -526,7 +526,7 @@ function PlanModal({
                     onClick={() => toggleNotifyBefore(value)}
                     className={`text-xs px-2.5 py-1 rounded-lg border transition-all
                                 ${form.notifyBefore.includes(value)
-                                  ? "bg-orange-500/20 border-orange-500/50 text-orange-400"
+                                  ? "bg-accent-500/20 border-accent-500/50 text-accent-400"
                                   : "border-white/10 text-gray-500 hover:border-white/20"}`}>
                     {label}
                   </button>
@@ -549,7 +549,7 @@ function PlanModal({
             </button>
             <button type="submit" disabled={saving}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5
-                         bg-orange-500 hover:bg-orange-400 disabled:opacity-60
+                         bg-accent-500 hover:bg-accent-400 disabled:opacity-60
                          text-white text-sm font-bold rounded-xl transition-all">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editPlan ? "ذخیره" : "افزودن")}
             </button>
@@ -626,16 +626,16 @@ function TelegramConnect({ connected, onChanged }: { connected: boolean; onChang
             <div>
               <label className="block text-xs text-gray-400 mb-1">توکن ربات</label>
               <input value={botToken} onChange={(e) => setBotToken(e.target.value)} dir="ltr"
-                placeholder="123456:ABC-DEF..." className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-orange-500/50" />
+                placeholder="123456:ABC-DEF..." className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-accent-500/50" />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">شناسه چت (Chat ID)</label>
               <input value={chatId} onChange={(e) => setChatId(e.target.value)} dir="ltr"
-                placeholder="123456789" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-orange-500/50" />
+                placeholder="123456789" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-accent-500/50" />
             </div>
             {err && <p className="text-xs text-red-400">{err}</p>}
             <button onClick={save} disabled={saving}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold rounded-xl disabled:opacity-60">
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl disabled:opacity-60">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "ذخیره و اتصال"}
             </button>
           </div>

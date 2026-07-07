@@ -102,7 +102,7 @@ export default function EmbedPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-accent-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -116,7 +116,7 @@ export default function EmbedPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* ── Settings Panel ── */}
-        <div className="space-y-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="space-y-6 bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           {/* Embed type */}
           <div>
             <label className="block text-sm font-semibold mb-3">نوع امبد</label>
@@ -133,8 +133,8 @@ export default function EmbedPage() {
                   onClick={() => setEmbedType(key)}
                   className={`py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
                     embedType === key
-                      ? "bg-orange-500 text-white border-orange-500"
-                      : "border-gray-200 dark:border-gray-600 hover:border-orange-300"
+                      ? "bg-accent-500 text-white border-accent-500"
+                      : "border-gray-200 dark:border-gray-600 hover:border-accent-300"
                   }`}
                 >
                   {label}
@@ -148,7 +148,7 @@ export default function EmbedPage() {
             <>
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  عرض: <span className="text-orange-500">{width}px</span>
+                  عرض: <span className="text-accent-500">{width}px</span>
                 </label>
                 <input
                   type="range"
@@ -156,7 +156,7 @@ export default function EmbedPage() {
                   max={800}
                   value={width}
                   onChange={(e) => setWidth(Number(e.target.value))}
-                  className="w-full accent-orange-500"
+                  className="w-full accent-accent-500"
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>300px</span>
@@ -166,7 +166,7 @@ export default function EmbedPage() {
 
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  ارتفاع: <span className="text-orange-500">{height}px</span>
+                  ارتفاع: <span className="text-accent-500">{height}px</span>
                 </label>
                 <input
                   type="range"
@@ -174,7 +174,7 @@ export default function EmbedPage() {
                   max={1000}
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
-                  className="w-full accent-orange-500"
+                  className="w-full accent-accent-500"
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>400px</span>
@@ -201,8 +201,8 @@ export default function EmbedPage() {
                     onClick={() => setPosition(key)}
                     className={`py-2 px-2 rounded-lg text-xs font-medium border transition-colors ${
                       position === key
-                        ? "bg-orange-500 text-white border-orange-500"
-                        : "border-gray-200 dark:border-gray-600 hover:border-orange-300"
+                        ? "bg-accent-500 text-white border-accent-500"
+                        : "border-gray-200 dark:border-gray-600 hover:border-accent-300"
                     }`}
                   >
                     {label}
@@ -220,7 +220,7 @@ export default function EmbedPage() {
                 type="text"
                 value={buttonText}
                 onChange={(e) => setButtonText(e.target.value)}
-                className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-orange-300"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-accent-300"
               />
             </div>
           )}
@@ -236,7 +236,7 @@ export default function EmbedPage() {
                     onClick={() => setButtonColor(c)}
                     title={c === "orange" ? "نارنجی" : c === "black" ? "مشکی" : "دلخواه"}
                     className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                      buttonColor === c ? "scale-110 border-orange-400" : "border-transparent"
+                      buttonColor === c ? "scale-110 border-accent-400" : "border-transparent"
                     }`}
                     style={{
                       background:
@@ -284,7 +284,7 @@ export default function EmbedPage() {
               </span>
               <button
                 onClick={() => handleCopy("main", currentCode)}
-                className="flex items-center gap-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-xs bg-accent-500 hover:bg-accent-600 text-white px-3 py-1.5 rounded-lg transition-colors"
               >
                 {copied === "main" ? "✓ کپی شد" : "کپی کد"}
               </button>
@@ -300,7 +300,7 @@ export default function EmbedPage() {
               <span className="text-gray-400 text-xs font-mono">لینک در بیو (Instagram Bio)</span>
               <button
                 onClick={() => handleCopy("bio", linkButtonCode)}
-                className="flex items-center gap-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-xs bg-accent-500 hover:bg-accent-600 text-white px-3 py-1.5 rounded-lg transition-colors"
               >
                 {copied === "bio" ? "✓ کپی شد" : "کپی کد"}
               </button>
@@ -312,7 +312,7 @@ export default function EmbedPage() {
 
           {/* Live button preview */}
           {(embedType === "floating" || embedType === "link-button") && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
               <p className="text-xs text-gray-400 mb-4 font-medium">پیش‌نمایش دکمه</p>
               <div className="flex justify-center">
                 <button
@@ -334,12 +334,12 @@ export default function EmbedPage() {
           onClick={(e) => e.target === e.currentTarget && setShowPreview(false)}
         >
           <div
-            className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl relative"
+            className="bg-gray-100 dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl relative"
             style={{ width: Math.min(width, window.innerWidth - 32), height: Math.min(height, window.innerHeight - 80) }}
           >
             <button
               onClick={() => setShowPreview(false)}
-              className="absolute top-3 left-3 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 text-lg font-bold shadow"
+              className="absolute top-3 left-3 z-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 text-lg font-bold shadow"
             >
               ×
             </button>

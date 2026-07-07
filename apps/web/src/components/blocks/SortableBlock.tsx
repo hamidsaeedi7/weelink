@@ -66,7 +66,7 @@ export function SortableBlock({ block, onEdit, onDelete, onToggle }: Props) {
             : <EyeOff className="w-3.5 h-3.5" />}
         </button>
         <button onClick={onEdit}
-          className="p-1.5 rounded-lg text-gray-600 hover:text-orange-400 hover:bg-orange-500/5 transition-all">
+          className="p-1.5 rounded-lg text-gray-600 hover:text-accent-400 hover:bg-accent-500/5 transition-all">
           <Pencil className="w-3.5 h-3.5" />
         </button>
         <button onClick={onDelete}

@@ -48,6 +48,7 @@
     --text-secondary: #6b7280;
     --accent: #2563EB;
     --accent-glow: rgba(37, 99, 235, 0.2);
+    --accent-500-rgb: 37 99 235;
   }
 
   .dark {
@@ -59,6 +60,34 @@
     --text-secondary: #94A3B8;
     --accent: #F97316;
     --accent-glow: rgba(249, 115, 22, 0.2);
+    --accent-500-rgb: 249 115 22;
+  }
+
+  /* ─── Dashboard accent scale ───────────────────────────────────────────────
+     Light = blue, Dark = the original orange (pixel-identical to before).
+     RGB triplets (no commas) so Tailwind's rgb(var(..) / <alpha-value>) opacity
+     modifiers work: bg-accent-500/10, border-accent-500/20, etc. */
+  :root {
+    --accent-50-rgb: 239 246 255;
+    --accent-100-rgb: 219 234 254;
+    --accent-200-rgb: 191 219 254;
+    --accent-300-rgb: 147 197 253;
+    --accent-400-rgb: 59 130 246;
+    --accent-600-rgb: 29 78 216;
+    --accent-700-rgb: 30 64 175;
+    --accent-800-rgb: 30 58 138;
+    --accent-900-rgb: 23 37 84;
+  }
+  .dark {
+    --accent-50-rgb: 255 247 237;
+    --accent-100-rgb: 255 237 213;
+    --accent-200-rgb: 254 215 170;
+    --accent-300-rgb: 253 186 116;
+    --accent-400-rgb: 251 146 60;
+    --accent-600-rgb: 234 88 12;
+    --accent-700-rgb: 194 65 12;
+    --accent-800-rgb: 154 52 18;
+    --accent-900-rgb: 124 45 18;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }

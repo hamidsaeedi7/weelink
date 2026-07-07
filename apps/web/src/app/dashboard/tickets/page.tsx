@@ -73,7 +73,7 @@ export default function TicketsPage() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
     </div>
   );
 
@@ -85,7 +85,7 @@ export default function TicketsPage() {
           <p className="text-sm text-gray-500">{tickets.length} تیکت</p>
         </div>
         <button onClick={() => { setShowNew(true); setSelected(null); }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
           <Plus className="w-4 h-4" />
           تیکت جدید
         </button>
@@ -107,8 +107,8 @@ export default function TicketsPage() {
                   onClick={() => { setSelected(ticket); setShowNew(false); }}
                   className={`w-full text-right p-4 rounded-2xl border transition-all ${
                     selected?.id === ticket.id
-                      ? "border-orange-500/40 bg-orange-500/5"
-                      : "border-gray-100 dark:border-white/5 bg-white dark:bg-white/5 hover:border-orange-500/20"
+                      ? "border-accent-500/40 bg-accent-500/5"
+                      : "border-gray-100 dark:border-white/5 bg-gray-100 dark:bg-white/5 hover:border-accent-500/20"
                   }`}>
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <span className="font-bold text-sm text-gray-900 dark:text-white line-clamp-1">{ticket.subject}</span>
@@ -126,7 +126,7 @@ export default function TicketsPage() {
 
         {/* New Ticket Form */}
         {showNew && (
-          <div className="lg:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
+          <div className="lg:col-span-2 bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-black text-gray-900 dark:text-white">تیکت جدید</h2>
               <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-600">
@@ -153,7 +153,7 @@ export default function TicketsPage() {
                   انصراف
                 </button>
                 <button type="submit" disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                  className="flex-1 py-3 rounded-xl bg-accent-500 text-white text-sm font-bold hover:bg-accent-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                   {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   ارسال تیکت
                 </button>
@@ -164,7 +164,7 @@ export default function TicketsPage() {
 
         {/* Ticket Detail */}
         {selected && !showNew && (
-          <div className="lg:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col h-[500px]">
+          <div className="lg:col-span-2 bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col h-[500px]">
             {/* Header */}
             <div className="flex items-start justify-between p-5 border-b border-gray-100 dark:border-white/5">
               <div>
@@ -189,7 +189,7 @@ export default function TicketsPage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {/* Original message */}
               <div className="flex justify-end">
-                <div className="max-w-[85%] bg-orange-500/10 rounded-2xl rounded-tr-sm p-4">
+                <div className="max-w-[85%] bg-accent-500/10 rounded-2xl rounded-tr-sm p-4">
                   <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selected.message}</p>
                   <p className="text-[10px] text-gray-400 mt-2 text-left">{timeAgo(selected.createdAt)}</p>
                 </div>
@@ -201,10 +201,10 @@ export default function TicketsPage() {
                   <div className={`max-w-[85%] rounded-2xl p-4 ${
                     reply.isAdmin
                       ? "bg-gray-100 dark:bg-white/10 rounded-tl-sm"
-                      : "bg-orange-500/10 rounded-tr-sm"
+                      : "bg-accent-500/10 rounded-tr-sm"
                   }`}>
                     {reply.isAdmin && (
-                      <p className="text-[10px] font-bold text-orange-400 mb-1">پشتیبانی ویلینک</p>
+                      <p className="text-[10px] font-bold text-accent-400 mb-1">پشتیبانی ویلینک</p>
                     )}
                     <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{reply.message}</p>
                     <p className="text-[10px] text-gray-400 mt-2 text-left">{timeAgo(reply.createdAt)}</p>
@@ -227,7 +227,7 @@ export default function TicketsPage() {
                     className="input-base flex-1 resize-none text-sm"
                   />
                   <button onClick={sendReply} disabled={replying || !replyText.trim()}
-                    className="px-4 rounded-xl bg-orange-500 text-white hover:bg-orange-400 transition-all disabled:opacity-40 flex items-center justify-center">
+                    className="px-4 rounded-xl bg-accent-500 text-white hover:bg-accent-400 transition-all disabled:opacity-40 flex items-center justify-center">
                     {replying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </button>
                 </div>

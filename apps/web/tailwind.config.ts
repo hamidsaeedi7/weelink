@@ -18,6 +18,22 @@ const config: Config = {
           dark: "#EA580C",
           glow: "rgba(249,115,22,0.15)",
         },
+        // Dashboard chrome accent — blue in light mode, orange in dark mode
+        // (same hex the app already used), driven by CSS vars so opacity
+        // modifiers work: bg-accent-500/10, border-accent-600/20, etc.
+        accent: {
+          50: "rgb(var(--accent-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--accent-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--accent-200-rgb) / <alpha-value>)",
+          300: "rgb(var(--accent-300-rgb) / <alpha-value>)",
+          400: "rgb(var(--accent-400-rgb) / <alpha-value>)",
+          500: "rgb(var(--accent-500-rgb) / <alpha-value>)",
+          600: "rgb(var(--accent-600-rgb) / <alpha-value>)",
+          700: "rgb(var(--accent-700-rgb) / <alpha-value>)",
+          800: "rgb(var(--accent-800-rgb) / <alpha-value>)",
+          900: "rgb(var(--accent-900-rgb) / <alpha-value>)",
+          DEFAULT: "rgb(var(--accent-500-rgb) / <alpha-value>)",
+        },
       },
       fontFamily: {
         vazir: ["Vazirmatn", "sans-serif"],

@@ -112,12 +112,12 @@ function SidebarContent({
                         onClick={onNavClick}
                         className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all duration-150
                                     ${active
-                                      ? "bg-orange-500/15 text-orange-500 border border-orange-500/20"
+                                      ? "bg-accent-500/15 text-accent-500 border border-accent-500/20"
                                       : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"}`}>
-                        <item.icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-orange-500" : ""}`} />
+                        <item.icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-accent-500" : ""}`} />
                         <span className="truncate">{item.label}</span>
                         {(item as any).pro && (
-                          <span className="mr-auto text-[9px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md shrink-0">Pro</span>
+                          <span className="mr-auto text-[9px] bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md shrink-0">Pro</span>
                         )}
                       </Link>
                     );
@@ -171,14 +171,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-[#0A0A0F] overflow-hidden" dir="rtl">
       <aside className="hidden md:flex flex-col w-52 border-l border-gray-200 dark:border-white/[0.06]
-                        bg-white dark:bg-[#0D0D18] shrink-0">
+                        bg-gray-100 dark:bg-[#0D0D18] shrink-0">
         <SidebarContent {...sidebarProps} />
       </aside>
 
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <aside className="absolute right-0 top-0 h-full w-60 bg-white dark:bg-[#0D0D18]
+          <aside className="absolute right-0 top-0 h-full w-60 bg-gray-100 dark:bg-[#0D0D18]
                             border-l border-gray-200 dark:border-white/[0.06]">
             <SidebarContent {...sidebarProps} mobile />
           </aside>
@@ -188,13 +188,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-14 flex items-center justify-between px-4 sm:px-6
                            border-b border-gray-200 dark:border-white/[0.06]
-                           bg-white dark:bg-[#0D0D18] shrink-0">
+                           bg-gray-100 dark:bg-[#0D0D18] shrink-0">
           <button className="md:hidden p-2 text-gray-500" onClick={() => setOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-3 mr-auto">
             <Link href="/" target="_blank"
-              className="text-xs text-gray-500 hover:text-orange-500 transition-colors">
+              className="text-xs text-gray-500 hover:text-accent-500 transition-colors">
               مشاهده صفحه بیو ↗
             </Link>
           </div>

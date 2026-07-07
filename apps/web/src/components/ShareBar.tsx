@@ -41,7 +41,7 @@ export function ShareBar({ url, text = "صفحهٔ من در ویلینک" }: { 
         onClick={copy}
         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
                    border border-gray-200 dark:border-white/10
-                   text-gray-600 dark:text-gray-400 hover:border-orange-500/50 hover:text-orange-500 transition-all">
+                   text-gray-600 dark:text-gray-400 hover:border-accent-500/50 hover:text-accent-500 transition-all">
         {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
         کپی لینک
       </button>
@@ -50,7 +50,7 @@ export function ShareBar({ url, text = "صفحهٔ من در ویلینک" }: { 
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
                    border border-gray-200 dark:border-white/10
-                   text-gray-600 dark:text-gray-400 hover:border-orange-500/50 hover:text-orange-500 transition-all">
+                   text-gray-600 dark:text-gray-400 hover:border-accent-500/50 hover:text-accent-500 transition-all">
         <Share2 className="w-4 h-4" />
         اشتراک
       </button>
@@ -59,7 +59,7 @@ export function ShareBar({ url, text = "صفحهٔ من در ویلینک" }: { 
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute top-full left-0 mt-2 z-50 flex gap-2 p-2 rounded-2xl
-                          bg-white dark:bg-[#141422] border border-gray-200 dark:border-white/10 shadow-xl">
+                          bg-gray-100 dark:bg-[#141422] border border-gray-200 dark:border-white/10 shadow-xl">
             {targets.map((tg) => (
               <button key={tg.id} onClick={() => share(tg)} title={tg.label}
                 className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">

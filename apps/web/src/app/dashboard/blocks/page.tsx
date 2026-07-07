@@ -125,7 +125,7 @@ export default function BlocksPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+        <Loader2 className="w-6 h-6 text-accent-500 animate-spin" />
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function BlocksPage() {
           <h1 className="text-xl font-black text-gray-900 dark:text-white">ویرایش لینک‌ها</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {blocks.length} بلوک
-            {saving && <span className="text-orange-400 mr-2">• در حال ذخیره...</span>}
+            {saving && <span className="text-accent-400 mr-2">• در حال ذخیره...</span>}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -150,8 +150,8 @@ export default function BlocksPage() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
                            border border-gray-200 dark:border-white/10
-                           text-gray-600 dark:text-gray-400 hover:border-orange-500/50
-                           hover:text-orange-500 transition-all">
+                           text-gray-600 dark:text-gray-400 hover:border-accent-500/50
+                           hover:text-accent-500 transition-all">
                 <Eye className="w-4 h-4" />
                 پیش‌نمایش
               </a>
@@ -161,8 +161,8 @@ export default function BlocksPage() {
           <button
             onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm
-                       bg-orange-500 hover:bg-orange-400 text-white font-bold
-                       transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+                       bg-accent-500 hover:bg-accent-400 text-white font-bold
+                       transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
             <Plus className="w-4 h-4" />
             بلوک جدید
           </button>
@@ -172,8 +172,8 @@ export default function BlocksPage() {
       {/* Empty State */}
       {blocks.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center">
-            <Link2 className="w-8 h-8 text-orange-400" />
+          <div className="w-16 h-16 rounded-2xl bg-accent-500/10 flex items-center justify-center">
+            <Link2 className="w-8 h-8 text-accent-400" />
           </div>
           <div className="text-center">
             <p className="font-bold text-gray-900 dark:text-white">هنوز بلوکی ندارید</p>
@@ -181,7 +181,7 @@ export default function BlocksPage() {
           </div>
           <button onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl
-                       bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all">
+                       bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all">
             <Plus className="w-4 h-4" />
             افزودن اولین بلوک
           </button>
@@ -219,7 +219,7 @@ export default function BlocksPage() {
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl
                      border border-dashed border-gray-300 dark:border-white/10
                      text-gray-500 dark:text-gray-600 text-sm
-                     hover:border-orange-500/40 hover:text-orange-400 transition-all">
+                     hover:border-accent-500/40 hover:text-accent-400 transition-all">
           <Plus className="w-4 h-4" />
           افزودن بلوک
         </button>

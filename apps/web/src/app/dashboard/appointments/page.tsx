@@ -138,7 +138,7 @@ export default function AppointmentsPage() {
         {(["services", "bookings", "slots"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm rounded-lg transition-all ${tab === t
-              ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-medium"
+              ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-medium"
               : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}>
             {t === "services" ? `سرویس‌ها (${services.length})` : t === "bookings" ? `رزروها (${bookings.length})` : "نمای زمان‌ها"}
           </button>
@@ -146,7 +146,7 @@ export default function AppointmentsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : tab === "services" ? (
         services.length === 0 ? (
           <div className="glass-card p-12 text-center space-y-3">
@@ -252,7 +252,7 @@ export default function AppointmentsPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto py-8">
-          <div className="bg-white dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">{editing ? "ویرایش سرویس" : "افزودن سرویس"}</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
@@ -299,7 +299,7 @@ export default function AppointmentsPage() {
                     {BOOKING_WINDOWS.map((w) => (
                       <button key={w.v} type="button" onClick={() => setForm((p: any) => ({ ...p, bookingWindow: w.v }))}
                         className={`text-xs px-3 py-2 rounded-lg border text-right transition-all
-                                    ${form.bookingWindow === w.v ? "bg-orange-500/15 border-orange-500/50 text-orange-500" : "border-gray-200 dark:border-white/10 text-gray-500"}`}>
+                                    ${form.bookingWindow === w.v ? "bg-accent-500/15 border-accent-500/50 text-accent-500" : "border-gray-200 dark:border-white/10 text-gray-500"}`}>
                         {w.l}
                       </button>
                     ))}
@@ -312,7 +312,7 @@ export default function AppointmentsPage() {
                     {WEEKDAYS.map((w) => (
                       <button key={w.v} type="button" onClick={() => toggleWorkDay(w.v)}
                         className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all
-                                    ${form.workDays.includes(w.v) ? "bg-orange-500/15 border-orange-500/50 text-orange-500" : "border-gray-200 dark:border-white/10 text-gray-500"}`}>
+                                    ${form.workDays.includes(w.v) ? "bg-accent-500/15 border-accent-500/50 text-accent-500" : "border-gray-200 dark:border-white/10 text-gray-500"}`}>
                         {w.l}
                       </button>
                     ))}
@@ -340,7 +340,7 @@ export default function AppointmentsPage() {
                     {[15, 30, 60].map((m) => (
                       <button key={m} type="button" onClick={() => setForm((p: any) => ({ ...p, slotMinutes: m }))}
                         className={`text-xs py-2 rounded-lg border transition-all
-                                    ${form.slotMinutes === m ? "bg-orange-500/15 border-orange-500/50 text-orange-500" : "border-gray-200 dark:border-white/10 text-gray-500"}`}>
+                                    ${form.slotMinutes === m ? "bg-accent-500/15 border-accent-500/50 text-accent-500" : "border-gray-200 dark:border-white/10 text-gray-500"}`}>
                         {m} دقیقه
                       </button>
                     ))}
@@ -351,7 +351,7 @@ export default function AppointmentsPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isFree}
                   onChange={(e) => setForm((p: any) => ({ ...p, isFree: e.target.checked }))}
-                  className="w-4 h-4 accent-orange-500" />
+                  className="w-4 h-4 accent-accent-500" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">رایگان</span>
               </label>
               {!form.isFree && (
@@ -416,8 +416,8 @@ function SlotsView({ services }: { services: any[] }) {
     <div className="space-y-4">
       <div className="glass-card p-4 flex flex-wrap items-center gap-3">
         <select value={serviceId} onChange={(e) => setServiceId(e.target.value)}
-          className="input-base text-sm w-auto bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-          {services.map((s) => <option key={s.id} value={s.id} className="bg-white dark:bg-[#1a1a2e]">{s.name}</option>)}
+          className="input-base text-sm w-auto bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+          {services.map((s) => <option key={s.id} value={s.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{s.name}</option>)}
         </select>
         <JalaliDatePicker value={date} onChange={setDate} className="!w-auto" />
         <button onClick={fetchSlots} className="mr-auto p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400">

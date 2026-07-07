@@ -39,7 +39,7 @@ export function ProUpgradeModal() {
           className="absolute -inset-px rounded-3xl"
           style={{ background: "linear-gradient(135deg, #f9731699, #f9731633)" }}
         />
-        <div className="relative rounded-3xl bg-white dark:bg-[#0D0D18] p-6 space-y-5">
+        <div className="relative rounded-3xl bg-gray-100 dark:bg-[#0D0D18] p-6 space-y-5">
           <button
             onClick={() => setOpen(false)}
             className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
@@ -48,8 +48,8 @@ export function ProUpgradeModal() {
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-14 h-14 rounded-2xl bg-orange-500/15 flex items-center justify-center mx-auto">
-            <Crown className="w-7 h-7 text-orange-500" />
+          <div className="w-14 h-14 rounded-2xl bg-accent-500/15 flex items-center justify-center mx-auto">
+            <Crown className="w-7 h-7 text-accent-500" />
           </div>
 
           <div className="text-center space-y-1.5">
@@ -64,7 +64,7 @@ export function ProUpgradeModal() {
           <ul className="space-y-2.5">
             {PRO_PERKS.map((p) => (
               <li key={p} className="flex items-center gap-2.5 text-sm text-gray-700 dark:text-gray-300">
-                <Check className="w-4 h-4 text-orange-500 shrink-0" />
+                <Check className="w-4 h-4 text-accent-500 shrink-0" />
                 {p}
               </li>
             ))}
@@ -75,8 +75,8 @@ export function ProUpgradeModal() {
               href="/dashboard/plans"
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl
-                         bg-orange-500 hover:bg-orange-400 text-white font-black text-sm
-                         transition-all shadow-[0_8px_30px_rgba(249,115,22,0.35)]"
+                         bg-accent-500 hover:bg-accent-400 text-white font-black text-sm
+                         transition-all shadow-[0_8px_30px_rgb(var(--accent-500-rgb) / 0.35)]"
             >
               <Crown className="w-4 h-4" />
               مشاهده پلن‌ها و ارتقا

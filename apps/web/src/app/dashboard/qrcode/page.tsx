@@ -351,7 +351,7 @@ export default function QrCodePage() {
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${
+                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-gray-100 shadow transition-all duration-200 ${
                     withLogo ? "right-0.5" : "left-0.5"
                   }`}
                 />
@@ -362,7 +362,7 @@ export default function QrCodePage() {
               <div className="pt-1 border-t border-gray-100 dark:border-white/5">
                 {isPro ? (
                   <div className="flex items-center gap-2 pt-2">
-                    <div className="w-9 h-9 rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden shrink-0 bg-white flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden shrink-0 bg-gray-100 flex items-center justify-center">
                       <img src={logoSrc} alt="logo" className="w-full h-full object-contain" />
                     </div>
                     <button onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
@@ -379,8 +379,8 @@ export default function QrCodePage() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 pt-2 text-xs text-gray-500">
-                    <Crown className="w-3.5 h-3.5 text-orange-400" />
-                    <span>با ارتقا به <span className="text-orange-400 font-bold">پرو</span> می‌توانید لوگوی اختصاصی خود را در مرکز QR بگذارید</span>
+                    <Crown className="w-3.5 h-3.5 text-accent-400" />
+                    <span>با ارتقا به <span className="text-accent-400 font-bold">پرو</span> می‌توانید لوگوی اختصاصی خود را در مرکز QR بگذارید</span>
                   </div>
                 )}
               </div>

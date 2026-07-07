@@ -81,7 +81,7 @@ export function JalaliDateTime({
         onChange={(e) => combine(datePart || new Date().toISOString().slice(0, 10), e.target.value)}
         step={60}
         dir="ltr"
-        className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-center focus:outline-none focus:border-orange-500/50"
+        className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-center focus:outline-none focus:border-accent-500/50"
       />
     </div>
   );

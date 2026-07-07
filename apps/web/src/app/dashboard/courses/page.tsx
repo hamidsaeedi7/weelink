@@ -208,7 +208,7 @@ export default function CoursesPage() {
   if (selected) return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-3 flex-wrap">
-        <button onClick={() => setSelected(null)} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">
+        <button onClick={() => setSelected(null)} className="text-sm text-gray-500 hover:text-accent-500 transition-colors">
           ← بازگشت
         </button>
         <h1 className="text-xl font-black text-gray-900 dark:text-white flex-1">{selected.title}</h1>
@@ -237,7 +237,7 @@ export default function CoursesPage() {
                 </div>
 
                 {open && (
-                  <div className="p-3 space-y-3 bg-white dark:bg-transparent">
+                  <div className="p-3 space-y-3 bg-gray-100 dark:bg-transparent">
                     {/* لیست ویدیوها با پیش‌نمایش کوچک */}
                     {vids.map((v: any, vi: number) => (
                       <div key={vi} className="flex gap-3 items-start p-2 rounded-lg bg-gray-50 dark:bg-white/5">
@@ -261,12 +261,12 @@ export default function CoursesPage() {
                         </div>
                       ) : vidUploading ? (
                         <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-orange-500"><span>در حال آپلود…</span><span>{vidProgress}٪</span></div>
-                          <div className="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden"><div className="h-full bg-orange-500 transition-all" style={{ width: `${vidProgress}%` }} /></div>
+                          <div className="flex justify-between text-xs text-accent-500"><span>در حال آپلود…</span><span>{vidProgress}٪</span></div>
+                          <div className="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden"><div className="h-full bg-accent-500 transition-all" style={{ width: `${vidProgress}%` }} /></div>
                         </div>
                       ) : (
                         <div className="flex gap-2">
-                          <label className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-xs text-gray-500 cursor-pointer hover:border-orange-500/40">
+                          <label className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-xs text-gray-500 cursor-pointer hover:border-accent-500/40">
                             <Upload className="w-3.5 h-3.5" /> آپلود ویدیو (تا ۱GB)
                             <input type="file" accept="video/*" className="hidden"
                               onChange={(e) => e.target.files?.[0] && uploadChapterVideo(ch.id, e.target.files[0])} />
@@ -300,7 +300,7 @@ export default function CoursesPage() {
           <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600 dark:text-gray-400">
             <input type="checkbox" checked={newChapter.isPreview}
               onChange={(e) => setNewChapter((p) => ({ ...p, isPreview: e.target.checked }))}
-              className="w-4 h-4 accent-orange-500" />
+              className="w-4 h-4 accent-accent-500" />
             نمایش رایگان (پیش‌نمایش)
           </label>
           <button onClick={addChapter} className="btn-primary py-2 px-4 text-sm flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function CoursesPage() {
       {/* واترمارک (محافظت کپی‌رایت) */}
       <div className="glass-card p-5 space-y-3">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-orange-500" />
+          <Shield className="w-4 h-4 text-accent-500" />
           <h2 className="font-bold text-gray-900 dark:text-white">واترمارک محافظت کپی‌رایت</h2>
         </div>
         <p className="text-xs text-gray-500">متن واترمارک روی همهٔ ویدیوهای این دوره نمایش داده می‌شود (بازدارندهٔ کپی).</p>
@@ -367,7 +367,7 @@ export default function CoursesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : courses.length === 0 ? (
         <div className="glass-card p-12 text-center space-y-3">
           <BookOpen className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
@@ -384,8 +384,8 @@ export default function CoursesPage() {
               {c.coverUrl ? (
                 <img src={c.coverUrl} alt={c.title} className="w-full h-36 object-cover" />
               ) : (
-                <div className="w-full h-36 bg-gradient-to-br from-orange-500/20 to-purple-500/20 flex items-center justify-center">
-                  <BookOpen className="w-10 h-10 text-orange-400 opacity-60" />
+                <div className="w-full h-36 bg-gradient-to-br from-accent-500/20 to-purple-500/20 flex items-center justify-center">
+                  <BookOpen className="w-10 h-10 text-accent-400 opacity-60" />
                 </div>
               )}
               <div className="p-4 space-y-3">
@@ -400,7 +400,7 @@ export default function CoursesPage() {
                 </div>
                 <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-white/5">
                   <button onClick={() => setSelected(c)}
-                    className="flex-1 text-xs py-2 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition-all">
+                    className="flex-1 text-xs py-2 rounded-xl bg-accent-500/10 text-accent-600 dark:text-accent-400 border border-accent-500/20 hover:bg-accent-500/20 transition-all">
                     مدیریت فصل‌ها
                   </button>
                   <button onClick={() => { setForm({ ...c }); setEditing(c); setShowForm(true); }}
@@ -420,7 +420,7 @@ export default function CoursesPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">{editing ? "ویرایش دوره" : "دوره جدید"}</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
@@ -450,7 +450,7 @@ export default function CoursesPage() {
                   </div>
                 ) : (
                   <button onClick={() => coverRef.current?.click()}
-                    className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-sm text-gray-400 hover:border-orange-500/50 transition-colors">
+                    className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-sm text-gray-400 hover:border-accent-500/50 transition-colors">
                     {uploading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "آپلود تصویر کاور"}
                   </button>
                 )}
@@ -460,7 +460,7 @@ export default function CoursesPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isFree}
                   onChange={(e) => setForm((p: any) => ({ ...p, isFree: e.target.checked }))}
-                  className="w-4 h-4 accent-orange-500" />
+                  className="w-4 h-4 accent-accent-500" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">دوره رایگان</span>
               </label>
               {!form.isFree && (

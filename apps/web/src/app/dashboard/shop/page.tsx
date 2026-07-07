@@ -120,7 +120,7 @@ export default function ShopSettingsPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-48">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
     </div>
   );
 
@@ -137,7 +137,7 @@ export default function ShopSettingsPage() {
         <h1 className="text-xl font-black text-gray-900 dark:text-white">تنظیمات صفحه</h1>
         {shop?.slug && (
           <a href={`/${shop.slug}`} target="_blank" rel="noopener noreferrer"
-            className="text-sm text-orange-500 hover:text-orange-400 inline-flex items-center gap-1 mt-1">
+            className="text-sm text-accent-500 hover:text-accent-400 inline-flex items-center gap-1 mt-1">
             weeelink.com/{shop.slug}
             <ExternalLink className="w-3 h-3" />
           </a>
@@ -150,7 +150,7 @@ export default function ShopSettingsPage() {
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === t.id
-                ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
+                ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
                 : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             }`}>
             {t.label}
@@ -191,7 +191,7 @@ export default function ShopSettingsPage() {
               onClick={() => avatarRef.current?.click()}>
               {shop?.avatarUrl
                 ? <img src={shop.avatarUrl} alt="" className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-orange-500/20 flex items-center justify-center text-xl">
+                : <div className="w-full h-full bg-accent-500/20 flex items-center justify-center text-xl">
                     {shop?.name?.[0] || "؟"}
                   </div>}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100
@@ -237,7 +237,7 @@ export default function ShopSettingsPage() {
                       onClick={() => setValue("themeId", theme.id)}
                       className={`relative rounded-xl overflow-hidden h-12 flex flex-col transition-all border-2 ${
                         themeId === theme.id
-                          ? "border-orange-500 scale-105 shadow-lg"
+                          ? "border-accent-500 scale-105 shadow-lg"
                           : "border-transparent hover:border-white/20"
                       }`}>
                       <div className="flex-1" style={{ background: theme.preview[1] }} />
@@ -308,7 +308,7 @@ export default function ShopSettingsPage() {
                       onClick={() => setValue("fontFamily", f.value)}
                       className={`px-3 py-2 rounded-xl border text-sm transition-all ${
                         watch("fontFamily") === f.value
-                          ? "border-orange-500 bg-orange-500/10 text-orange-500"
+                          ? "border-accent-500 bg-accent-500/10 text-accent-500"
                           : "border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400"
                       }`}
                       style={{ fontFamily: f.value }}>
@@ -321,8 +321,8 @@ export default function ShopSettingsPage() {
 
               <button type="submit" disabled={saving}
                 className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-                           bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm
-                           transition-all disabled:opacity-60 shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+                           bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
+                           transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                 {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
               </button>
@@ -337,9 +337,9 @@ export default function ShopSettingsPage() {
           {/* Avatar Video — PRO */}
           <div className="glass-card p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <Video className="w-4 h-4 text-orange-500" />
+              <Video className="w-4 h-4 text-accent-500" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">ویدیو پروفایل</h3>
-              <span className="text-xs bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md">Pro</span>
+              <span className="text-xs bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md">Pro</span>
               <span className="text-xs text-gray-400">(حداکثر ۱۰ ثانیه، ۵۰MB)</span>
             </div>
             <p className="text-xs text-gray-500">جایگزین عکس پروفایل می‌شود — در صفحه بیوی شما پخش می‌شود</p>
@@ -355,7 +355,7 @@ export default function ShopSettingsPage() {
               <button onClick={() => avatarVideoRef.current?.click()}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed
                            border-gray-200 dark:border-white/10 text-sm text-gray-500
-                           hover:border-orange-500/50 hover:text-orange-500 transition-all">
+                           hover:border-accent-500/50 hover:text-accent-500 transition-all">
                 {avatarVideoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                 {avatarVideoUploading ? "در حال آپلود..." : "آپلود ویدیو پروفایل"}
               </button>
@@ -369,7 +369,7 @@ export default function ShopSettingsPage() {
             <div className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-purple-500" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">پس‌زمینه ویدیویی</h3>
-              <span className="text-xs bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md">Pro</span>
+              <span className="text-xs bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md">Pro</span>
               <span className="text-xs text-gray-400">(حداکثر ۵۰MB)</span>
             </div>
             <p className="text-xs text-gray-500">در پس‌زمینه صفحه بیوی شما به‌صورت loop پخش می‌شود</p>
@@ -464,9 +464,9 @@ export default function ShopSettingsPage() {
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">پیام‌رسان</label>
                 <select {...register("deliveryType")}
-                  className="input-base bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  className="input-base bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                   {[["telegram","تلگرام"],["bale","بله"],["rubika","روبیکا"],["eitaa","ایتا"],["whatsapp","واتساپ"]].map(([v,l]) => (
-                    <option key={v} value={v} className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{l}</option>
+                    <option key={v} value={v} className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{l}</option>
                   ))}
                 </select>
               </div>
@@ -484,8 +484,8 @@ export default function ShopSettingsPage() {
           </div>
           <button type="submit" disabled={saving}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-                       bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm
-                       transition-all disabled:opacity-60 shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+                       bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
+                       transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             ذخیره
           </button>
@@ -499,7 +499,7 @@ export default function ShopSettingsPage() {
             <div className="flex items-center gap-2 mb-2">
               <BarChart3 className="w-4 h-4 text-blue-500" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Google Analytics</h3>
-              <span className="text-xs bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md">Pro</span>
+              <span className="text-xs bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md">Pro</span>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">شناسه اندازه‌گیری (Measurement ID)</label>
@@ -518,7 +518,7 @@ export default function ShopSettingsPage() {
                 <span className="text-[8px] text-white font-bold">f</span>
               </div>
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Meta Pixel</h3>
-              <span className="text-xs bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md">Pro</span>
+              <span className="text-xs bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md">Pro</span>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">شناسه Pixel</label>
@@ -533,8 +533,8 @@ export default function ShopSettingsPage() {
 
           <button type="submit" disabled={saving}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-                       bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm
-                       transition-all disabled:opacity-60 shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+                       bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
+                       transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             {saving ? "در حال ذخیره..." : "ذخیره تنظیمات"}
           </button>

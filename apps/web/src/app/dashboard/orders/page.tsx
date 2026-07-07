@@ -78,7 +78,7 @@ export default function OrdersPage() {
 
       {loading ? (
         <div className="flex justify-center h-48 items-center">
-          <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16 text-gray-400 space-y-3">
@@ -94,7 +94,7 @@ export default function OrdersPage() {
 
             return (
               <div key={order.id}
-                className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
+                className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
                 {/* Order Header */}
                 <button
                   className="w-full flex items-center gap-4 px-5 py-4 text-right"
@@ -115,7 +115,7 @@ export default function OrdersPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-black text-orange-500 text-sm">{formatPrice(order.totalPrice)}</p>
+                    <p className="font-black text-accent-500 text-sm">{formatPrice(order.totalPrice)}</p>
                     <p className="text-xs text-gray-400">{timeAgo(order.createdAt)}</p>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -156,7 +156,7 @@ export default function OrdersPage() {
                           onClick={() => updateStatus(order.id, s)}
                           disabled={updating === order.id}
                           className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 dark:border-white/10
-                                     text-gray-600 dark:text-gray-400 hover:border-orange-500/40 hover:text-orange-500
+                                     text-gray-600 dark:text-gray-400 hover:border-accent-500/40 hover:text-accent-500
                                      transition-all disabled:opacity-40">
                           {updating === order.id ? <Loader2 className="w-3 h-3 animate-spin inline" /> : STATUS_LABELS[s].label}
                         </button>
@@ -205,8 +205,8 @@ export default function OrdersPage() {
                             .catch(() => toast.error("خطا در دریافت فاکتور"));
                         }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
-                                   bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400
-                                   border border-orange-200 dark:border-orange-500/20 hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-all">
+                                   bg-accent-50 dark:bg-accent-500/10 text-accent-600 dark:text-accent-400
+                                   border border-accent-200 dark:border-accent-500/20 hover:bg-accent-100 dark:hover:bg-accent-500/20 transition-all">
                         <FileText className="w-3.5 h-3.5" />
                         فاکتور
                       </a>

@@ -138,7 +138,7 @@ export default function CouponsPage() {
     return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
   };
 
-  if (loading) return <div className="flex justify-center h-48 items-center"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>;
+  if (loading) return <div className="flex justify-center h-48 items-center"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -148,7 +148,7 @@ export default function CouponsPage() {
           <p className="text-sm text-gray-500">{toPersianNumber(coupons.length)} کد</p>
         </div>
         <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
           <Plus className="w-4 h-4" />
           کد جدید
         </button>
@@ -156,7 +156,7 @@ export default function CouponsPage() {
 
       {/* Create Form */}
       {showForm && (
-        <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
+        <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
           <h2 className="font-bold text-gray-900 dark:text-white mb-4">ایجاد کد تخفیف</h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex gap-2">
@@ -168,15 +168,15 @@ export default function CouponsPage() {
                   const code = generateCode();
                   reset((v) => ({ ...v, code }));
                 }}
-                className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 text-xs hover:border-orange-500/40 hover:text-orange-500 transition-all">
+                className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 text-xs hover:border-accent-500/40 hover:text-accent-500 transition-all">
                 تولید خودکار
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <select {...register("type")} className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                <option value="percent" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">درصدی</option>
-                <option value="fixed" className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">مبلغ ثابت (تومان)</option>
+              <select {...register("type")} className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                <option value="percent" className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">درصدی</option>
+                <option value="fixed" className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">مبلغ ثابت (تومان)</option>
               </select>
               <div className="relative">
                 <input {...register("value", { required: true, min: 1 })}
@@ -188,38 +188,38 @@ export default function CouponsPage() {
             {/* هدف‌گذاری کد تخفیف */}
             <div className="rounded-xl border border-gray-200 dark:border-white/10 p-3 space-y-3">
               <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">این کد روی چه چیزی اعمال شود؟</label>
-              <select {...register("scopeType")} className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+              <select {...register("scopeType")} className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                 {SCOPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value} className="bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{o.label}</option>
+                  <option key={o.value} value={o.value} className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">{o.label}</option>
                 ))}
               </select>
 
               {scopeType === "PRODUCT" && (
                 <select {...register("scopeId", { required: true })}
-                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب محصول...</option>
-                  {products.map((p) => <option key={p.id} value={p.id} className="bg-white dark:bg-[#1a1a2e]">{p.name}</option>)}
+                  className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب محصول...</option>
+                  {products.map((p) => <option key={p.id} value={p.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{p.name}</option>)}
                 </select>
               )}
               {scopeType === "DIGITAL_FILE" && (
                 <select {...register("scopeId", { required: true })}
-                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب فایل...</option>
-                  {files.map((f) => <option key={f.id} value={f.id} className="bg-white dark:bg-[#1a1a2e]">{f.title}</option>)}
+                  className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب فایل...</option>
+                  {files.map((f) => <option key={f.id} value={f.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{f.title}</option>)}
                 </select>
               )}
               {scopeType === "COURSE" && (
                 <select {...register("scopeId", { required: true })}
-                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب دوره...</option>
-                  {courses.map((c) => <option key={c.id} value={c.id} className="bg-white dark:bg-[#1a1a2e]">{c.title}</option>)}
+                  className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب دوره...</option>
+                  {courses.map((c) => <option key={c.id} value={c.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{c.title}</option>)}
                 </select>
               )}
               {scopeType === "CATEGORY" && (
                 <select {...register("scopeCategory", { required: true })}
-                  className="input-base text-sm bg-white dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
-                  <option value="" className="bg-white dark:bg-[#1a1a2e]">انتخاب دسته...</option>
-                  {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c} className="bg-white dark:bg-[#1a1a2e]">{c}</option>)}
+                  className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
+                  <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب دسته...</option>
+                  {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c} className="bg-gray-100 dark:bg-[#1a1a2e]">{c}</option>)}
                 </select>
               )}
             </div>
@@ -241,7 +241,7 @@ export default function CouponsPage() {
                 انصراف
               </button>
               <button type="submit" disabled={isSubmitting}
-                className="flex-1 py-2.5 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 ایجاد
               </button>
@@ -260,9 +260,9 @@ export default function CouponsPage() {
         <div className="space-y-3">
           {coupons.map((coupon) => (
             <div key={coupon.id}
-              className="flex items-center gap-4 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 px-5 py-4">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                <Tag className="w-5 h-5 text-orange-400" />
+              className="flex items-center gap-4 bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 px-5 py-4">
+              <div className="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-accent-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ export default function CouponsPage() {
                     {coupon.code}
                   </span>
                   <button onClick={() => copyCode(coupon.code)}
-                    className="text-gray-400 hover:text-orange-500 transition-colors">
+                    className="text-gray-400 hover:text-accent-500 transition-colors">
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                   {coupon.scopeType && coupon.scopeType !== "ALL" && (
@@ -280,7 +280,7 @@ export default function CouponsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
-                  <span className="text-orange-400 font-bold">
+                  <span className="text-accent-400 font-bold">
                     {coupon.type === "percent"
                       ? `${toPersianNumber(coupon.value)}٪ تخفیف`
                       : `${toPersianNumber(coupon.value)} تومان تخفیف`}

@@ -128,15 +128,15 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-gray-100 dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
         dir="rtl"
         onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/5 sticky top-0 bg-white dark:bg-gray-900 z-10">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/5 sticky top-0 bg-gray-100 dark:bg-gray-900 z-10">
           <div>
             <h2 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <Truck className="w-5 h-5 text-orange-500" />
+              <Truck className="w-5 h-5 text-accent-500" />
               ردیابی مرسوله
             </h2>
             {orderNumber && <p className="text-xs text-gray-400 font-mono mt-0.5">{orderNumber}</p>}
@@ -149,7 +149,7 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
         <div className="p-5 space-y-6">
           {loading ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+              <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
             </div>
           ) : (
             <>
@@ -162,8 +162,8 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                   <select
                     value={carrier}
                     onChange={(e) => setCarrier(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5
-                               text-gray-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40">
+                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5
+                               text-gray-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/40">
                     {CARRIERS.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
@@ -176,8 +176,8 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                     value={trackingCode}
                     onChange={(e) => setTrackingCode(e.target.value)}
                     placeholder="مثال: 123456789"
-                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5
-                               text-gray-900 dark:text-white px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-500/40" />
+                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5
+                               text-gray-900 dark:text-white px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-accent-500/40" />
                 </div>
 
                 <div>
@@ -186,15 +186,15 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                     type="date"
                     value={estimatedDelivery}
                     onChange={(e) => setEstimatedDelivery(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5
-                               text-gray-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40" />
+                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5
+                               text-gray-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/40" />
                 </div>
 
                 <button
                   onClick={saveTracking}
                   disabled={saving}
-                  className="w-full py-2.5 rounded-xl bg-orange-500 text-white font-bold text-sm
-                             hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="w-full py-2.5 rounded-xl bg-accent-500 text-white font-bold text-sm
+                             hover:bg-accent-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
                   ذخیره اطلاعات ارسال
                 </button>
@@ -206,7 +206,7 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                   <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">تاریخچه وضعیت</h3>
                   <button
                     onClick={() => setShowUpdateForm(!showUpdateForm)}
-                    className="flex items-center gap-1 text-xs text-orange-500 font-bold hover:text-orange-600 transition-colors">
+                    className="flex items-center gap-1 text-xs text-accent-500 font-bold hover:text-accent-600 transition-colors">
                     <Plus className="w-3.5 h-3.5" />
                     افزودن وضعیت
                   </button>
@@ -214,14 +214,14 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
 
                 {/* Add update form */}
                 {showUpdateForm && (
-                  <div className="bg-orange-50 dark:bg-orange-500/10 rounded-xl p-4 space-y-3 border border-orange-200/50 dark:border-orange-500/20">
+                  <div className="bg-accent-50 dark:bg-accent-500/10 rounded-xl p-4 space-y-3 border border-accent-200/50 dark:border-accent-500/20">
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">وضعیت جدید</label>
                       <select
                         value={updStatus}
                         onChange={(e) => setUpdStatus(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5
-                                   text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40">
+                        className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5
+                                   text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/40">
                         {UPDATE_STATUSES.map((s) => (
                           <option key={s.value} value={s.value}>{s.label}</option>
                         ))}
@@ -234,8 +234,8 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                         onChange={(e) => setUpdNote(e.target.value)}
                         rows={2}
                         placeholder="مثال: بسته به مرکز پستی تحویل داده شد"
-                        className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5
-                                   text-gray-900 dark:text-white px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40" />
+                        className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5
+                                   text-gray-900 dark:text-white px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent-500/40" />
                     </div>
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">موقعیت (اختیاری)</label>
@@ -243,14 +243,14 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                         value={updLocation}
                         onChange={(e) => setUpdLocation(e.target.value)}
                         placeholder="مثال: تهران، مرکز پستی"
-                        className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5
-                                   text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40" />
+                        className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5
+                                   text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/40" />
                     </div>
                     <button
                       onClick={addUpdate}
                       disabled={addingUpdate}
-                      className="w-full py-2 rounded-lg bg-orange-500 text-white font-bold text-sm
-                                 hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                      className="w-full py-2 rounded-lg bg-accent-500 text-white font-bold text-sm
+                                 hover:bg-accent-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                       {addingUpdate ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                       ثبت وضعیت
                     </button>
@@ -270,11 +270,11 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                             <div className="absolute right-[15px] top-7 bottom-0 w-0.5 bg-gray-100 dark:bg-white/5" />
                           )}
                           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center z-10
-                            ${isLatest ? "bg-orange-500 text-white" : "bg-gray-100 dark:bg-white/10 text-gray-400"}`}>
+                            ${isLatest ? "bg-accent-500 text-white" : "bg-gray-100 dark:bg-white/10 text-gray-400"}`}>
                             <TimelineIcon status={event.status} />
                           </div>
                           <div className="flex-1 pt-1 min-w-0">
-                            <p className={`text-xs font-bold ${isLatest ? "text-orange-500" : "text-gray-700 dark:text-gray-300"}`}>
+                            <p className={`text-xs font-bold ${isLatest ? "text-accent-500" : "text-gray-700 dark:text-gray-300"}`}>
                               {STATUS_LABELS[event.status] ?? event.status}
                               {event.location && (
                                 <span className="text-gray-400 font-normal mr-1">· {event.location}</span>
@@ -294,7 +294,7 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
               <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3">
                 <p className="text-xs text-gray-500 mb-1.5">لینک ردیابی عمومی</p>
                 <div className="flex items-center gap-2">
-                  <code className="text-xs text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg flex-1 truncate" suppressHydrationWarning>
+                  <code className="text-xs text-accent-500 bg-accent-50 dark:bg-accent-500/10 px-2 py-1 rounded-lg flex-1 truncate" suppressHydrationWarning>
                     {typeof window !== "undefined" ? window.location.origin : ""}/tracking/{orderId}
                   </code>
                   <button
@@ -302,7 +302,7 @@ export default function ShippingModal({ orderId, orderNumber, onClose, onSaved }
                       navigator.clipboard.writeText(`${window.location.origin}/tracking/${orderId}`);
                       toast.success("لینک کپی شد");
                     }}
-                    className="text-xs text-gray-500 hover:text-orange-500 transition-colors px-2 py-1 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10">
+                    className="text-xs text-gray-500 hover:text-accent-500 transition-colors px-2 py-1 rounded-lg hover:bg-accent-50 dark:hover:bg-accent-500/10">
                     کپی
                   </button>
                 </div>

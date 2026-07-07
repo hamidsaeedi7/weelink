@@ -65,7 +65,7 @@ export default function TemplatesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {TEMPLATES.map((tpl) => (
           <div key={tpl.id}
-            className="glass-card overflow-hidden group cursor-pointer hover:border-orange-500/30 transition-all"
+            className="glass-card overflow-hidden group cursor-pointer hover:border-accent-500/30 transition-all"
             onClick={() => (tpl.id === "blank" ? applyTemplate(tpl) : setPreview(tpl))}>
             <div className={`h-28 bg-gradient-to-br ${tpl.color} flex items-center justify-center text-5xl transition-transform group-hover:scale-105`}>
               {tpl.emoji}
@@ -156,7 +156,7 @@ export default function TemplatesPage() {
               <button
                 disabled={applying === preview.id}
                 onClick={() => { const t = preview; setPreview(null); applyTemplate(t); }}
-                className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+                className="flex-1 py-2.5 rounded-xl bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60">
                 {applying === preview.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 استفاده از این قالب
               </button>

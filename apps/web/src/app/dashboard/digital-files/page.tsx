@@ -147,7 +147,7 @@ export default function DigitalFilesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : files.length === 0 ? (
         <div className="glass-card p-12 text-center space-y-3">
           <FileDown className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
@@ -196,7 +196,7 @@ export default function DigitalFilesPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">{editing ? "ویرایش فایل" : "افزودن فایل دیجیتال"}</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
@@ -226,18 +226,18 @@ export default function DigitalFilesPage() {
                     </button>
                   </div>
                 ) : uploading === "file" ? (
-                  <div className="w-full border-2 border-dashed border-orange-500/40 rounded-xl p-6 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-orange-500 font-bold">
+                  <div className="w-full border-2 border-dashed border-accent-500/40 rounded-xl p-6 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-accent-500 font-bold">
                       <span>در حال آپلود...</span>
                       <span>{progress}٪</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-                      <div className="h-full bg-orange-500 transition-all duration-200" style={{ width: `${progress}%` }} />
+                      <div className="h-full bg-accent-500 transition-all duration-200" style={{ width: `${progress}%` }} />
                     </div>
                   </div>
                 ) : (
                   <button onClick={() => fileRef.current?.click()}
-                    className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-6 text-center text-sm text-gray-400 hover:border-orange-500/50 transition-colors">
+                    className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-6 text-center text-sm text-gray-400 hover:border-accent-500/50 transition-colors">
                     کلیک کنید تا فایل آپلود کنید
                   </button>
                 )}
@@ -258,7 +258,7 @@ export default function DigitalFilesPage() {
                   </div>
                 ) : (
                   <button onClick={() => coverRef.current?.click()}
-                    className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-sm text-gray-400 hover:border-orange-500/50 transition-colors">
+                    className="w-full border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-sm text-gray-400 hover:border-accent-500/50 transition-colors">
                     {uploading === "cover" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "آپلود تصویر کاور"}
                   </button>
                 )}
@@ -270,7 +270,7 @@ export default function DigitalFilesPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.isFree}
                     onChange={(e) => setForm((p: any) => ({ ...p, isFree: e.target.checked }))}
-                    className="w-4 h-4 accent-orange-500" />
+                    className="w-4 h-4 accent-accent-500" />
                   <span className="text-sm text-gray-700 dark:text-gray-300">رایگان (بدون پرداخت)</span>
                 </label>
               </div>

@@ -102,7 +102,7 @@ export default function AutoReplyPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : replies.length === 0 ? (
         <div className="glass-card p-12 text-center space-y-3">
           <Bot className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
@@ -149,7 +149,7 @@ export default function AutoReplyPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md">
+          <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">{editing ? "ویرایش قانون" : "قانون جدید"}</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400"><X className="w-5 h-5" /></button>

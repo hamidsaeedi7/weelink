@@ -55,8 +55,8 @@ export default function AudiencePage() {
         <p className="text-sm text-gray-500">ایمیل‌های جمع‌آوری‌شده از بازدیدکنندگان</p>
       </div>
       <div className="glass-card p-12 text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
-          <Zap className="w-8 h-8 text-orange-500" />
+        <div className="w-16 h-16 rounded-2xl bg-accent-500/10 flex items-center justify-center mx-auto">
+          <Zap className="w-8 h-8 text-accent-500" />
         </div>
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">این ویژگی برای پلن Pro است</h2>
         <p className="text-sm text-gray-500 max-w-sm mx-auto">
@@ -92,7 +92,7 @@ export default function AudiencePage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
       ) : leads.length === 0 ? (
         <div className="glass-card p-12 text-center space-y-3">
           <Users className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />

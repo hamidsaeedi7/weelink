@@ -19,13 +19,13 @@ function StatCard({
   icon: any; label: string; value: string | number; sub?: string; color?: "orange" | "blue" | "green" | "purple";
 }) {
   const colors = {
-    orange: "bg-orange-500/10 text-orange-500",
+    orange: "bg-accent-500/10 text-accent-500",
     blue:   "bg-blue-500/10 text-blue-400",
     green:  "bg-green-500/10 text-green-400",
     purple: "bg-purple-500/10 text-purple-400",
   };
   return (
-    <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
+    <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
@@ -56,7 +56,7 @@ export default function AnalyticsPage() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
     </div>
   );
 
@@ -75,7 +75,7 @@ export default function AnalyticsPage() {
             <button key={p.days} onClick={() => setPeriod(p.days)}
               className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${
                 period === p.days
-                  ? "bg-white dark:bg-white/10 text-orange-500 shadow-sm"
+                  ? "bg-gray-100 dark:bg-white/10 text-accent-500 shadow-sm"
                   : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
               }`}>
               {p.label}
@@ -99,10 +99,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Views Chart */}
-      <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
+      <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-orange-400" />
+            <BarChart2 className="w-4 h-4 text-accent-400" />
             بازدید روزانه
           </h2>
           <span className="text-xs text-gray-400">{period} روز گذشته</span>
@@ -131,9 +131,9 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top Blocks */}
-        <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
+        <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
           <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-            <Link2 className="w-4 h-4 text-orange-400" />
+            <Link2 className="w-4 h-4 text-accent-400" />
             پربازدیدترین لینک‌ها
           </h2>
           {data?.topBlocks?.length === 0 ? (
@@ -149,11 +149,11 @@ export default function AnalyticsPage() {
                       <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
                         {block.label || block.url || block.type}
                       </span>
-                      <span className="text-xs font-bold text-orange-500">{toPersianNumber(block.clickCount)}</span>
+                      <span className="text-xs font-bold text-accent-500">{toPersianNumber(block.clickCount)}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-orange-500 rounded-full transition-all"
+                        className="h-full bg-accent-500 rounded-full transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -165,7 +165,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Referers */}
-        <div className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
+        <div className="bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 p-5">
           <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-blue-400" />
             منابع ترافیک
