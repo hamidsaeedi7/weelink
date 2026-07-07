@@ -120,6 +120,7 @@ model Shop {
   bannerUrl    String?
   bgImageUrl   String?
   bgVideoUrl   String?
+  bgTemplate   String?  // شناسه قالب پس‌زمینه آماده (۴ روشن + ۴ تیره) — وقتی bgImageUrl خالی باشد استفاده می‌شود
   themeId         String   @default("default")
   primaryColor    String   @default("#F97316")
   secondaryColor  String   @default("#ffffff")

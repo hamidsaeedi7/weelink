@@ -54,6 +54,10 @@ export class UpdateShopDto {
 
   @IsOptional()
   @IsString()
+  bgTemplate?: string;
+
+  @IsOptional()
+  @IsString()
   gaId?: string;
 
   @IsOptional()

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap, CalendarCheck } from "lucide-react";
+import { getBgTemplate, bgTemplateBackground } from "@/lib/bg-templates";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -105,6 +106,7 @@ interface Shop {
   avatarUrl?: string;
   bannerUrl?: string;
   bgImageUrl?: string;
+  bgTemplate?: string;
   primaryColor?: string;
   fontFamily?: string;
   themeId?: string;
@@ -115,14 +117,19 @@ interface Shop {
 export function BioPageClient({ shop }: { shop: Shop }) {
   const primary = shop.primaryColor || "#F97316";
   const bg = shop.bgImageUrl;
+  const template = !bg ? getBgTemplate(shop.bgTemplate) : undefined;
+
+  const background = bg
+    ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
+    : template
+      ? bgTemplateBackground(template)
+      : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
 
   return (
     <div
       className="min-h-screen flex flex-col items-center"
       style={{
-        background: bg
-          ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-          : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`,
+        background,
         fontFamily: `'${shop.fontFamily || "Vazirmatn"}', Vazirmatn, sans-serif`,
       }}
     >

@@ -8,6 +8,7 @@ import {
   BarChart3, X, Image as ImageIcon, Check, Plus, Landmark,
 } from "lucide-react";
 import { shopsApi, bankCardsApi, uploadApi } from "@/lib/api";
+import { BG_TEMPLATES, bgTemplateBackground } from "@/lib/bg-templates";
 
 // فونت‌های فارسی self-hosted (فایل‌ها در public/fonts + @font-face در globals.css)
 const FONTS = [
@@ -163,6 +164,19 @@ export default function ShopSettingsPage() {
   const clearField = async (field: string) => {
     await shopsApi.update({ [field]: null });
     setShop((s: any) => ({ ...s, [field]: null }));
+  };
+
+  const selectBgTemplate = async (id: string) => {
+    await shopsApi.update({ bgTemplate: id, bgImageUrl: null });
+    setShop((s: any) => ({ ...s, bgTemplate: id, bgImageUrl: null }));
+  };
+
+  const uploadBgImageAndClearTemplate = async (file: File) => {
+    await handleUpload(file, "image", "bgImageUrl", () => {});
+    if (shop?.bgTemplate) {
+      await shopsApi.update({ bgTemplate: null });
+      setShop((s: any) => ({ ...s, bgTemplate: null }));
+    }
   };
 
   if (loading) return (
@@ -442,13 +456,54 @@ export default function ShopSettingsPage() {
               onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "video", "bgVideoUrl", setBgVideoUploading)} />
           </div>
 
+          {/* قالب‌های آماده پس‌زمینه */}
+          <div className="glass-card p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-pink-500" />
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">قالب‌های آماده پس‌زمینه</h3>
+            </div>
+            <p className="text-xs text-gray-500">یکی از قالب‌ها را انتخاب کن، یا در بخش پایین تصویر دلخواه آپلود کن</p>
+
+            {(["light", "dark"] as const).map((group) => (
+              <div key={group} className="space-y-1.5">
+                <p className="text-[11px] text-gray-400">{group === "light" ? "روشن" : "تیره"}</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {BG_TEMPLATES.filter((t) => t.group === group).map((t) => {
+                    const selected = !shop?.bgImageUrl && shop?.bgTemplate === t.id;
+                    return (
+                      <button key={t.id} type="button" onClick={() => selectBgTemplate(t.id)}
+                        title={t.label}
+                        className={`relative h-14 rounded-xl overflow-hidden border-2 transition-all ${
+                          selected ? "border-accent-500 scale-105 shadow-lg" : "border-transparent hover:border-white/20"
+                        }`}
+                        style={{ background: bgTemplateBackground(t) }}>
+                        {selected && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {shop?.bgTemplate && !shop?.bgImageUrl && (
+              <button onClick={() => clearField("bgTemplate")}
+                className="text-xs text-gray-400 hover:text-red-500 transition-all">
+                حذف قالب انتخاب‌شده
+              </button>
+            )}
+          </div>
+
           {/* Background Image */}
           <div className="glass-card p-5 space-y-3">
             <div className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-blue-500" />
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">تصویر پس‌زمینه</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm">تصویر پس‌زمینه دلخواه</h3>
             </div>
-            <p className="text-xs text-gray-500">اگر ویدیو پس‌زمینه ندارید، تصویر نشان داده می‌شود</p>
+            <p className="text-xs text-gray-500">اگر تصویر دلخواه آپلود کنی، به‌جای قالب آماده نمایش داده می‌شود</p>
             {shop?.bgImageUrl ? (
               <div className="relative">
                 <img src={shop.bgImageUrl} alt="" className="w-full h-28 rounded-xl object-cover" />
@@ -464,7 +519,7 @@ export default function ShopSettingsPage() {
                 <Upload className="w-4 h-4" />
                 آپلود تصویر پس‌زمینه
                 <input type="file" accept="image/*" className="hidden"
-                  onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "image", "bgImageUrl", () => {})} />
+                  onChange={(e) => e.target.files?.[0] && uploadBgImageAndClearTemplate(e.target.files[0])} />
               </label>
             )}
           </div>
