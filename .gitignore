@@ -10,4 +10,5 @@ uploads/
 coverage/
 
 .env.prod
+.env.production.local
 nginx/ssl/
