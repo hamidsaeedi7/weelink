@@ -44,11 +44,28 @@ async function bootstrap() {
   app.use(helmet());
   app.use(compression());
 
+  // Also allow the www. variant of each configured origin — the site resolves
+  // and serves identical content on both www.weeelink.ir and weeelink.ir, but a
+  // bare origin list only matching the apex domain silently CORS-blocks every
+  // API call (loading, adding blocks, everything) for visitors on the www host.
+  const withWwwVariant = (url: string) => {
+    try {
+      const u = new URL(url);
+      const alt = u.hostname.startsWith("www.")
+        ? u.hostname.slice(4)
+        : `www.${u.hostname}`;
+      return [url, `${u.protocol}//${alt}`];
+    } catch {
+      return [url];
+    }
+  };
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    process.env.ADMIN_URL || "http://localhost:3001",
+  ].flatMap(withWwwVariant);
+
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:3000",
-      process.env.ADMIN_URL || "http://localhost:3001",
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
