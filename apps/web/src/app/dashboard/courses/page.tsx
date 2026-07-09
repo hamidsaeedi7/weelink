@@ -276,11 +276,26 @@ export default function CoursesPage() {
                       <input value={videoForm.videoUrl.startsWith("/uploads") ? "" : videoForm.videoUrl}
                         onChange={(e) => setVideoForm((p) => ({ ...p, videoUrl: e.target.value }))}
                         className="input-base text-sm" placeholder="یا لینک ویدیو (یوتیوب/آپارات)" dir="ltr" />
-                      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                        {videoForm.coverUrl ? <img src={videoForm.coverUrl} alt="" className="w-10 h-7 object-cover rounded" /> : <Upload className="w-3.5 h-3.5" />}
-                        {videoForm.coverUrl ? "تغییر کاور" : "آپلود کاور ویدیو (اختیاری)"}
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadVideoCover(e.target.files[0])} />
-                      </label>
+                      {/* باکس مشخص برای کاور ویدیو — قبلاً یک لینک متنی کوچک بود و کاربر متوجه نمی‌شد */}
+                      <div>
+                        <label className={`flex flex-col items-center justify-center gap-1.5 w-full rounded-xl border-2 border-dashed p-3 cursor-pointer transition-colors ${
+                          videoForm.coverUrl ? "border-green-500/40 bg-green-500/5" : "border-gray-200 dark:border-white/10 hover:border-accent-500/50"
+                        }`}>
+                          {videoForm.coverUrl ? (
+                            <>
+                              <img src={videoForm.coverUrl} alt="" className="w-full h-20 object-cover rounded-lg" />
+                              <span className="text-[11px] text-green-500">کاور انتخاب شد — برای تغییر کلیک کنید</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 text-gray-400" />
+                              <span className="text-xs text-gray-500">آپلود کاور ویدیو (اختیاری)</span>
+                            </>
+                          )}
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadVideoCover(e.target.files[0])} />
+                        </label>
+                        <p className="mt-1 text-[10px] text-gray-400 text-left">سایز مناسب: ۱۲۸۰×۷۲۰ پیکسل</p>
+                      </div>
                       <button onClick={() => addVideo(ch)} className="btn-primary py-2 px-3 text-xs flex items-center gap-1.5 w-full justify-center">
                         <Plus className="w-3.5 h-3.5" /> افزودن این ویدیو
                       </button>
@@ -309,30 +324,12 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      {/* واترمارک (محافظت کپی‌رایت) */}
-      <div className="glass-card p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-accent-500" />
-          <h2 className="font-bold text-gray-900 dark:text-white">واترمارک محافظت کپی‌رایت</h2>
-        </div>
-        <p className="text-xs text-gray-500">متن واترمارک روی همهٔ ویدیوهای این دوره نمایش داده می‌شود (بازدارندهٔ کپی).</p>
-        <input value={wm.watermarkText} onChange={(e) => setWm((p) => ({ ...p, watermarkText: e.target.value }))}
-          className="input-base" placeholder="مثال: نام کانال یا موبایل شما" />
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">رنگ</label>
-            <input type="color" value={wm.watermarkColor} onChange={(e) => setWm((p) => ({ ...p, watermarkColor: e.target.value }))}
-              className="w-full h-10 rounded-lg cursor-pointer bg-transparent border border-gray-200 dark:border-white/10" />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">تعداد روی صفحه</label>
-            <input type="number" min={1} max={8} value={wm.watermarkCount}
-              onChange={(e) => setWm((p) => ({ ...p, watermarkCount: Number(e.target.value) }))} className="input-base" />
-          </div>
-        </div>
-        <button onClick={saveWatermark} disabled={wmSaving} className="btn-primary py-2 px-4 text-sm flex items-center gap-2">
-          {wmSaving && <Loader2 className="w-4 h-4 animate-spin" />} ذخیرهٔ واترمارک
-        </button>
+      {/* واترمارک تنظیم‌شدنی حذف شد — ویدیوها خودکار با شماره موبایل خریدار واترمارک می‌شوند */}
+      <div className="glass-card p-5 flex items-start gap-2">
+        <Shield className="w-4 h-4 text-accent-500 shrink-0 mt-0.5" />
+        <p className="text-xs text-gray-500">
+          محافظت کپی‌رایت خودکار است: شماره موبایل هر خریدار به‌صورت واترمارک متحرک روی ویدیوهای دوره نمایش داده می‌شود.
+        </p>
       </div>
 
       {/* پیش‌نمایش امن (اولین ویدیو) */}
@@ -341,9 +338,9 @@ export default function CoursesPage() {
           <h2 className="font-bold text-gray-900 dark:text-white text-sm">پیش‌نمایش پخش‌کنندهٔ امن</h2>
           <SecureVideoPlayer
             src={(chapters.find((c) => (c.videos || []).length)?.videos[0]?.videoUrl) || ""}
-            watermarkText={wm.watermarkText}
-            watermarkColor={wm.watermarkColor}
-            watermarkCount={wm.watermarkCount}
+            watermarkText="۰۹۱۲XXXXXXX (شماره خریدار)"
+            watermarkColor="#ffffff"
+            watermarkCount={3}
           />
         </div>
       )}
@@ -456,6 +453,7 @@ export default function CoursesPage() {
                 )}
                 <input ref={coverRef} type="file" accept="image/*" className="hidden"
                   onChange={(e) => e.target.files?.[0] && uploadCover(e.target.files[0])} />
+                <p className="mt-1 text-[10px] text-gray-400 text-left">سایز مناسب: ۱۲۸۰×۷۲۰ پیکسل</p>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isFree}

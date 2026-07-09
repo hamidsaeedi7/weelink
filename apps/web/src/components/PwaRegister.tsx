@@ -33,6 +33,10 @@ export function PwaRegister() {
     // اگر قبلاً نصب شده، هیچ بنری نشان نده
     if (isStandalone()) return;
 
+    // بنر نصب فقط در دسکتاپ نمایش داده می‌شود — در موبایل/تبلت مزاحم است
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !isIos();
+    if (!isDesktop) return;
+
     const onInstalled = () => {
       setBannerVisible(false);
       setInstalling(false);
@@ -48,11 +52,6 @@ export function PwaRegister() {
       if (!dismissed) setBannerVisible(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
-
-    // iOS از beforeinstallprompt پشتیبانی نمی‌کند — راهنمای Add to Home Screen
-    if (isIos() && !dismissed && !localStorage.getItem("pwa-installed")) {
-      setBannerVisible(true);
-    }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);

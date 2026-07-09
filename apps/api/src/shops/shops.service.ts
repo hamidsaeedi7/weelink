@@ -174,7 +174,9 @@ export class ShopsService {
     const shop = await this.prisma.shop.findUnique({ where: { slug }, select: { id: true } });
     if (!shop) return;
     await this.prisma.analytics.create({
-      data: { shopId: shop.id, event: "pageview", ip, userAgent, referer },
+      // "PAGE_VIEW" is the canonical event name every analytics reader queries;
+      // this used to write lowercase "pageview", making all view counts read 0.
+      data: { shopId: shop.id, event: "PAGE_VIEW", ip, userAgent, referer },
     });
   }
 

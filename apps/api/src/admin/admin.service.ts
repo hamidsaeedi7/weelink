@@ -420,9 +420,31 @@ export class AdminService {
 
   async getAdmins() {
     return this.prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } },
+      where: { role: { in: ["ADMIN", "SUPER_ADMIN", "WRITER"] } },
       select: { id: true, email: true, phone: true, role: true, createdAt: true, lastLoginAt: true },
     });
+  }
+
+  /** Manually create an admin or blog writer with email + password. */
+  async createAdmin(adminId: string, dto: { email: string; password: string; role: "ADMIN" | "WRITER" }) {
+    if (!["ADMIN", "WRITER"].includes(dto.role)) throw new BadRequestException("نقش نامعتبر است");
+    if (!dto.email?.includes("@")) throw new BadRequestException("ایمیل نامعتبر است");
+    if (!dto.password || dto.password.length < 8) throw new BadRequestException("رمز عبور حداقل ۸ کاراکتر باشد");
+    const email = dto.email.trim().toLowerCase();
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing) throw new BadRequestException("کاربری با این ایمیل قبلاً ثبت شده است");
+
+    const bcrypt = await import("bcrypt");
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    const user = await this.prisma.user.create({
+      data: { email, passwordHash, role: dto.role, isVerified: true },
+      select: { id: true, email: true, role: true, createdAt: true },
+    });
+    await this.prisma.adminLog.create({
+      data: { adminId, action: `CREATE_${dto.role}`, target: user.id },
+    });
+    return user;
   }
 
   async promoteUser(adminId: string, targetId: string, role: "ADMIN" | "USER") {
@@ -455,13 +477,21 @@ export class AdminService {
   // ─── Tool Analytics ───────────────────────────────────────────────────────
 
   async getToolStats() {
-    const blockStats = await this.prisma.block.groupBy({
+    const grouped = await this.prisma.block.groupBy({
       by: ["type"],
       _count: { id: true },
       _sum: { clickCount: true },
       orderBy: { _count: { id: "desc" } },
     });
-    const totalClicks = await this.prisma.analytics.count({ where: { event: "BLOCK_CLICK" } });
+    // Flatten Prisma's groupBy shape (_count/_sum) into what the admin UI
+    // renders — leaving it raw made count/totalClicks undefined and crashed
+    // both the analytics and tool-stats pages on .toLocaleString().
+    const blockStats = grouped.map((b) => ({
+      type: b.type,
+      count: b._count.id,
+      totalClicks: b._sum.clickCount ?? 0,
+    }));
+    const totalClicks = blockStats.reduce((s, b) => s + b.totalClicks, 0);
     const totalViews  = await this.prisma.analytics.count({ where: { event: "PAGE_VIEW" } });
     return { blockStats, totalClicks, totalViews };
   }

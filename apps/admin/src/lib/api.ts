@@ -38,6 +38,7 @@ export const adminApi = {
   // Finance
   getFinance: (page?: number)    => api.get("/admin/finance", { params: { page } }),
   getGatewayReport: ()           => api.get("/admin/finance/gateway"),
+  createAdmin: (d: { email: string; password: string; role: string }) => api.post("/admin/admins", d),
   // Tickets
   getTickets: (status?: string)  => api.get("/admin/tickets", { params: { status } }),
   replyTicket: (id: string, message: string) => api.post(`/admin/tickets/${id}/reply`, { message }),

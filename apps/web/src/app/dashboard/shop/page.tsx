@@ -57,6 +57,7 @@ export default function ShopSettingsPage() {
   const [addingCard, setAddingCard] = useState(false);
   const [newCard, setNewCard] = useState({ cardNumber: "", cardHolder: "", bankName: "" });
   const [cardSaving, setCardSaving] = useState(false);
+  const [settlementOptIn, setSettlementOptIn] = useState(false);
 
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -88,6 +89,7 @@ export default function ShopSettingsPage() {
         setValue("settlementSheba",    data.settlementSheba    || "");
         setValue("settlementHolder",   data.settlementHolder   || "");
         setValue("settlementBankName", data.settlementBankName || "");
+        setSettlementOptIn(!!data.settlementSheba);
       }
     }).finally(() => setLoading(false));
   }, [setValue]);
@@ -266,6 +268,7 @@ export default function ShopSettingsPage() {
             <input ref={avatarRef} type="file" accept="image/*" className="hidden"
               onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "image", "avatarUrl", setAvatarUploading)} />
           </div>
+          <p className="mt-1 text-[10px] text-gray-400 text-left">سایز مناسب بنر: ۱۲۰۰×۴۰۰ — پروفایل: ۴۰۰×۴۰۰ پیکسل</p>
 
           <div className="pt-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -504,6 +507,7 @@ export default function ShopSettingsPage() {
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">تصویر پس‌زمینه دلخواه</h3>
             </div>
             <p className="text-xs text-gray-500">اگر تصویر دلخواه آپلود کنی، به‌جای قالب آماده نمایش داده می‌شود</p>
+            <p className="text-[10px] text-gray-400 text-left">سایز مناسب: ۱۰۸۰×۱۹۲۰ پیکسل (عمودی)</p>
             {shop?.bgImageUrl ? (
               <div className="relative">
                 <img src={shop.bgImageUrl} alt="" className="w-full h-28 rounded-xl object-cover" />
@@ -675,35 +679,51 @@ export default function ShopSettingsPage() {
               <Landmark className="w-4 h-4 text-accent-500" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">تسویه و حساب</h3>
             </div>
-            <p className="text-xs text-gray-500">
-              این اطلاعات برای واریز درآمد شما از فروش‌های درگاه پرداخت ویلینک استفاده می‌شود.
-            </p>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">شماره شبا</label>
-              <input {...register("settlementSheba")} inputMode="numeric" dir="ltr"
-                className="input-base font-mono tracking-widest text-left" placeholder="IRxxxxxxxxxxxxxxxxxxxxxxxx" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1.5">نام صاحب حساب</label>
-                <input {...register("settlementHolder")} className="input-base" placeholder="مثال: علی رضایی" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
-                <input {...register("settlementBankName")} className="input-base" placeholder="مثال: بانک ملت" />
-              </div>
-            </div>
-            <p className="text-sm font-bold text-gray-900 dark:text-white bg-accent-500/10 border border-accent-500/20 rounded-xl px-4 py-3">
-              تسویه‌حساب‌ها به صورت هفتگی می‌باشد.
-            </p>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={settlementOptIn}
+                onChange={(e) => setSettlementOptIn(e.target.checked)}
+                className="w-4 h-4 mt-0.5 accent-accent-500 shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                استفاده از درگاه اختصاصی ویلینک با کارمزد ۱۰ درصد
+                <span className="block text-xs text-gray-500 mt-0.5">(تسویه حساب بین ۵ الی ۷ روز کاری می‌شود)</span>
+              </span>
+            </label>
+
+            {settlementOptIn && (
+              <>
+                <p className="text-xs text-gray-500">
+                  این اطلاعات برای واریز درآمد شما از فروش‌های درگاه پرداخت ویلینک استفاده می‌شود.
+                </p>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">شماره شبا</label>
+                  <input {...register("settlementSheba")} inputMode="numeric" dir="ltr"
+                    className="input-base font-mono tracking-widest text-left" placeholder="IRxxxxxxxxxxxxxxxxxxxxxxxx" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5">نام صاحب حساب</label>
+                    <input {...register("settlementHolder")} className="input-base" placeholder="مثال: علی رضایی" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5">نام بانک</label>
+                    <input {...register("settlementBankName")} className="input-base" placeholder="مثال: بانک ملت" />
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-gray-900 dark:text-white bg-accent-500/10 border border-accent-500/20 rounded-xl px-4 py-3">
+                  تسویه‌حساب‌ها به صورت هفتگی می‌باشد.
+                </p>
+              </>
+            )}
           </div>
-          <button type="submit" disabled={saving}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-                       bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
-                       transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
-            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            ذخیره
-          </button>
+          {settlementOptIn && (
+            <button type="submit" disabled={saving}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl
+                         bg-accent-500 hover:bg-accent-400 text-white font-bold text-sm
+                         transition-all disabled:opacity-60 shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+              ذخیره
+            </button>
+          )}
         </form>
       )}
 

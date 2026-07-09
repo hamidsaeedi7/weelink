@@ -141,9 +141,10 @@ export default function BlocksPage() {
             {saving && <span className="text-accent-400 mr-2">• در حال ذخیره...</span>}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* موبایل: پیش‌نمایش/کپی/اشتراک در یک ردیف، «بلوک جدید» تمام‌عرض زیرشان — دسکتاپ: همه در یک خط */}
+        <div className="w-full sm:w-auto space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-2">
           {slug && (
-            <>
+            <div className="flex items-center gap-2">
               <a
                 href={`/${slug}`}
                 target="_blank"
@@ -156,11 +157,11 @@ export default function BlocksPage() {
                 پیش‌نمایش
               </a>
               <ShareBar url={`https://weeelink.ir/${slug}`} />
-            </>
+            </div>
           )}
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm
                        bg-accent-500 hover:bg-accent-400 text-white font-bold
                        transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
             <Plus className="w-4 h-4" />

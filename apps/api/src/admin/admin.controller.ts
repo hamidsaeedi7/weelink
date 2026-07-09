@@ -60,17 +60,21 @@ export class AdminController {
     return this.admin.updateTicketStatus(id, status);
   }
 
-  // Blog
-  @Get("blog") getBlogPosts(@Query("page") page?: string) { return this.admin.getBlogPosts(parseInt(page ?? "1") || 1); }
-  @Get("blog/:id") getBlogPost(@Param("id") id: string) { return this.admin.getBlogPost(id); }
-  @Post("blog")
+  // Blog — WRITER (نویسنده) هم به این مسیرها دسترسی دارد (method-level @Roles کلاس را override می‌کند)
+  @Get("blog") @Roles("ADMIN", "SUPER_ADMIN", "WRITER")
+  getBlogPosts(@Query("page") page?: string) { return this.admin.getBlogPosts(parseInt(page ?? "1") || 1); }
+  @Get("blog/:id") @Roles("ADMIN", "SUPER_ADMIN", "WRITER")
+  getBlogPost(@Param("id") id: string) { return this.admin.getBlogPost(id); }
+  @Post("blog") @Roles("ADMIN", "SUPER_ADMIN", "WRITER")
   createBlogPost(@CurrentUser() user: { id: string }, @Body() data: any) {
     return this.admin.createBlogPost(user.id, data);
   }
-  @Put("blog/:id") updateBlogPost(@Param("id") id: string, @Body() data: any) {
+  @Put("blog/:id") @Roles("ADMIN", "SUPER_ADMIN", "WRITER")
+  updateBlogPost(@Param("id") id: string, @Body() data: any) {
     return this.admin.updateBlogPost(id, data);
   }
-  @Delete("blog/:id") deleteBlogPost(@Param("id") id: string) { return this.admin.deleteBlogPost(id); }
+  @Delete("blog/:id") @Roles("ADMIN", "SUPER_ADMIN", "WRITER")
+  deleteBlogPost(@Param("id") id: string) { return this.admin.deleteBlogPost(id); }
 
   // Page Content
   @Get("content/:id") getPageContent(@Param("id") id: string) { return this.admin.getPageContent(id); }
@@ -114,6 +118,11 @@ export class AdminController {
 
   // Admins
   @Get("admins") getAdmins() { return this.admin.getAdmins(); }
+  @Post("admins")
+  createAdmin(
+    @CurrentUser() user: { id: string },
+    @Body() dto: { email: string; password: string; role: "ADMIN" | "WRITER" },
+  ) { return this.admin.createAdmin(user.id, dto); }
   @Put("admins/:id/role")
   promoteUser(
     @CurrentUser() user: { id: string },

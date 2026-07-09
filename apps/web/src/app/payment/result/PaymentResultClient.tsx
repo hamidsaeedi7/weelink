@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle, ArrowRight, Download, KeyRound, Copy, LogIn } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, Download, KeyRound, Copy, LogIn, Link2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -18,11 +18,30 @@ export default function PaymentResultClient() {
   const shopSlug = sp.get("shopSlug");
   const [copied, setCopied] = useState(false);
 
+  const courseUrl = courseId && shopSlug
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/${shopSlug}/course/${courseId}`
+    : "";
+
   const copyLicense = () => {
     if (!license) return;
     navigator.clipboard.writeText(license);
     setCopied(true);
     toast.success("کد لایسنس کپی شد");
+  };
+
+  const copyCourseUrl = () => {
+    if (!courseUrl) return;
+    navigator.clipboard.writeText(courseUrl);
+    toast.success("لینک دوره کپی شد");
+  };
+
+  const shareAll = async () => {
+    const text = `لینک دوره: ${courseUrl}\nکد لایسنس: ${license}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: "دسترسی به دوره", text }); return; } catch { /* cancelled */ }
+    }
+    navigator.clipboard.writeText(text);
+    toast.success("لینک و لایسنس کپی شد");
   };
 
   const success = status === "success";
@@ -81,15 +100,36 @@ export default function PaymentResultClient() {
               <span className="font-mono text-base tracking-widest text-white" dir="ltr">{license}</span>
               <Copy className="w-4 h-4 text-white/40" />
             </button>
-            <p className="text-[11px] text-gray-400">
-              {copied ? "کپی شد — " : ""}این کد را همراه شماره موبایلتان برای ورود به دوره نگه دارید.
-            </p>
-            {courseId && shopSlug && (
-              <a href={`/${shopSlug}/course/${courseId}?license=${encodeURIComponent(license)}`}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-all">
-                <LogIn className="w-4 h-4" /> ورود به دوره
-              </a>
+
+            {courseUrl && (
+              <>
+                <div className="flex items-center gap-2 text-sm font-bold text-white justify-center pt-1">
+                  <Link2 className="w-4 h-4 text-orange-500" /> لینک دوره شما
+                </div>
+                <button onClick={copyCourseUrl}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl bg-black/20 border border-white/10 hover:border-orange-500/40">
+                  <span className="font-mono text-xs text-white truncate" dir="ltr">{courseUrl}</span>
+                  <Copy className="w-4 h-4 text-white/40 shrink-0" />
+                </button>
+              </>
             )}
+
+            <p className="text-[11px] text-gray-400">
+              {copied ? "کپی شد — " : ""}این لینک و کد را همراه شماره موبایلتان برای ورود به دوره نگه دارید.
+            </p>
+
+            <div className="flex gap-2">
+              {courseId && shopSlug && (
+                <a href={`/${shopSlug}/course/${courseId}?license=${encodeURIComponent(license)}`}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-all">
+                  <LogIn className="w-4 h-4" /> ورود به دوره
+                </a>
+              )}
+              <button onClick={shareAll}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-white/70 text-sm font-bold hover:border-orange-500/40 hover:text-orange-400 transition-all">
+                <Share2 className="w-4 h-4" /> اشتراک‌گذاری
+              </button>
+            </div>
           </div>
         )}
 

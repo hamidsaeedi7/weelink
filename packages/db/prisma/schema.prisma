@@ -18,6 +18,7 @@ enum Role {
   USER
   ADMIN
   SUPER_ADMIN
+  WRITER // نویسنده وبلاگ — فقط به بخش وبلاگ پنل مدیریت دسترسی دارد
 }
 
 enum OrderStatus {

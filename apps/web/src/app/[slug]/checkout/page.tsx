@@ -88,7 +88,9 @@ export default function CheckoutPage() {
   const { items, clear, total, remove, update } = useCart();
   const [shop, setShop] = useState<any>(null);
   const [coupon, setCoupon] = useState("");
-  const [orderDone, setOrderDone] = useState<{ orderNumber: string } | null>(null);
+  // amount is captured at submit time — the cart is cleared right after, so
+  // recomputing from it on the success screen would always show 0
+  const [orderDone, setOrderDone] = useState<{ orderNumber: string; amount: number } | null>(null);
 
   useEffect(() => {
     axios.get(`${API}/api/v1/shops/${slug}`)
@@ -116,7 +118,7 @@ export default function CheckoutPage() {
             <p className="text-gray-500 text-sm">شماره سفارش: <span className="font-mono font-bold">{orderDone.orderNumber}</span></p>
           </div>
           {shop?.cardNumber && (
-            <BankCardBox card={shop.cardNumber} holder={shop.cardHolder} bank={shop.bankName} amount={finalTotal} />
+            <BankCardBox card={shop.cardNumber} holder={shop.cardHolder} bank={shop.bankName} amount={orderDone.amount} />
           )}
           <DeliveryContact type={shop?.deliveryType} contact={shop?.deliveryContact} note={shop?.deliveryNote} />
           <a href={`/${slug}/shop`}
@@ -184,7 +186,9 @@ export default function CheckoutPage() {
         return;
       }
 
-      setOrderDone({ orderNumber: order.orderNumber });
+      // server-computed payable amount (authoritative — cart is cleared by now)
+      const payable = Number(order.totalPrice || 0) - Number(order.discount || 0);
+      setOrderDone({ orderNumber: order.orderNumber, amount: payable });
     } catch (e: any) {
       toast.error(e.response?.data?.message || "خطا در ثبت سفارش");
     } finally {

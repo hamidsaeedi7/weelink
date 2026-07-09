@@ -118,6 +118,7 @@ export default function ContentPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
         </div>
       ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <div className="glass-card p-6 space-y-5">
           {(activeTab === "about" || activeTab === "contact") && (
             <div>
@@ -291,7 +292,70 @@ export default function ContentPage() {
             </div>
           )}
         </div>
+
+        {/* پیش‌نمایش زنده — همزمان با تایپ به‌روز می‌شود */}
+        <LivePreview tab={activeTab} data={data} />
+        </div>
       )}
+    </div>
+  );
+}
+
+/** پیش‌نمایش زنده هر بخش، با ظاهری نزدیک به خود سایت. */
+function LivePreview({ tab, data }: { tab: string; data: ContentData }) {
+  return (
+    <div className="xl:sticky xl:top-6 space-y-2">
+      <p className="text-xs text-gray-400 flex items-center gap-1.5">
+        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        پیش‌نمایش زنده — تغییرات همین لحظه اعمال می‌شوند (برای انتشار، ذخیره را بزنید)
+      </p>
+      <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0A0A0F]" dir="rtl">
+        {tab === "header" && (
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+            <div className="flex items-center gap-6">
+              <span className="font-black text-white">{data.logoText || "ویلینک"}</span>
+              <nav className="hidden sm:flex items-center gap-4">
+                {(data.navLinks ?? []).map((l, i) => (
+                  <span key={i} className="text-sm text-gray-400 hover:text-orange-400 cursor-pointer">{l.label || "—"}</span>
+                ))}
+              </nav>
+            </div>
+            {data.phone && <span className="text-sm text-orange-400 font-mono" dir="ltr">{data.phone}</span>}
+          </div>
+        )}
+
+        {(tab === "about" || tab === "contact") && (
+          <div className="p-6">
+            <h2 className="text-lg font-black text-white mb-4">{tab === "about" ? "درباره ما" : "تماس با ما"}</h2>
+            <div
+              className="prose prose-invert prose-sm max-w-none text-gray-300 [&_a]:text-orange-400"
+              dangerouslySetInnerHTML={{ __html: data.content || "<p class='text-gray-500'>محتوایی وارد نشده…</p>" }}
+            />
+            {tab === "contact" && data.address && (
+              <p className="mt-4 text-sm text-gray-400">آدرس: {data.address}</p>
+            )}
+          </div>
+        )}
+
+        {tab === "footer" && (
+          <div className="p-6 space-y-4 border-t border-white/10">
+            <p className="text-sm text-gray-400 leading-relaxed">{data.description || "توضیح فوتر…"}</p>
+            <div className="flex items-center gap-3">
+              {(["instagram", "telegram", "twitter"] as const).map((p) =>
+                data.socialLinks?.[p] ? (
+                  <span key={p} className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs text-gray-400">
+                    {p === "instagram" ? "IG" : p === "telegram" ? "TG" : "X"}
+                  </span>
+                ) : null,
+              )}
+              {data.showEnamad && (
+                <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[9px] text-gray-400">اینماد</span>
+              )}
+            </div>
+            <p className="text-xs text-gray-600 border-t border-white/5 pt-3">{data.copyrightText || "© تمامی حقوق محفوظ است"}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

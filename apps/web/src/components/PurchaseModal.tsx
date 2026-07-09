@@ -65,7 +65,11 @@ export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE" }: Pr
 
       if (d.free) {
         if (kind === "COURSE") {
-          router.push(`/payment/result?status=success&type=COURSE&license=${encodeURIComponent(d.licenseCode)}`);
+          const params = new URLSearchParams({
+            status: "success", type: "COURSE", license: d.licenseCode,
+            courseId: d.courseId || item.id, shopSlug: d.shopSlug || shop.slug,
+          });
+          router.push(`/payment/result?${params.toString()}`);
         } else {
           window.location.href = d.downloadUrl;
         }

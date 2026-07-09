@@ -104,26 +104,29 @@ function PhysicalOrdersTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <p className="text-sm text-gray-500">{toPersianNumber(orders.length)} سفارش</p>
-        <div className="flex items-center gap-2 flex-wrap">
-          <select value={period} onChange={(e) => setPeriod(e.target.value as Period)}
-            className="input-base text-sm max-w-[120px]">
-            {(["week", "month", "year"] as Period[]).map((p) => <option key={p} value={p}>{PERIOD_LABELS[p]}</option>)}
-          </select>
+        <div className="space-y-2">
+          {/* بازه زمانی و وضعیت — هم‌تراز در یک ردیف؛ خروجی اکسل زیرشان */}
+          <div className="grid grid-cols-2 gap-2">
+            <select value={period} onChange={(e) => setPeriod(e.target.value as Period)}
+              className="input-base text-sm">
+              {(["week", "month", "year"] as Period[]).map((p) => <option key={p} value={p}>{PERIOD_LABELS[p]}</option>)}
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="input-base text-sm">
+              <option value="">همه وضعیت‌ها</option>
+              {STATUS_FLOW.map((s) => (
+                <option key={s} value={s}>{STATUS_LABELS[s].label}</option>
+              ))}
+            </select>
+          </div>
           <button onClick={exportOrders}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-sm font-bold hover:bg-green-500/20 transition-all">
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-sm font-bold hover:bg-green-500/20 transition-all">
             <Download className="w-4 h-4" /> خروجی اکسل
           </button>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="input-base text-sm max-w-[160px]">
-            <option value="">همه وضعیت‌ها</option>
-            {STATUS_FLOW.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s].label}</option>
-            ))}
-          </select>
         </div>
       </div>
 

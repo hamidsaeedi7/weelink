@@ -23,11 +23,12 @@ export default function ModirLoginPage() {
       if (!token) throw new Error("توکن دریافت نشد");
       // Decode JWT payload to verify admin role (no secret needed to read payload)
       const payload = JSON.parse(atob(token.split(".")[1]));
-      if (!["ADMIN", "SUPER_ADMIN"].includes(payload.role || "")) {
+      if (!["ADMIN", "SUPER_ADMIN", "WRITER"].includes(payload.role || "")) {
         throw new Error("دسترسی مجاز نیست — فقط ادمین‌ها می‌توانند وارد شوند");
       }
       localStorage.setItem("admin_token", token);
-      window.location.href = "/modir";
+      // نویسنده فقط به وبلاگ دسترسی دارد — مستقیم همان‌جا برود
+      window.location.href = payload.role === "WRITER" ? "/modir/blog" : "/modir";
     } catch (e: any) {
       toast.error(e.message || "اطلاعات ورود اشتباه است");
     } finally {

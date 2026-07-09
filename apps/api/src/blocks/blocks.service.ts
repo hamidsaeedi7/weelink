@@ -108,10 +108,16 @@ export class BlocksService {
   }
 
   async recordClick(id: string) {
-    await this.prisma.block.update({
+    const block = await this.prisma.block.update({
       where: { id },
       data: { clickCount: { increment: 1 } },
+      select: { shopId: true },
     });
+    // Also log a BLOCK_CLICK analytics event — the per-shop analytics dashboard
+    // counts these, and nothing was ever writing them (clicks always read 0).
+    await this.prisma.analytics
+      .create({ data: { shopId: block.shopId, event: "BLOCK_CLICK" } })
+      .catch(() => {});
     return { ok: true };
   }
 }

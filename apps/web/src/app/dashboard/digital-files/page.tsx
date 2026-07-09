@@ -265,6 +265,7 @@ export default function DigitalFilesPage() {
                 )}
                 <input ref={coverRef} type="file" accept="image/*" className="hidden"
                   onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], "cover")} />
+                <p className="mt-1 text-[10px] text-gray-400 text-left">سایز مناسب: ۸۰۰×۴۵۰ پیکسل</p>
               </div>
 
               <div>

@@ -9,7 +9,6 @@ import { PurchaseCourseDto, RedeemLicenseDto } from "./dto/course.dto";
 
 const API_URL = process.env.API_URL || "http://localhost:4000";
 const JWT_SECRET = process.env.JWT_ACCESS_SECRET || "";
-const ACCESS_TOKEN_EXPIRES = "90d";
 const STREAM_TOKEN_EXPIRES_SECONDS = 3 * 3600; // 3h
 
 // Human-friendly license code: 4 groups of 4 uppercase alnum chars (no ambiguous 0/O/1/I).
@@ -204,7 +203,7 @@ export class CoursesService {
         },
       });
       const license = await this.issueLicense(enrollment);
-      return { free: true, licenseCode: license.code };
+      return { free: true, licenseCode: license.code, courseId, shopSlug: slug };
     }
 
     let finalPrice = Number(course.price);
@@ -232,7 +231,7 @@ export class CoursesService {
       await this.prisma.courseEnrollment.update({ where: { id: enrollment.id }, data: { paymentStatus: "PAID" } });
       if (dto.couponCode) await this.coupons.incrementUsage(dto.couponCode);
       const license = await this.issueLicense(enrollment);
-      return { free: true, licenseCode: license.code };
+      return { free: true, licenseCode: license.code, courseId, shopSlug: slug };
     }
 
     const { authority, gatewayUrl } = await this.payments.requestGatewayPayment({
@@ -301,9 +300,11 @@ export class CoursesService {
 
     await this.prisma.license.update({ where: { id: license.id }, data: { lastAccessAt: new Date() } });
 
+    // No expiry — the buyer keeps permanent access to the course; the license
+    // can still be disabled server-side via License.isActive if ever needed.
     const accessToken = this.jwt.sign(
       { purpose: "course-access", licenseId: license.id, courseId: license.courseId },
-      { secret: JWT_SECRET, expiresIn: ACCESS_TOKEN_EXPIRES },
+      { secret: JWT_SECRET },
     );
 
     return {

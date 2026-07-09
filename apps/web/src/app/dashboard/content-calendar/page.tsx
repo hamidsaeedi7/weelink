@@ -186,14 +186,14 @@ export default function ContentCalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F] text-white p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-[#0A0A0F] text-white p-4 sm:p-6">
+      {/* Header — موبایل: عمودی، دسکتاپ: یک ردیف */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-black">تقویم محتوایی</h1>
           <p className="text-sm text-gray-500 mt-1">برنامه‌ریزی و زمان‌بندی محتوای شبکه‌های اجتماعی</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Telegram bot */}
           <TelegramConnect
             connected={!!telegramStatus?.connected}
@@ -207,13 +207,13 @@ export default function ContentCalendarPage() {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-4 mb-6">
+      {/* Controls — موبایل: چند ردیف قابل‌شکستن، دسکتاپ: یک ردیف */}
+      <div className="flex items-center gap-3 sm:gap-4 mb-6 flex-wrap">
         <div className="flex items-center gap-2">
           <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
             <ChevronRight className="w-4 h-4" />
           </button>
-          <span className="text-sm font-bold min-w-[140px] text-center">
+          <span className="text-sm font-bold min-w-[110px] sm:min-w-[140px] text-center">
             {JALALI_MONTHS[jm - 1]} {toPersianNum(jy)}
           </span>
           <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
@@ -221,7 +221,7 @@ export default function ContentCalendarPage() {
           </button>
         </div>
 
-        <div className="flex bg-white/5 rounded-lg p-0.5 text-xs">
+        <div className="flex bg-white/5 rounded-lg p-0.5 text-xs overflow-x-auto max-w-full">
           {[
             { v: "month", l: "ماهانه" },
             { v: "quarter", l: "فصلی" },
@@ -229,7 +229,7 @@ export default function ContentCalendarPage() {
             { v: "year", l: "سالانه" },
           ].map(({ v, l }) => (
             <button key={v} onClick={() => setView(v as any)}
-              className={`px-3 py-1.5 rounded-md transition-all font-medium ${view === v ? "bg-accent-500 text-white" : "text-gray-400 hover:text-white"}`}>
+              className={`px-3 py-1.5 rounded-md transition-all font-medium whitespace-nowrap ${view === v ? "bg-accent-500 text-white" : "text-gray-400 hover:text-white"}`}>
               {l}
             </button>
           ))}
@@ -320,10 +320,16 @@ function MonthGrid({
                 <div className="flex flex-col gap-0.5 overflow-hidden">
                   {dayPlans.slice(0, compact ? 1 : 2).map((p) => (
                     <div key={p.id}
-                      className="rounded text-[9px] font-medium px-1 truncate leading-tight py-0.5"
+                      className="rounded text-[9px] font-medium px-1 leading-tight py-0.5 flex items-center gap-0.5 min-w-0"
                       style={{ backgroundColor: p.color + "30", color: p.color }}
                       onClick={(e) => { e.stopPropagation(); onEditPlan(p); }}>
-                      {p.title}
+                      <BrandLogo platform={p.platform} size={10} />
+                      <span className="truncate flex-1">{p.title}</span>
+                      {!compact && (
+                        <span className="shrink-0 opacity-80" dir="ltr">
+                          {new Date(p.scheduledAt).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
                     </div>
                   ))}
                   {dayPlans.length > (compact ? 1 : 2) && (

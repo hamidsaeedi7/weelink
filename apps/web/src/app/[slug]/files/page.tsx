@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { FileDown, Loader2 } from "lucide-react";
+import { FileDown, Loader2, ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { PurchaseModal } from "@/components/PurchaseModal";
 
@@ -33,7 +33,12 @@ export default function PublicFilesPage() {
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white py-8 px-4">
       <div className="max-w-lg mx-auto space-y-5">
-        <div className="text-center">
+        <div className="relative text-center">
+          <a href={`/${slug}`} title="بازگشت به فروشگاه"
+            className="absolute right-0 top-0 p-2 rounded-xl bg-white/5 border border-white/10 text-white/60
+                       hover:text-orange-500 hover:border-orange-500/40 transition-all">
+            <ArrowRight className="w-5 h-5" />
+          </a>
           <h1 className="text-xl font-black flex items-center justify-center gap-2"><FileDown className="w-5 h-5 text-orange-500" /> فایل‌های دیجیتال</h1>
           {shop?.name && <p className="text-sm text-white/50 mt-1">{shop.name}</p>}
         </div>

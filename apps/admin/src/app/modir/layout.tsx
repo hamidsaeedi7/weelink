@@ -79,8 +79,26 @@ function ThemeToggleBtn() {
   );
 }
 
+/** نقش کاربر فعلی از payload توکن (بدون نیاز به secret). */
+function currentRole(): string {
+  try {
+    const token = localStorage.getItem("admin_token");
+    if (!token) return "";
+    return JSON.parse(atob(token.split(".")[1]))?.role || "";
+  } catch {
+    return "";
+  }
+}
+
 function Sidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
+  const [role, setRole] = useState("");
+  useEffect(() => { setRole(currentRole()); }, []);
+
+  // نویسنده فقط بخش وبلاگ را می‌بیند
+  const groups = role === "WRITER"
+    ? [{ label: "محتوا", items: [{ href: "/modir/blog", icon: Newspaper, label: "وبلاگ" }] }]
+    : NAV_GROUPS;
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-[#0D0D18] border-l border-gray-200 dark:border-white/[0.06]">
@@ -103,7 +121,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-5">
-        {NAV_GROUPS.map((group) => (
+        {groups.map((group) => (
           <div key={group.label}>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-1.5">{group.label}</p>
             <div className="space-y-0.5">

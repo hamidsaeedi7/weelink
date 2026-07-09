@@ -29,6 +29,12 @@ function RoleBadge({ role }: { role: string }) {
         <Crown size={11} /> سوپر ادمین
       </span>
     );
+  if (role === "WRITER")
+    return (
+      <span className="inline-flex items-center gap-1 text-xs bg-purple-500/20 text-purple-400 px-2.5 py-1 rounded-full font-medium">
+        <Shield size={11} /> نویسنده
+      </span>
+    );
   return (
     <span className="inline-flex items-center gap-1 text-xs bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded-full font-medium">
       <Shield size={11} /> ادمین
@@ -108,11 +114,57 @@ export default function AdminsPage() {
 
   const getId = (u: { email?: string; phone?: string }) => u.email || u.phone || "—";
 
+  // ─── افزودن دستی ادمین/نویسنده با ایمیل و پسورد ────────────────────────────
+  const [newAdmin, setNewAdmin] = useState({ email: "", password: "", role: "WRITER" as "ADMIN" | "WRITER" });
+  const [creating, setCreating] = useState(false);
+
+  const createAdmin = async () => {
+    if (!newAdmin.email.includes("@")) { toast.error("ایمیل معتبر وارد کنید"); return; }
+    if (newAdmin.password.length < 8) { toast.error("رمز عبور حداقل ۸ کاراکتر باشد"); return; }
+    try {
+      setCreating(true);
+      await adminApi.createAdmin(newAdmin);
+      toast.success(newAdmin.role === "WRITER" ? "نویسنده اضافه شد" : "ادمین اضافه شد");
+      setNewAdmin({ email: "", password: "", role: "WRITER" });
+      loadAdmins();
+    } catch (e: any) {
+      toast.error(e?.message || "خطا در ساخت حساب");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-bold text-white">مدیریت ادمین‌ها</h1>
         <p className="text-white/50 text-sm mt-1">فقط برای سوپر ادمین</p>
+      </div>
+
+      {/* افزودن دستی ادمین/نویسنده */}
+      <div className="glass-card p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <UserCheck size={16} className="text-white/50" />
+          <h2 className="text-white font-semibold">افزودن ادمین / نویسنده جدید</h2>
+        </div>
+        <p className="text-white/40 text-xs">نویسنده فقط به بخش وبلاگ دسترسی دارد و می‌تواند مقاله بنویسد.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <input value={newAdmin.email} onChange={(e) => setNewAdmin((p) => ({ ...p, email: e.target.value }))}
+            placeholder="ایمیل" dir="ltr" type="email"
+            className="input-base sm:col-span-2" />
+          <input value={newAdmin.password} onChange={(e) => setNewAdmin((p) => ({ ...p, password: e.target.value }))}
+            placeholder="رمز عبور (حداقل ۸ کاراکتر)" dir="ltr" type="text"
+            className="input-base" />
+          <select value={newAdmin.role} onChange={(e) => setNewAdmin((p) => ({ ...p, role: e.target.value as "ADMIN" | "WRITER" }))}
+            className="input-base">
+            <option value="WRITER">نویسنده وبلاگ</option>
+            <option value="ADMIN">ادمین</option>
+          </select>
+        </div>
+        <button onClick={createAdmin} disabled={creating}
+          className="btn-primary text-sm px-4 py-2 disabled:opacity-60">
+          {creating ? "در حال ساخت..." : "ساخت حساب"}
+        </button>
       </div>
 
       {/* Current Admins */}
