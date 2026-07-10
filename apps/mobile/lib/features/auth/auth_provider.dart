@@ -20,9 +20,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState(has ? AuthStatus.authenticated : AuthStatus.unauthenticated);
   }
 
-  /// ارسال کد OTP به شماره موبایل — برای کاربر جدید یا بازگشتی بدون رمز
+  /// ارسال کد OTP به شماره موبایل — ابتدا مسیر «کاربر جدید» را امتحان می‌کند؛
+  /// اگر شماره از قبل ثبت شده باشد (۴۰۹) به مسیر ورود کاربر بازگشتی سوییچ می‌کند
   Future<void> requestOtp(String phone) async {
-    await _api.post('/auth/register', body: {'phone': phone});
+    try {
+      await _api.post('/auth/register', body: {'phone': phone});
+    } on ApiException catch (e) {
+      if (e.statusCode == 409) {
+        await _api.post('/auth/login-otp', body: {'phone': phone});
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// تأیید کد OTP — در صورت موفقیت توکن‌ها ذخیره و وضعیت authenticated می‌شود

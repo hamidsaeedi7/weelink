@@ -93,7 +93,12 @@ final ordersStatusFilterProvider = StateProvider<String?>((ref) => null);
 
 final ordersProvider = FutureProvider.autoDispose<List<Order>>((ref) async {
   final status = ref.watch(ordersStatusFilterProvider);
-  final list = await _api.get<List>('/orders/mine', query: {if (status != null) 'status': status}, parse: (j) => j as List);
+  // پاسخ سرور به‌صورت {orders: [...], total, page, pages} است، نه یک آرایه‌ی خام
+  final list = await _api.get<List>(
+    '/orders/mine',
+    query: {if (status != null) 'status': status},
+    parse: (j) => (j['orders'] as List),
+  );
   return list.map((e) => Order.fromJson(e)).toList();
 });
 
