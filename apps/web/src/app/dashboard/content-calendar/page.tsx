@@ -241,7 +241,8 @@ export default function ContentCalendarPage() {
       </div>
 
       {/* Calendar Grid */}
-      <div className={`grid gap-4 ${monthsToShow > 1 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : ""}`}>
+      {/* گرید تقویم — در موبایل خیلی فشرده است، پس فقط از sm به بالا نمایش داده می‌شود */}
+      <div className={`hidden sm:grid gap-4 ${monthsToShow > 1 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : ""}`}>
         {monthsList.map(({ jy: my, jm: mm }) => (
           <MonthGrid key={`${my}-${mm}`}
             jy={my} jm={mm}
@@ -254,6 +255,33 @@ export default function ContentCalendarPage() {
             compact={monthsToShow > 1}
           />
         ))}
+      </div>
+
+      {/* نمای فهرستی (agenda) — فقط موبایل: هر محتوا در یک ردیف کامل با لوگو، عنوان، تاریخ و ساعت */}
+      <div className="sm:hidden space-y-2">
+        {[...plans]
+          .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+          .map((p) => {
+            const d = new Date(p.scheduledAt);
+            return (
+              <button key={p.id} onClick={() => openEdit(p)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-right">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: p.color + "22" }}>
+                  <BrandLogo platform={p.platform} size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{p.title}</p>
+                  <p className="text-[11px] text-gray-400" dir="ltr">
+                    {d.toLocaleDateString("fa-IR")} — {d.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        {plans.length === 0 && !loading && (
+          <p className="text-center text-gray-500 text-sm py-10">هنوز محتوایی زمان‌بندی نشده است</p>
+        )}
       </div>
 
       {/* Modal */}

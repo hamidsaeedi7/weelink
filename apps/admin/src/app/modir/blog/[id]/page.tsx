@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, Save, Eye, ArrowRight, Globe } from "lucide-react";
+import { Loader2, Save, Eye, ArrowRight, Globe, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
-import { RichEditor } from "@/components/editor/RichEditor";
+import RichEditor from "@/components/editor/RichEditor";
 
 export default function EditBlogPostPage() {
   const { id } = useParams();
@@ -27,6 +27,17 @@ export default function EditBlogPostPage() {
   }, [id]);
 
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
+
+  const [coverUploading, setCoverUploading] = useState(false);
+  const uploadCover = async (file: File) => {
+    setCoverUploading(true);
+    try {
+      const url = await adminApi.uploadImage(file);
+      set("coverImage", url);
+      toast.success("تصویر آپلود شد");
+    } catch { toast.error("خطا در آپلود تصویر"); }
+    finally { setCoverUploading(false); }
+  };
 
   const addTag = (e: React.KeyboardEvent) => {
     if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
@@ -120,8 +131,14 @@ export default function EditBlogPostPage() {
             {form.coverImage && (
               <img src={form.coverImage} alt="" className="w-full aspect-video object-cover rounded-xl" />
             )}
+            <label className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-gray-200 dark:border-white/10 text-sm text-gray-500 cursor-pointer hover:border-orange-500/50 hover:text-orange-500 transition-colors">
+              {coverUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              {coverUploading ? "در حال آپلود…" : "آپلود تصویر کاور"}
+              <input type="file" accept="image/*" className="hidden"
+                onChange={(e) => e.target.files?.[0] && uploadCover(e.target.files[0])} />
+            </label>
             <input value={form.coverImage || ""} onChange={(e) => set("coverImage", e.target.value)}
-              placeholder="آدرس URL تصویر" dir="ltr" className="input-base text-sm" />
+              placeholder="یا آدرس URL تصویر" dir="ltr" className="input-base text-sm" />
           </div>
 
           <div className="glass-card p-5 space-y-3">

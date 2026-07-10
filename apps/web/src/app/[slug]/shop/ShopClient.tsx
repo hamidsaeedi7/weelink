@@ -41,8 +41,10 @@ export default function ShopClient({
   };
 
   return (
+    // فروشگاه عمومی همیشه تیره است (هم‌سان با صفحهٔ بیو) — کلاس dark باعث فعال‌شدن
+    // همهٔ variantهای dark: می‌شود، مستقل از تم سیستم بازدیدکننده.
     <div
-      className="min-h-screen bg-gray-50 dark:bg-[#0A0A0F]"
+      className="dark min-h-screen bg-gray-50 dark:bg-[#0A0A0F]"
       style={{ fontFamily: shop.fontFamily || "Vazirmatn" }}>
       {/* Shop Header */}
       <div className="bg-white dark:bg-black/20 border-b border-gray-100 dark:border-white/5">

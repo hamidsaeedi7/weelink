@@ -53,8 +53,10 @@ export class AuthService {
     let user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
     const isNew = !user;
     if (!user) {
+      // هدیهٔ خوش‌آمدگویی: ۷ روز پلن PRO برای هر کاربر جدید
+      const proExpiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000);
       user = await this.prisma.user.create({
-        data: { phone: dto.phone, isVerified: true },
+        data: { phone: dto.phone, isVerified: true, plan: "PRO", planExpiresAt: proExpiresAt },
       });
     } else if (!user.isVerified) {
       user = await this.prisma.user.update({
@@ -126,11 +128,11 @@ export class AuthService {
 
   // ─── Set Password (پس از ثبت‌نام با OTP) ────────────────────────────────────
 
-  async setPassword(userId: string, password: string) {
+  async setPassword(userId: string, password: string, fullName?: string) {
     const passwordHash = await bcrypt.hash(password, 12);
     await this.prisma.user.update({
       where: { id: userId },
-      data: { passwordHash },
+      data: { passwordHash, ...(fullName ? { fullName: fullName.trim() } : {}) },
     });
     return { message: "رمز عبور با موفقیت تنظیم شد" };
   }

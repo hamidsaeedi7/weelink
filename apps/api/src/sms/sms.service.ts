@@ -71,7 +71,10 @@ export class SmsService {
   }
 
   async sendWelcome(phone: string): Promise<boolean> {
-    const message = "به ویلینک خوش اومدی! 🎉\nهمین الان صفحه بیوی خودت رو بساز: weeelink.ir";
+    const message =
+      "به ویلینک خوش آمدید\n" +
+      "هدیه ویلینک🎁 ۷ روز پلن PRO برای شما فعال شد\n" +
+      "⚡️ویلینک، همه در یک لینک";
     return this.sendSms(phone, message);
   }
 

@@ -193,6 +193,9 @@ export default function LandingPageEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [customHtml, setCustomHtml] = useState("");
+  const [customCss, setCustomCss] = useState("");
+  const [customJs, setCustomJs] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -203,6 +206,9 @@ export default function LandingPageEditorPage() {
       setTitle(data.title);
       setSlug(data.slug);
       setIsPublished(data.isPublished);
+      setCustomHtml(data.customHtml || "");
+      setCustomCss(data.customCss || "");
+      setCustomJs(data.customJs || "");
     } catch {
       toast.error("خطا در بارگذاری صفحه");
     } finally {
@@ -240,7 +246,7 @@ export default function LandingPageEditorPage() {
   const save = async () => {
     try {
       setSaving(true);
-      await adminApi.updateLandingPage(id, { title, slug, isPublished, blocks });
+      await adminApi.updateLandingPage(id, { title, slug, isPublished, blocks, customHtml, customCss, customJs });
       toast.success("صفحه ذخیره شد");
     } catch {
       toast.error("خطا در ذخیره‌سازی");
@@ -358,6 +364,27 @@ export default function LandingPageEditorPage() {
               );
             })
           )}
+        </div>
+      </div>
+
+      {/* کد سفارشی HTML / CSS / JavaScript */}
+      <div className="glass-card p-5 mt-6 space-y-4">
+        <h2 className="text-white font-semibold text-sm">کد سفارشی (HTML / CSS / JavaScript)</h2>
+        <p className="text-white/40 text-xs">این کدها به‌همراه بلاک‌ها در صفحه رندر می‌شوند. برای صفحهٔ کاملاً سفارشی می‌توانید فقط از HTML استفاده کنید.</p>
+        <div>
+          <label className="text-white/60 text-xs mb-1 block">HTML</label>
+          <textarea value={customHtml} onChange={e => setCustomHtml(e.target.value)} dir="ltr" spellCheck={false}
+            className="input-base w-full font-mono text-xs h-40 resize-y" placeholder="<section> ... </section>" />
+        </div>
+        <div>
+          <label className="text-white/60 text-xs mb-1 block">CSS</label>
+          <textarea value={customCss} onChange={e => setCustomCss(e.target.value)} dir="ltr" spellCheck={false}
+            className="input-base w-full font-mono text-xs h-32 resize-y" placeholder=".my-class { color: red; }" />
+        </div>
+        <div>
+          <label className="text-white/60 text-xs mb-1 block">JavaScript</label>
+          <textarea value={customJs} onChange={e => setCustomJs(e.target.value)} dir="ltr" spellCheck={false}
+            className="input-base w-full font-mono text-xs h-32 resize-y" placeholder="console.log('hi')" />
         </div>
       </div>
     </div>

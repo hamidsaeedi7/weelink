@@ -136,12 +136,13 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      {/* موبایل: عنوان وسط بالا، زیرش توضیح، بعد سه دکمه هم‌تراز در یک ردیف.
+          دسکتاپ: عنوان سمت راست، دکمه‌ها سمت چپ. */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-3">
+        <div className="text-center sm:text-right">
           <h1 className="text-xl font-black text-gray-900 dark:text-white">محصولات فیزیکی</h1>
           <p className="text-sm text-gray-500">لینک فروشگاه را برای مشتری بفرستید — {products.length} محصول</p>
         </div>
-        {/* موبایل: کپی لینک/اشتراک/محصول جدید در یک ردیف هم‌تراز و وسط‌چین */}
         <div className="w-full sm:w-auto flex items-center justify-center sm:justify-end gap-2">
           {slug && <ShareBar url={`https://weeelink.ir/${slug}/shop`} text="فروشگاه من" />}
           <button onClick={openNew}

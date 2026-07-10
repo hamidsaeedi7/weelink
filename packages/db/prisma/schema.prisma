@@ -83,6 +83,7 @@ model User {
   id           String    @id @default(uuid())
   phone        String?   @unique
   email        String?   @unique
+  fullName     String?   // نام و نام خانوادگی — هنگام ثبت‌نام الزامی
   passwordHash String?
   plan         Plan      @default(FREE)
   planExpiresAt DateTime?
@@ -490,6 +491,9 @@ model LandingPage {
   slug        String   @unique
   title       String
   blocks      Json     @default("[]")
+  customHtml  String?  @db.Text // کد HTML سفارشی صفحه
+  customCss   String?  @db.Text // کد CSS سفارشی
+  customJs    String?  @db.Text // کد JavaScript سفارشی
   isPublished Boolean  @default(false)
   seoTitle    String?
   seoDesc     String?

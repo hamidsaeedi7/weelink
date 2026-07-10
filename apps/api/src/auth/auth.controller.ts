@@ -43,7 +43,7 @@ export class AuthController {
   @Post("set-password")
   @UseGuards(JwtAuthGuard)
   setPassword(@CurrentUser() user: any, @Body() dto: SetPasswordDto) {
-    return this.auth.setPassword(user.sub ?? user.id, dto.password);
+    return this.auth.setPassword(user.sub ?? user.id, dto.password, dto.fullName);
   }
 
   @Post("refresh")

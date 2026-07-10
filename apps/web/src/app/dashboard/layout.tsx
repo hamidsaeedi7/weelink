@@ -12,6 +12,7 @@ import {
   ChevronDown, Store, Flame, Globe,
 } from "lucide-react";
 import { ProUpgradeModal } from "@/components/ProUpgradeModal";
+import { shopsApi } from "@/lib/api";
 
 const NAV_GROUPS = [
   {
@@ -157,9 +158,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
+  const [slug, setSlug] = useState("");
   const { theme, setTheme } = useTheme();
 
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    shopsApi.getMine().then((s: any) => setSlug(s?.slug || "")).catch(() => {});
+  }, []);
 
   const toggleGroup = (label: string) =>
     setCollapsed((p) => ({ ...p, [label]: !p[label] }));
@@ -193,7 +198,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-3 mr-auto">
-            <Link href="/" target="_blank"
+            <Link href={slug ? `/${slug}` : "/dashboard/shop"} target="_blank"
               className="text-xs text-gray-500 hover:text-accent-500 transition-colors">
               مشاهده صفحه بیو ↗
             </Link>

@@ -9,14 +9,10 @@ const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_toke
 
 const PLATFORMS = [
   { id: "telegram", label: "تلگرام", color: "#2AABEE" },
-  { id: "instagram", label: "اینستاگرام", color: "#E1306C" },
-  { id: "eitaa", label: "ایتا", color: "#EE7F22" },
-  { id: "rubika", label: "روبیکا", color: "#6C2BD9" },
   { id: "bale", label: "بله", color: "#00A652" },
-  { id: "whatsapp", label: "واتساپ", color: "#25D366" },
 ];
 
-const EMPTY = { platform: "instagram", keyword: "", reply: "", isActive: true };
+const EMPTY = { platform: "telegram", keyword: "", reply: "", isActive: true };
 
 export default function AutoReplyPage() {
   const [replies, setReplies] = useState<any[]>([]);

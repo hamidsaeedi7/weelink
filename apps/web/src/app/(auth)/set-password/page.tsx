@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { Lock, ArrowLeft, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Lock, ArrowLeft, Eye, EyeOff, ShieldCheck, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SetPasswordPage() {
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -16,6 +16,10 @@ export default function SetPasswordPage() {
     e.preventDefault();
     setError("");
 
+    if (fullName.trim().length < 3) {
+      setError("نام و نام خانوادگی را کامل وارد کنید");
+      return;
+    }
     if (password.length < 8) {
       setError("رمز عبور حداقل ۸ کاراکتر باشد");
       return;
@@ -39,7 +43,7 @@ export default function SetPasswordPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, fullName: fullName.trim() }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.data?.message || json.message || "خطا در تنظیم رمز");
@@ -78,6 +82,25 @@ export default function SetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                نام و نام خانوادگی
+              </label>
+              <div className="relative">
+                <User className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => { setFullName(e.target.value); setError(""); }}
+                  placeholder="مثال: علی رضایی"
+                  className="input-base pr-10"
+                  autoFocus
+                  required
+                  minLength={3}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 رمز عبور
               </label>
               <div className="relative">
@@ -89,7 +112,6 @@ export default function SetPasswordPage() {
                   placeholder="حداقل ۸ کاراکتر"
                   className="input-base pr-10 pl-10 text-left"
                   dir="ltr"
-                  autoFocus
                   required
                   minLength={8}
                 />
@@ -141,11 +163,6 @@ export default function SetPasswordPage() {
             </button>
           </form>
 
-          <div className="text-center">
-            <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              فعلاً رد شدن — بعداً از تنظیمات حساب
-            </Link>
-          </div>
         </div>
       </div>
     </div>

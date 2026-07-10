@@ -231,7 +231,7 @@ export default function ModirLayout({ children }: { children: React.ReactNode })
             )}
           </div>
 
-          <a href={process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000"} target="_blank" rel="noopener noreferrer"
+          <a href={process.env.NEXT_PUBLIC_WEB_URL || "https://weeelink.ir"} target="_blank" rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 hover:text-orange-500 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 mr-auto">
             <Globe className="w-3.5 h-3.5" />
             مشاهده سایت

@@ -273,9 +273,6 @@ export default function CoursesPage() {
                           </label>
                         </div>
                       )}
-                      <input value={videoForm.videoUrl.startsWith("/uploads") ? "" : videoForm.videoUrl}
-                        onChange={(e) => setVideoForm((p) => ({ ...p, videoUrl: e.target.value }))}
-                        className="input-base text-sm" placeholder="یا لینک ویدیو (یوتیوب/آپارات)" dir="ltr" />
                       {/* باکس مشخص برای کاور ویدیو — قبلاً یک لینک متنی کوچک بود و کاربر متوجه نمی‌شد */}
                       <div>
                         <label className={`flex flex-col items-center justify-center gap-1.5 w-full rounded-xl border-2 border-dashed p-3 cursor-pointer transition-colors ${
