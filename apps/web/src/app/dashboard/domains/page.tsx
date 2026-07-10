@@ -1,25 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, CheckCircle, Clock, AlertCircle, Trash2, Loader2, ExternalLink, Copy } from "lucide-react";
+import { Globe, CheckCircle, Clock, AlertCircle, Trash2, Loader2, ExternalLink, Copy, ShieldCheck, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
 
 type DomainStatus = "PENDING" | "VERIFIED" | "FAILED";
+type CdnStatus = "PENDING" | "DNS_PENDING" | "SSL_ISSUING" | "ACTIVE" | "ERROR" | null;
 
 interface DomainInfo {
   customDomain: string | null;
   verificationStatus: DomainStatus | null;
   verificationToken: string | null;
   verifiedAt: string | null;
+  cdnCname?: string | null;
+  cdnStatus?: CdnStatus;
+  cdnError?: string | null;
 }
 
 const STATUS_CONFIG = {
   PENDING:  { icon: Clock,        color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/20", label: "در انتظار تأیید DNS" },
   VERIFIED: { icon: CheckCircle,  color: "text-green-500",  bg: "bg-green-500/10 border-green-500/20",   label: "تأیید شده" },
   FAILED:   { icon: AlertCircle,  color: "text-red-500",    bg: "bg-red-500/10 border-red-500/20",       label: "خطا در تأیید" },
+};
+
+const CDN_STATUS_CONFIG: Record<string, { icon: any; color: string; bg: string; label: string }> = {
+  PENDING:     { icon: Clock,       color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/20", label: "در حال اتصال به CDN" },
+  DNS_PENDING: { icon: Clock,       color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/20", label: "در انتظار تنظیم CNAME" },
+  SSL_ISSUING: { icon: ShieldCheck, color: "text-blue-400",   bg: "bg-blue-500/10 border-blue-500/20",     label: "در حال صدور گواهی SSL" },
+  ACTIVE:      { icon: ShieldCheck, color: "text-green-500",  bg: "bg-green-500/10 border-green-500/20",   label: "فعال — SSL معتبر" },
+  ERROR:       { icon: AlertCircle, color: "text-red-500",    bg: "bg-red-500/10 border-red-500/20",       label: "خطا در اتصال به CDN" },
 };
 
 export default function DomainsPage() {
@@ -29,6 +41,7 @@ export default function DomainsPage() {
   const [saving, setSaving]     = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [cdnLoading, setCdnLoading] = useState(false);
 
   const load = async () => {
     try {
@@ -69,10 +82,10 @@ export default function DomainsPage() {
     try {
       const r = await fetch(`${API}/api/v1/domains/verify`, { method: "POST", headers: auth() });
       const d = await r.json();
-      if (d.verified) {
-        toast.success("دامنه با موفقیت تأیید شد!");
+      if (d.success) {
+        toast.success(d.message || "دامنه با موفقیت تأیید شد!");
       } else {
-        toast.error("تأیید ناموفق — مطمئن شوید DNS درست تنظیم شده است");
+        toast.error(d.message || "تأیید ناموفق — مطمئن شوید DNS درست تنظیم شده است");
       }
       load();
     } catch {
@@ -80,6 +93,30 @@ export default function DomainsPage() {
     } finally {
       setVerifying(false);
     }
+  };
+
+  const retryCdn = async () => {
+    setCdnLoading(true);
+    try {
+      const r = await fetch(`${API}/api/v1/domains/retry-cdn`, { method: "POST", headers: auth() });
+      const d = await r.json();
+      if (d.success) toast.success(d.message || "درخواست ثبت در CDN ارسال شد");
+      else toast.error(d.message || "خطا در اتصال به CDN");
+      load();
+    } catch {
+      toast.error("خطا در اتصال به CDN");
+    } finally {
+      setCdnLoading(false);
+    }
+  };
+
+  const refreshCdn = async () => {
+    setCdnLoading(true);
+    try {
+      const r = await fetch(`${API}/api/v1/domains/refresh-cdn`, { headers: auth() });
+      if (r.ok) setInfo(await r.json());
+    } catch { /* ignore */ }
+    finally { setCdnLoading(false); }
   };
 
   const remove = async () => {
@@ -154,26 +191,21 @@ export default function DomainsPage() {
             </div>
           )}
 
-          {/* DNS instructions */}
+          {/* DNS instructions — گام ۱: تأیید مالکیت دامنه */}
           {info.verificationStatus !== "VERIFIED" && info.verificationToken && (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                تنظیمات DNS مورد نیاز:
+                گام ۱ — تأیید مالکیت دامنه (رکورد TXT):
               </p>
               <div className="bg-gray-50 dark:bg-black/20 rounded-xl p-4 space-y-3 text-xs font-mono">
                 <DnsRecord
-                  type="CNAME"
-                  name={info.customDomain}
-                  value="cname.weeelink.ir"
-                />
-                <DnsRecord
                   type="TXT"
-                  name={`_weelink.${info.customDomain}`}
+                  name={`_weelink-verify.${info.customDomain}`}
                   value={info.verificationToken}
                 />
               </div>
               <p className="text-xs text-gray-400">
-                تغییرات DNS معمولاً تا ۴۸ ساعت اعمال می‌شوند. پس از تنظیم، دکمه بررسی را بزنید.
+                این رکورد را در پنل مدیریت دامنه‌ی خودتان (جایی که دامنه را خریده‌اید) اضافه کنید. تغییرات DNS معمولاً تا چند دقیقه تا ۴۸ ساعت اعمال می‌شوند. پس از تنظیم، دکمه بررسی را بزنید.
               </p>
               <button onClick={verify} disabled={verifying}
                 className="btn-primary py-2.5 px-5 flex items-center gap-2 text-sm">
@@ -181,6 +213,52 @@ export default function DomainsPage() {
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> در حال بررسی DNS...</>
                   : <><CheckCircle className="w-4 h-4" /> بررسی DNS</>}
               </button>
+            </div>
+          )}
+
+          {/* CDN/SSL status — گام ۲: بعد از تأیید مالکیت */}
+          {info.verificationStatus === "VERIFIED" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                گام ۲ — اتصال دامنه به سرور (CNAME) و صدور SSL:
+              </p>
+              <div className="bg-gray-50 dark:bg-black/20 rounded-xl p-4 space-y-3 text-xs font-mono">
+                <DnsRecord
+                  type="CNAME"
+                  name={info.customDomain}
+                  value={info.cdnCname || "در حال دریافت آدرس..."}
+                />
+              </div>
+
+              {info.cdnStatus && CDN_STATUS_CONFIG[info.cdnStatus] && (() => {
+                const c = CDN_STATUS_CONFIG[info.cdnStatus as string];
+                const CdnIcon = c.icon;
+                return (
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${c.bg}`}>
+                    <CdnIcon className={`w-4 h-4 ${c.color} shrink-0`} />
+                    <span className={c.color}>{c.label}</span>
+                    <button onClick={refreshCdn} disabled={cdnLoading}
+                      className="mr-auto text-gray-400 hover:text-accent-500">
+                      <RefreshCw className={`w-3.5 h-3.5 ${cdnLoading ? "animate-spin" : ""}`} />
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {info.cdnStatus === "ERROR" && (
+                <div className="space-y-2">
+                  {info.cdnError && <p className="text-xs text-red-400">{info.cdnError}</p>}
+                  <button onClick={retryCdn} disabled={cdnLoading}
+                    className="btn-primary py-2 px-4 flex items-center gap-2 text-xs">
+                    {cdnLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                    تلاش مجدد اتصال به CDN
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-gray-400">
+                پس از تنظیم CNAME، گواهی SSL به‌صورت خودکار صادر می‌شود و معمولاً چند دقیقه طول می‌کشد.
+              </p>
             </div>
           )}
         </div>
@@ -217,19 +295,19 @@ export default function DomainsPage() {
         <ol className="space-y-2 text-sm text-gray-500">
           <li className="flex gap-2">
             <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۱</span>
-            دامنه خود را وارد کنید
+            دامنه‌ی خودتان (مثل shop.example.com) را در بالا وارد و «افزودن» را بزنید
           </li>
           <li className="flex gap-2">
             <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۲</span>
-            رکوردهای DNS را در پنل مدیریت دامنه‌تان تنظیم کنید
+            یک رکورد TXT که سیستم نشان می‌دهد را در پنل ثبت‌کننده‌ی دامنه‌تان اضافه کنید (فقط برای اثبات مالکیت) و «بررسی DNS» را بزنید
           </li>
           <li className="flex gap-2">
             <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۳</span>
-            دکمه «بررسی DNS» را بزنید تا تأیید شود
+            بعد از تأیید، یک رکورد CNAME که سیستم نشان می‌دهد را هم اضافه کنید — این رکورد ترافیک دامنه‌تان را به سرور ما وصل می‌کند
           </li>
           <li className="flex gap-2">
             <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-xs font-bold shrink-0">۴</span>
-            صفحه بیوی شما روی دامنه اختصاصی فعال می‌شود
+            گواهی SSL به‌صورت خودکار صادر می‌شود و صفحه بیوی شما روی دامنه اختصاصی با قفل امن فعال می‌شود — از این مرحله به بعد نیازی به کار دیگری نیست
           </li>
         </ol>
       </div>

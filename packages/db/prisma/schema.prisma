@@ -131,6 +131,10 @@ model Shop {
   verificationToken   String?
   verificationStatus  String?  @default("PENDING")
   verifiedAt          DateTime?
+  cdnDomainId         String?  // شناسه دامنه در سرویس CDN (آروان‌کلاود)
+  cdnCname            String?  // مقدار CNAME که آروان‌کلاود برای این دامنه اختصاص داده
+  cdnStatus           String?  // PENDING/DNS_PENDING/SSL_ISSUING/ACTIVE/ERROR
+  cdnError            String?  // پیام خطای آخرین تلاش اتصال به CDN
   gaId                String?
   metaPixel    String?
   metaTitle    String?

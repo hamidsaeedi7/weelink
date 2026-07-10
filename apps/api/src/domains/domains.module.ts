@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-import { DomainsController } from "./domains.controller";
+import { DomainsController, DomainsPublicController } from "./domains.controller";
 import { DomainsService } from "./domains.service";
+import { ArvanCdnService } from "./arvan-cdn.service";
 
 @Module({
-  controllers: [DomainsController],
-  providers: [DomainsService],
+  controllers: [DomainsController, DomainsPublicController],
+  providers: [DomainsService, ArvanCdnService],
   exports: [DomainsService],
 })
 export class DomainsModule {}
