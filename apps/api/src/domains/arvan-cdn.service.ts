@@ -32,12 +32,15 @@ export class ArvanCdnService {
   async addDomain(domain: string): Promise<ArvanDomainResult> {
     if (!this.apiKey) return { ok: false, error: "ARVAN_API_KEY تنظیم نشده است" };
     try {
-      const res = await fetch(`${ARVAN_BASE}/domains`, {
+      // دامنه‌های اختصاصی کاربران زیردامنه‌ی یک دامنه‌ی خارجی (غیر آروان) هستند
+      // و فقط با CNAME متصل می‌شوند، پس همیشه partial با پلن رایگان (سطح ۱) هستند
+      const res = await fetch(`${ARVAN_BASE}/domains/dns-service`, {
         method: "POST",
         headers: this.headers(),
         body: JSON.stringify({
           domain,
-          plan: { plan_code: "arvan_cdn_free" },
+          domain_type: "partial",
+          plan_level: 1,
         }),
       });
       const body: any = await res.json().catch(() => ({}));

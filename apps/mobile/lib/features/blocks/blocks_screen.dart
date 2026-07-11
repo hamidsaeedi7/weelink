@@ -39,11 +39,15 @@ class BlocksScreen extends ConsumerWidget {
             },
             itemBuilder: (context, i) {
               final b = blocks[i];
-              return Padding(
+              // ReorderableListView کلید را از خودِ ویجت بازگشتی می‌خواهد؛ animate()
+              // یک ویجت جدید دور آن می‌سازد، پس کلید باید روی بیرونی‌ترین لایه (KeyedSubtree) باشد
+              return KeyedSubtree(
                 key: ValueKey(b.id),
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _BlockTile(block: b, onTap: () => _showEditSheet(context, ref, block: b)),
-              ).animate().fadeIn(delay: (i * 40).ms);
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _BlockTile(block: b, onTap: () => _showEditSheet(context, ref, block: b)),
+                ).animate().fadeIn(delay: (i * 40).ms),
+              );
             },
           );
         },

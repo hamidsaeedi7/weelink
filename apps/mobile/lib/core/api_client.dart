@@ -8,6 +8,17 @@ const String apiBaseUrl = String.fromEnvironment(
   defaultValue: 'https://api.weeelink.ir/api/v1',
 );
 
+/// دامنه‌ی خام سرور (بدون /api/v1) — برای فایل‌های آپلودشده لازم است
+final String apiOrigin = apiBaseUrl.replaceFirst(RegExp(r'/api/v1/?$'), '');
+
+/// سرور مسیرهای نسبی مثل «/uploads/…» برمی‌گرداند که در وب روی همان دامنه کار می‌کند
+/// (nginx پروکسی می‌کند)، اما در اپ موبایل باید به آدرس کامل سرور تبدیل شود
+String? resolveImageUrl(String? path) {
+  if (path == null || path.isEmpty) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return '$apiOrigin$path';
+}
+
 class ApiException implements Exception {
   final String message;
   final int? statusCode;

@@ -62,6 +62,9 @@ async function bootstrap() {
   const allowedOrigins = [
     process.env.FRONTEND_URL || "http://localhost:3000",
     process.env.ADMIN_URL || "http://localhost:3001",
+    // منبع اضافه‌ی موقت برای تست محلی (مثلاً Flutter web) — فقط وقتی این متغیر
+    // به‌صراحت تنظیم شده باشد اثر دارد؛ در production ست نمی‌شود
+    ...(process.env.DEV_CORS_ORIGIN ? [process.env.DEV_CORS_ORIGIN] : []),
   ].flatMap(withWwwVariant);
 
   app.enableCors({

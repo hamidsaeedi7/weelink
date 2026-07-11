@@ -78,7 +78,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       CircleAvatar(
                         radius: 48,
                         backgroundColor: AppColors.surfaceGlass,
-                        backgroundImage: _avatarUrl != null ? CachedNetworkImageProvider(_avatarUrl!) : null,
+                        backgroundImage: _avatarUrl != null ? CachedNetworkImageProvider(resolveImageUrl(_avatarUrl)!) : null,
                         child: _uploading
                             ? const CircularProgressIndicator()
                             : (_avatarUrl == null ? const Icon(Icons.storefront_rounded, size: 36, color: AppColors.textMuted) : null),

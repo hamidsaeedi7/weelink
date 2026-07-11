@@ -76,7 +76,7 @@ class _ProductCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: product.images.isNotEmpty
-                  ? CachedNetworkImage(imageUrl: product.images.first, fit: BoxFit.cover, width: double.infinity)
+                  ? CachedNetworkImage(imageUrl: resolveImageUrl(product.images.first)!, fit: BoxFit.cover, width: double.infinity)
                   : Container(color: AppColors.surfaceGlass, child: const Icon(Icons.image_outlined, color: AppColors.textMuted, size: 32)),
             ),
           ),
@@ -199,7 +199,7 @@ class _ProductEditSheetState extends ConsumerState<_ProductEditSheet> {
                 child: _uploading
                     ? const Center(child: CircularProgressIndicator())
                     : _imageUrl != null
-                        ? ClipRRect(borderRadius: BorderRadius.circular(16), child: CachedNetworkImage(imageUrl: _imageUrl!, fit: BoxFit.cover, width: double.infinity))
+                        ? ClipRRect(borderRadius: BorderRadius.circular(16), child: CachedNetworkImage(imageUrl: resolveImageUrl(_imageUrl)!, fit: BoxFit.cover, width: double.infinity))
                         : const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                             Icon(Icons.add_photo_alternate_outlined, color: AppColors.textMuted, size: 28),
                             SizedBox(height: 6),
