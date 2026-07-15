@@ -102,6 +102,7 @@ model User {
   notifications   Notification[]
   telegramConfig  TelegramConfig?
   autoReplies     AutoReply[]
+  autoReplyBots   AutoReplyBot[]
 
   @@index([email])
   @@index([phone])
@@ -814,6 +815,22 @@ model AutoReply {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, platform])
+}
+
+// ربات متصل‌شده‌ی هر پلتفرم برای اجرای واقعی پاسخ‌دهی خودکار (وبهوک دریافت پیام مشتری)
+model AutoReplyBot {
+  id            String   @id @default(uuid())
+  userId        String
+  platform      String   // telegram | bale
+  botToken      String
+  botUsername   String?
+  webhookSecret String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
 }
 
 // ─── Affiliate Link ───────────────────────────────────────────────────────────

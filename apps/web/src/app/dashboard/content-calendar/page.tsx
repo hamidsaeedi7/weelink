@@ -348,10 +348,10 @@ function MonthGrid({
                 <div className="flex flex-col gap-0.5 overflow-hidden">
                   {dayPlans.slice(0, compact ? 1 : 2).map((p) => (
                     <div key={p.id}
-                      className="rounded text-[9px] font-medium px-1 leading-tight py-0.5 flex items-center gap-0.5 min-w-0"
+                      className="rounded-md text-[11px] font-bold px-1.5 leading-tight py-1 flex items-center gap-1 min-w-0"
                       style={{ backgroundColor: p.color + "30", color: p.color }}
                       onClick={(e) => { e.stopPropagation(); onEditPlan(p); }}>
-                      <BrandLogo platform={p.platform} size={10} />
+                      <BrandLogo platform={p.platform} size={13} />
                       <span className="truncate flex-1">{p.title}</span>
                       {!compact && (
                         <span className="shrink-0 opacity-80" dir="ltr">

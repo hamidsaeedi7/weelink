@@ -40,6 +40,23 @@ export class ShortLinksService {
     return this.prisma.shortLink.findMany({ where: { shopId: shop.id }, orderBy: { createdAt: "desc" } });
   }
 
+  async update(userId: string, id: string, dto: any) {
+    const link = await this.prisma.shortLink.findUnique({
+      where: { id },
+      include: { shop: { select: { userId: true } } },
+    });
+    if (!link) throw new NotFoundException();
+    if (link.shop.userId !== userId) throw new ForbiddenException();
+
+    const data: any = { originalUrl: dto.originalUrl, title: dto.title };
+    if (dto.shortCode && dto.shortCode !== link.shortCode) {
+      const existing = await this.prisma.shortLink.findUnique({ where: { shortCode: dto.shortCode } });
+      if (existing) throw new ConflictException("این کد قبلاً استفاده شده");
+      data.shortCode = dto.shortCode;
+    }
+    return this.prisma.shortLink.update({ where: { id }, data });
+  }
+
   async remove(userId: string, id: string) {
     const link = await this.prisma.shortLink.findUnique({
       where: { id },

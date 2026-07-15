@@ -1,18 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Scissors, Copy, Trash2, BarChart3, ExternalLink, X, Zap } from "lucide-react";
+import { Plus, Loader2, Scissors, Copy, Trash2, BarChart3, ExternalLink, X, Zap, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("access_token") || ""}` });
+
+const EMPTY_FORM = { originalUrl: "", title: "", shortCode: "" };
 
 export default function ShortLinksPage() {
   const [links, setLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ originalUrl: "", title: "", shortCode: "" });
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -32,18 +35,26 @@ export default function ShortLinksPage() {
     if (!form.originalUrl) { toast.error("آدرس لینک الزامی است"); return; }
     setSaving(true);
     try {
-      const r = await fetch(`${API}/api/v1/short-links`, {
-        method: "POST",
+      const url = editing ? `${API}/api/v1/short-links/${editing.id}` : `${API}/api/v1/short-links`;
+      const r = await fetch(url, {
+        method: editing ? "PUT" : "POST",
         headers: { ...auth(), "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       if (!r.ok) throw new Error();
-      toast.success("لینک کوتاه ساخته شد");
+      toast.success(editing ? "لینک ویرایش شد" : "لینک کوتاه ساخته شد");
       setShowForm(false);
-      setForm({ originalUrl: "", title: "", shortCode: "" });
+      setEditing(null);
+      setForm(EMPTY_FORM);
       load();
     } catch { toast.error("خطا"); }
     finally { setSaving(false); }
+  };
+
+  const openEdit = (l: any) => {
+    setEditing(l);
+    setForm({ originalUrl: l.originalUrl, title: l.title || "", shortCode: l.shortCode });
+    setShowForm(true);
   };
 
   const remove = async (id: string) => {
@@ -83,7 +94,8 @@ export default function ShortLinksPage() {
           <h1 className="text-xl font-black text-gray-900 dark:text-white">لینک کوتاه‌ساز</h1>
           <p className="text-sm text-gray-500">لینک‌های کوتاه با آمار کلیک</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2 py-2.5 px-4">
+        <button onClick={() => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); }}
+          className="btn-primary flex items-center gap-2 py-2.5 px-4">
           <Plus className="w-4 h-4" /> لینک جدید
         </button>
       </div>
@@ -118,6 +130,9 @@ export default function ShortLinksPage() {
                 <a href={l.originalUrl} target="_blank" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all">
                   <ExternalLink className="w-4 h-4" />
                 </a>
+                <button onClick={() => openEdit(l)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all">
+                  <Pencil className="w-4 h-4" />
+                </button>
                 <button onClick={() => remove(l.id)} className="p-2 rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-all">
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -131,8 +146,8 @@ export default function ShortLinksPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-gray-100 dark:bg-[#111120] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
-              <h2 className="font-bold text-gray-900 dark:text-white">لینک کوتاه جدید</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400"><X className="w-5 h-5" /></button>
+              <h2 className="font-bold text-gray-900 dark:text-white">{editing ? "ویرایش لینک کوتاه" : "لینک کوتاه جدید"}</h2>
+              <button onClick={() => { setShowForm(false); setEditing(null); }} className="text-gray-400"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5 space-y-4">
               <div>
@@ -154,9 +169,9 @@ export default function ShortLinksPage() {
               <div className="flex gap-3 pt-2">
                 <button onClick={save} disabled={saving} className="btn-primary flex-1 py-3 flex items-center justify-center gap-2">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  ساخت لینک
+                  {editing ? "ذخیره تغییرات" : "ساخت لینک"}
                 </button>
-                <button onClick={() => setShowForm(false)}
+                <button onClick={() => { setShowForm(false); setEditing(null); }}
                   className="px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-500">
                   لغو
                 </button>

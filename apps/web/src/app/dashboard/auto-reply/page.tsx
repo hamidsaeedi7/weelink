@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Bot, Trash2, Pencil, X, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Loader2, Bot, Trash2, Pencil, X, ToggleLeft, ToggleRight, Send, Link2, Unlink } from "lucide-react";
 import { toast } from "sonner";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -21,6 +21,8 @@ export default function AutoReplyPage() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [bots, setBots] = useState<any[]>([]);
+  const [showBotConnect, setShowBotConnect] = useState(false);
 
   const load = async () => {
     try {
@@ -31,7 +33,15 @@ export default function AutoReplyPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  const loadBots = async () => {
+    try {
+      const r = await fetch(`${API}/api/v1/auto-reply/bots`, { headers: auth() });
+      const d = await r.json();
+      setBots(Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
+    } catch { setBots([]); }
+  };
+
+  useEffect(() => { load(); loadBots(); }, []);
 
   const save = async () => {
     if (!form.keyword || !form.reply) { toast.error("کلیدواژه و پیام الزامی است"); return; }
@@ -55,6 +65,10 @@ export default function AutoReplyPage() {
       if (!r.ok) throw new Error(d.message || "خطا در ذخیره");
       toast.success(editing ? "ویرایش شد" : "قانون اضافه شد");
       setShowForm(false);
+      // بعد از ساخت قانون جدید، اگر هنوز رباتی برای آن پلتفرم وصل نشده، بخش اتصال ربات را باز کن
+      if (!editing && !bots.some((b) => b.platform === form.platform)) {
+        setShowBotConnect(true);
+      }
       load();
     } catch (e: any) { toast.error(e.message || "خطا"); }
     finally { setSaving(false); }
@@ -90,12 +104,7 @@ export default function AutoReplyPage() {
         </button>
       </div>
 
-      <div className="glass-card p-4 bg-blue-500/5 border-blue-500/20">
-        <p className="text-sm text-blue-600 dark:text-blue-400 flex gap-2">
-          <Bot className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>برای فعال‌سازی پاسخ خودکار در هر پلتفرم، باید ربات یا اکانت رسمی آن پلتفرم را به ویلینک متصل کنید. این ویژگی در نسخه بعدی فعال خواهد شد.</span>
-        </p>
-      </div>
+      <BotConnectSection bots={bots} onChanged={loadBots} open={showBotConnect} onToggle={setShowBotConnect} />
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-accent-500" /></div>
@@ -190,6 +199,103 @@ export default function AutoReplyPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Bot connect section — telegram / bale ────────────────────────────────────
+function BotConnectSection({ bots, onChanged, open, onToggle }: { bots: any[]; onChanged: () => void; open: boolean; onToggle: (v: boolean) => void }) {
+  const [platform, setPlatform] = useState<string>("telegram");
+  const [botToken, setBotToken] = useState("");
+  const [connecting, setConnecting] = useState(false);
+
+  const connected = (id: string) => bots.find((b) => b.platform === id);
+
+  const connect = async () => {
+    if (!botToken.trim()) { toast.error("توکن ربات را وارد کنید"); return; }
+    setConnecting(true);
+    try {
+      const r = await fetch(`${API}/api/v1/auto-reply/bots`, {
+        method: "POST",
+        headers: { ...auth(), "Content-Type": "application/json" },
+        body: JSON.stringify({ platform, botToken: botToken.trim() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.message || "خطا در اتصال ربات");
+      toast.success("ربات با موفقیت متصل شد");
+      setBotToken("");
+      onChanged();
+    } catch (e: any) { toast.error(e.message || "خطا در اتصال ربات"); }
+    finally { setConnecting(false); }
+  };
+
+  const disconnect = async (id: string) => {
+    if (!confirm("اتصال این ربات قطع شود؟")) return;
+    await fetch(`${API}/api/v1/auto-reply/bots/${id}`, { method: "DELETE", headers: auth() });
+    toast.success("اتصال ربات قطع شد");
+    onChanged();
+  };
+
+  return (
+    <div className="glass-card p-4 space-y-4">
+      <button onClick={() => onToggle(!open)} className="w-full flex items-center justify-between gap-2">
+        <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <Bot className="w-4 h-4 text-accent-500" /> اتصال ربات تلگرام و بله
+        </p>
+        <span className="text-xs text-accent-500">{open ? "بستن" : "مدیریت اتصال"}</span>
+      </button>
+      <p className="text-xs text-gray-500 -mt-2">
+        برای فعال شدن پاسخ خودکار در هر پلتفرم، ربات ساخته‌شده‌ی خودتان را اینجا متصل کنید — از این پس، پیام‌های ورودی بررسی و در صورت تطبیق با کلیدواژه، پاسخ به‌صورت خودکار ارسال می‌شود.
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {PLATFORMS.map((p) => {
+          const b = connected(p.id);
+          return (
+            <div key={p.id} className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg"
+              style={{ background: `${p.color}1a`, color: p.color }}>
+              {b ? <Link2 className="w-3.5 h-3.5" /> : <Unlink className="w-3.5 h-3.5 opacity-50" />}
+              {p.label}{b?.botUsername ? ` — @${b.botUsername}` : ""}
+              {b && (
+                <button onClick={() => disconnect(p.id)} className="text-red-400 hover:text-red-500 mr-1">قطع اتصال</button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {open && (
+        <div className="border-t border-gray-100 dark:border-white/10 pt-4 space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">پلتفرم</label>
+            <div className="grid grid-cols-2 gap-2">
+              {PLATFORMS.map((p) => (
+                <button key={p.id} onClick={() => setPlatform(p.id)}
+                  className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
+                    platform === p.id ? "text-white border-transparent" : "text-gray-500 border-gray-200 dark:border-white/10"
+                  }`}
+                  style={platform === p.id ? { background: p.color, borderColor: p.color } : {}}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">توکن ربات</label>
+            <input value={botToken} onChange={(e) => setBotToken(e.target.value)} dir="ltr"
+              className="input-base" placeholder="123456:ABC-DEF..." />
+            <p className="text-xs text-gray-400 mt-1">
+              {platform === "telegram"
+                ? <>ربات خود را با <span className="text-blue-400">@BotFather</span> بسازید و توکن آن را اینجا وارد کنید.</>
+                : <>ربات خود را در پنل توسعه‌دهندگان بله بسازید و توکن آن را اینجا وارد کنید.</>}
+            </p>
+          </div>
+          <button onClick={connect} disabled={connecting} className="btn-primary py-2.5 px-5 flex items-center gap-2 text-sm">
+            {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            اتصال ربات
+          </button>
         </div>
       )}
     </div>

@@ -151,6 +151,7 @@ export default function DomainsPage() {
           <Globe className="w-5 h-5 text-accent-500" />
           دامنه اختصاصی
           <span className="text-xs bg-accent-500/20 text-accent-400 px-2 py-0.5 rounded-md font-medium">Pro</span>
+          <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-md font-medium">به‌زودی</span>
         </h1>
         <p className="text-sm text-gray-500 mt-1">
           صفحه بیوی خود را روی دامنه‌ی شخصی‌تان نمایش دهید
