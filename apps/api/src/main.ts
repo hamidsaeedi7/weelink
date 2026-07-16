@@ -32,6 +32,16 @@ function assertProductionConfig() {
   if (!frontendUrl || frontendUrl.includes("localhost")) {
     throw new Error("FRONTEND_URL must be set to the production domain");
   }
+
+  const apiUrl = process.env.API_URL;
+  if (!apiUrl || apiUrl.includes("localhost")) {
+    throw new Error("API_URL must be set to the production API domain (used in payment gateway callback URLs)");
+  }
+
+  const webUrl = process.env.WEB_URL || process.env.FRONTEND_URL;
+  if (!webUrl || webUrl.includes("localhost")) {
+    throw new Error("WEB_URL (or FRONTEND_URL) must be set to the production web domain (used in post-payment redirects)");
+  }
 }
 
 async function bootstrap() {

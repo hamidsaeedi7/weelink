@@ -1,6 +1,6 @@
 # 001 — Remove hardcoded default admin credentials
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Security | Impact: High | Effort: S | Risk of fix: Low | Confidence: High
 

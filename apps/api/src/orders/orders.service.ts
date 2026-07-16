@@ -44,10 +44,13 @@ export class OrdersService {
       paymentMethod = products[0].paymentMethod;
     }
 
-    // Server-side authoritative price for real products (never trust client-submitted price).
+    // Server-side authoritative price. Real products always use the DB price.
+    // "Custom" items (no matching productId) are always priced 0 here — the seller
+    // sets/confirms the real price manually during CARD_TO_CARD review (see markPaid).
+    // Never trust a client-submitted price for either case.
     const totalPrice = dto.items.reduce((s, i) => {
       const p = productMap.get(i.productId);
-      const price = p ? Number(p.price) : i.price;
+      const price = p ? Number(p.price) : 0;
       return s + price * i.qty;
     }, 0);
     let discount = 0;

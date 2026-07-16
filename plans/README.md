@@ -23,22 +23,26 @@ token rotation, appointment race condition, admin XSS sanitization, unbounded qu
 usage, blanket `"use client"`) were deliberately deferred — see the audit conversation for the
 reasoning per item, not repeated here.
 
+**Execution status:** all 12 plans below have been executed, type-checked, built, and
+live-verified in production (health endpoint responding, Redis cache key confirmed, upload
+cache-control header confirmed, boot guard passed on restart, new API routes mapped).
+
 ## Priority order & status
 
 | # | Plan | Category | Impact | Effort | Status |
 |---|------|----------|--------|--------|--------|
-| 001 | [Rotate admin credentials](001-rotate-admin-credentials.md) | Security | High | S | TODO |
-| 002 | [Fix custom order price manipulation](002-fix-custom-order-price.md) | Money | Med-High | S | TODO |
-| 003 | [Remove deploy.sh accept-data-loss fallback](003-remove-deploy-accept-data-loss.md) | Migrations/Deploy | High | S | TODO |
-| 004 | [Add /health endpoint](004-add-health-endpoint.md) | Ops | Med-High | S | TODO |
-| 005 | [Remove SVG from upload allowlist](005-remove-svg-upload.md) | Security | Medium | S | TODO |
-| 006 | [Fix daily-stats bucketing](006-fix-daily-stats-bucketing.md) | Performance | Med-High | S | TODO |
-| 007 | [Per-phone OTP rate limit](007-otp-per-phone-rate-limit.md) | Abuse | Medium | S | TODO |
-| 008 | [Complete .env.example](008-env-example-and-boot-guard.md) | Docs | Medium | S | TODO |
-| 009 | [Backend localhost-fallback boot guard](009-backend-localhost-fallback-guard.md) | Env safety | High | S | TODO |
-| 010 | [Upload cache-control headers](010-upload-cache-control-headers.md) | Performance | Medium | S | TODO |
-| 011 | [Redis cache for shop-by-slug](011-redis-cache-shop-by-slug.md) | Performance | High | M | TODO |
-| 012 | [Bio-page server-side storefront data](012-bio-page-server-side-storefront-data.md) | Performance | High | M | TODO |
+| 001 | [Rotate admin credentials](001-rotate-admin-credentials.md) | Security | High | S | DONE |
+| 002 | [Fix custom order price manipulation](002-fix-custom-order-price.md) | Money | Med-High | S | DONE |
+| 003 | [Remove deploy.sh accept-data-loss fallback](003-remove-deploy-accept-data-loss.md) | Migrations/Deploy | High | S | DONE |
+| 004 | [Add /health endpoint](004-add-health-endpoint.md) | Ops | Med-High | S | DONE |
+| 005 | [Remove SVG from upload allowlist](005-remove-svg-upload.md) | Security | Medium | S | DONE |
+| 006 | [Fix daily-stats bucketing](006-fix-daily-stats-bucketing.md) | Performance | Med-High | S | DONE |
+| 007 | [Per-phone OTP rate limit](007-otp-per-phone-rate-limit.md) | Abuse | Medium | S | DONE |
+| 008 | [Complete .env.example](008-env-example-and-boot-guard.md) | Docs | Medium | S | DONE |
+| 009 | [Backend localhost-fallback boot guard](009-backend-localhost-fallback-guard.md) | Env safety | High | S | DONE |
+| 010 | [Upload cache-control headers](010-upload-cache-control-headers.md) | Performance | Medium | S | DONE |
+| 011 | [Redis cache for shop-by-slug](011-redis-cache-shop-by-slug.md) | Performance | High | M | DONE |
+| 012 | [Bio-page server-side storefront data](012-bio-page-server-side-storefront-data.md) | Performance | High | M | DONE |
 
 ## Dependency graph
 

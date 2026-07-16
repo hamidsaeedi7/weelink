@@ -1,6 +1,6 @@
 # 008 — Complete `.env.example` with undocumented env vars
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Docs / Secrets-Env mgmt | Impact: Medium | Effort: S | Risk of fix: Low | Confidence: High
 

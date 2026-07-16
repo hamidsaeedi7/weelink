@@ -1,6 +1,6 @@
 # 005 — Remove SVG from the public image-upload allowlist
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Security (stored XSS) | Impact: Medium | Effort: S | Risk of fix: Low | Confidence: Medium
 

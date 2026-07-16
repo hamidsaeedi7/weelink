@@ -30,7 +30,7 @@ function makeStorage(subDir: string) {
 }
 
 const imageFilter = (_req: any, file: Express.Multer.File, cb: any) => {
-  const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"];
+  const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
   if (allowed.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
   else cb(new BadRequestException("فقط فایل‌های تصویری مجاز هستند"), false);
 };

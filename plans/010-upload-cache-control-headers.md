@@ -1,6 +1,6 @@
 # 010 — Add cache-control headers to served upload files
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Performance | Impact: Medium | Effort: S | Risk of fix: Low | Confidence: High
 

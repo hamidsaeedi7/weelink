@@ -1,6 +1,6 @@
 # 006 — Fix broken daily analytics bucketing (groupBy on full timestamp)
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Performance / Correctness | Impact: Medium-High | Effort: S | Risk of fix: Low | Confidence: High
 

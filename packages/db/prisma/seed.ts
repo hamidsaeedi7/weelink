@@ -6,8 +6,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
-  const adminEmail = process.env.ADMIN_EMAIL || "hamid@weelink.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "H@mid1375";
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminPhone = process.env.ADMIN_PHONE;
+  if (!adminEmail || !adminPassword || !adminPhone) {
+    throw new Error(
+      "ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_PHONE must all be set before running the seed script. " +
+      "Refusing to fall back to a hardcoded default admin account.",
+    );
+  }
+  if (adminPassword.length < 12) {
+    throw new Error("ADMIN_PASSWORD must be at least 12 characters.");
+  }
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
   const admin = await prisma.user.upsert({
@@ -15,7 +25,7 @@ async function main() {
     update: {},
     create: {
       email: adminEmail,
-      phone: process.env.ADMIN_PHONE || "09120000000",
+      phone: adminPhone,
       passwordHash,
       role: "SUPER_ADMIN",
       isVerified: true,
@@ -60,7 +70,7 @@ async function main() {
 
   console.log("✅ Site settings + page contents initialized");
   console.log("\n🎉 Seed complete!");
-  console.log(`   Admin: ${adminEmail} / ${adminPassword}`);
+  console.log(`   Admin: ${adminEmail} (password not printed to logs)`);
 }
 
 main()

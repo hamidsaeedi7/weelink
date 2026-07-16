@@ -6,30 +6,14 @@ import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap, CalendarCheck } from "lucide-react";
 import { getBgTemplate, bgTemplateBackground } from "@/lib/bg-templates";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-function unwrap(d: any) { return Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []; }
-
 // نوار فروشگاه: اگر شاپ محصول/فایل/دوره داشته باشد، لینک عمومی‌شان نمایش داده می‌شود
-function StorefrontLinks({ slug, primary }: { slug: string; primary: string }) {
-  const [state, setState] = useState({ products: 0, files: 0, courses: 0, services: 0 });
-  useEffect(() => {
-    (async () => {
-      const [p, f, c, a] = await Promise.all([
-        fetch(`${API}/api/v1/shops/${slug}/products`).then((r) => r.json()).catch(() => []),
-        fetch(`${API}/api/v1/shops/${slug}/digital-files`).then((r) => r.json()).catch(() => []),
-        fetch(`${API}/api/v1/shops/${slug}/courses`).then((r) => r.json()).catch(() => []),
-        fetch(`${API}/api/v1/shops/${slug}/appointments/services`).then((r) => r.json()).catch(() => []),
-      ]);
-      setState({ products: unwrap(p).length, files: unwrap(f).length, courses: unwrap(c).length, services: unwrap(a).length });
-    })();
-  }, [slug]);
-
+// (تعداد هر بخش از قبل، سمت سرور، همراه با خود shop واکشی شده — دیگر fetch جدا لازم نیست)
+function StorefrontLinks({ slug, primary, counts }: { slug: string; primary: string; counts: { products: number; files: number; courses: number; services: number } }) {
   const links = [
-    state.products > 0 && { href: `/${slug}/shop`, icon: ShoppingBag, label: "فروشگاه محصولات" },
-    state.files > 0 && { href: `/${slug}/files`, icon: FileDown, label: "فایل‌های دیجیتال" },
-    state.courses > 0 && { href: `/${slug}/courses`, icon: BookOpen, label: "دوره‌های آموزشی" },
-    state.services > 0 && { href: `/${slug}/booking`, icon: CalendarCheck, label: "رزرو نوبت آنلاین" },
+    counts.products > 0 && { href: `/${slug}/shop`, icon: ShoppingBag, label: "فروشگاه محصولات" },
+    counts.files > 0 && { href: `/${slug}/files`, icon: FileDown, label: "فایل‌های دیجیتال" },
+    counts.courses > 0 && { href: `/${slug}/courses`, icon: BookOpen, label: "دوره‌های آموزشی" },
+    counts.services > 0 && { href: `/${slug}/booking`, icon: CalendarCheck, label: "رزرو نوبت آنلاین" },
   ].filter(Boolean) as { href: string; icon: any; label: string }[];
 
   if (!links.length) return null;
@@ -49,12 +33,9 @@ function StorefrontLinks({ slug, primary }: { slug: string; primary: string }) {
   );
 }
 
-// نوار فلش‌سیل فعال (از رکوردهای داشبورد فلش‌سیل)
-function FlashSaleStrip({ slug, primary }: { slug: string; primary: string }) {
-  const [sales, setSales] = useState<any[]>([]);
-  useEffect(() => {
-    fetch(`${API}/api/v1/flash-sales/public/${slug}`).then((r) => r.json()).then((d) => setSales(unwrap(d))).catch(() => {});
-  }, [slug]);
+// نوار فلش‌سیل فعال (از خود shop سمت سرور واکشی شده)
+function FlashSaleStrip({ sales, primary }: { sales: any[]; primary: string }) {
+  // بازبینی دوباره سمت کلاینت چون shop ممکن است تا ۶۰ ثانیه کش شده باشد (ISR + کش Redis)
   const active = sales.filter((s) => s.isActive !== false && new Date(s.endsAt) > new Date());
   if (!active.length) return null;
   return (
@@ -112,6 +93,8 @@ interface Shop {
   themeId?: string;
   blocks: any[];
   ownerPlan?: string;
+  storefrontCounts?: { products: number; files: number; courses: number; services: number };
+  activeFlashSales?: any[];
 }
 
 export function BioPageClient({ shop }: { shop: Shop }) {
@@ -172,8 +155,8 @@ export function BioPageClient({ shop }: { shop: Shop }) {
         </div>
 
         {/* فلش‌سیل فعال + لینک فروشگاه/فایل/دوره */}
-        <FlashSaleStrip slug={shop.slug} primary={primary} />
-        <StorefrontLinks slug={shop.slug} primary={primary} />
+        <FlashSaleStrip sales={shop.activeFlashSales || []} primary={primary} />
+        <StorefrontLinks slug={shop.slug} primary={primary} counts={shop.storefrontCounts || { products: 0, files: 0, courses: 0, services: 0 }} />
 
         {/* Blocks */}
         <div className="space-y-2.5">

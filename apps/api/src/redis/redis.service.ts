@@ -48,4 +48,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async ttl(key: string): Promise<number> {
     return this.client.ttl(key);
   }
+
+  /** Atomically increments a counter, setting its TTL only on first creation. Returns the new count. */
+  async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const count = await this.client.incr(key);
+    if (count === 1) await this.client.expire(key, ttlSeconds);
+    return count;
+  }
 }

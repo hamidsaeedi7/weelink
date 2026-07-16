@@ -6,6 +6,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { PrismaModule } from "./prisma/prisma.module";
 import { RedisModule } from "./redis/redis.module";
+import { HealthModule } from "./health/health.module";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { ShopsModule } from "./shops/shops.module";
@@ -45,9 +46,17 @@ import { GrowthModule } from "./growth/growth.module";
       // ever served → broken previews everywhere.
       rootPath: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
       serveRoot: "/uploads",
+      // Filenames are generated once (Date.now() + random suffix, see
+      // UploadController) and never reused for different content — safe to
+      // cache forever; the browser never needs to re-validate.
+      serveStaticOptions: {
+        maxAge: "365d",
+        immutable: true,
+      },
     }),
     PrismaModule,
     RedisModule,
+    HealthModule,
     AuthModule,
     UsersModule,
     ShopsModule,

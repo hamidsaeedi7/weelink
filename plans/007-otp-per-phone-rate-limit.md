@@ -1,6 +1,6 @@
 # 007 — Add per-phone OTP send rate limit
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Abuse / Auth | Impact: Medium | Effort: S | Risk of fix: Low | Confidence: Medium
 

@@ -26,11 +26,26 @@ export class AuthService {
     private sms: SmsService,
   ) {}
 
+  // ─── OTP rate limiting ─────────────────────────────────────────────────────
+
+  private readonly OTP_MAX_PER_HOUR = 5;
+
+  private async assertOtpRateLimit(phone: string) {
+    const count = await this.redis.incrWithTtl(`otp:ratelimit:${phone}`, 3600);
+    if (count > this.OTP_MAX_PER_HOUR) {
+      throw new BadRequestException(
+        "تعداد درخواست‌های کد تأیید برای این شماره در یک ساعت اخیر بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
+      );
+    }
+  }
+
   // ─── Register ────────────────────────────────────────────────────────────────
 
   async register(dto: RegisterDto) {
     const exists = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
     if (exists) throw new ConflictException("این شماره موبایل قبلاً ثبت شده است");
+
+    await this.assertOtpRateLimit(dto.phone);
 
     const code = this.sms.generateOtp();
     const sent = await this.sms.sendOtp(dto.phone, code);
@@ -118,6 +133,8 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (user?.isBlocked) throw new UnauthorizedException("حساب کاربری مسدود شده است");
 
+    await this.assertOtpRateLimit(phone);
+
     const code = this.sms.generateOtp();
     const sent = await this.sms.sendOtp(phone, code);
     if (!sent) throw new BadRequestException("ارسال پیامک ناموفق بود، دوباره تلاش کنید");
@@ -151,6 +168,8 @@ export class AuthService {
     if (dto.phone) {
       const user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
       if (!user) return { message: "کد بازیابی ارسال شد" };
+
+      await this.assertOtpRateLimit(dto.phone);
 
       const code = this.sms.generateOtp();
       const sent = await this.sms.sendOtp(dto.phone, code);

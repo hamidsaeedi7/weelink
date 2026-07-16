@@ -84,12 +84,24 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 echo "⏳ Waiting for services..."
 sleep 10
 
-# ── 7. Run DB migrations ─────────────────────────────────────────────────────
-echo "🗃️  Running database migrations..."
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T api \
-  npx prisma migrate deploy --schema=/app/packages/db/prisma/schema.prisma 2>/dev/null || \
-  docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T api \
-  npx prisma db push --schema=/app/packages/db/prisma/schema.prisma --accept-data-loss
+# ── 7. Apply DB schema changes ───────────────────────────────────────────────
+# NOTE: this project has no Prisma migration history (packages/db/prisma/migrations/
+# does not exist) — `prisma migrate deploy` has nothing to apply and will always fail.
+# `db push` is the real schema-sync mechanism today. It is run WITHOUT --accept-data-loss
+# so that any destructive change (dropped column, narrowed type, etc.) stops the deploy
+# and requires a human to review and re-run manually with explicit acknowledgement,
+# instead of silently proceeding.
+echo "🗃️  Syncing database schema..."
+if ! docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T api \
+  npx prisma db push --schema=/app/packages/db/prisma/schema.prisma; then
+  echo ""
+  echo "❌ Schema sync failed or requires data loss to proceed."
+  echo "   Review the diff above. If the destructive change is intentional, re-run manually:"
+  echo "   docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T api \\"
+  echo "     npx prisma db push --schema=/app/packages/db/prisma/schema.prisma --accept-data-loss"
+  echo ""
+  exit 1
+fi
 
 # ── 8. Setup auto-renewal for SSL ────────────────────────────────────────────
 if ! crontab -l 2>/dev/null | grep -q "certbot renew"; then

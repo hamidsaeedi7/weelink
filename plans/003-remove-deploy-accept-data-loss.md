@@ -1,6 +1,6 @@
 # 003 — Remove silent `--accept-data-loss` fallback from deploy.sh
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Migrations / Deploy safety | Impact: High | Effort: S | Risk of fix: Low | Confidence: High
 

@@ -1,6 +1,6 @@
 # 002 — Fix client-controlled price on custom checkout line items
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Money / Input validation | Impact: Medium-High | Effort: S | Risk of fix: Low | Confidence: High
 

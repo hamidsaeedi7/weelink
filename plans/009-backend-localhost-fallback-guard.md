@@ -1,6 +1,6 @@
 # 009 — Extend the production boot guard to `API_URL`/`WEB_URL` (payment path)
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Env/Config safety | Impact: High | Effort: S | Risk of fix: Low | Confidence: High
 

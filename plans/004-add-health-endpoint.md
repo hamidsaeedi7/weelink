@@ -1,6 +1,6 @@
 # 004 — Add a real `/api/v1/health` endpoint
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Ops / Test coverage | Impact: Medium-High | Effort: S | Risk of fix: Low | Confidence: High
 

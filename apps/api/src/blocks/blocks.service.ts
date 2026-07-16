@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ShopsService } from "../shops/shops.service";
 import { CreateBlockDto } from "./dto/create-block.dto";
 import { ReorderBlocksDto } from "./dto/reorder-blocks.dto";
 
 @Injectable()
 export class BlocksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private shops: ShopsService,
+  ) {}
 
   /**
    * Normalizes incoming block data before it reaches Prisma.
@@ -62,13 +66,15 @@ export class BlocksService {
       where: { shopId },
       _max: { sortOrder: true },
     });
-    return this.prisma.block.create({
+    const block = await this.prisma.block.create({
       data: {
         shopId,
         ...this.sanitize(dto),
         sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
       },
     });
+    await this.shops.invalidateSlugCacheByShopId(shopId);
+    return block;
   }
 
   async findAll(userId: string) {
@@ -83,7 +89,9 @@ export class BlocksService {
     const block = await this.prisma.block.findUnique({ where: { id }, include: { shop: true } });
     if (!block) throw new NotFoundException("بلوک یافت نشد");
     if (block.shop.userId !== userId) throw new ForbiddenException();
-    return this.prisma.block.update({ where: { id }, data: this.sanitize(dto) });
+    const updated = await this.prisma.block.update({ where: { id }, data: this.sanitize(dto) });
+    await this.shops.invalidateSlugCacheByShopId(block.shopId);
+    return updated;
   }
 
   async remove(userId: string, id: string) {
@@ -91,6 +99,7 @@ export class BlocksService {
     if (!block) throw new NotFoundException("بلوک یافت نشد");
     if (block.shop.userId !== userId) throw new ForbiddenException();
     await this.prisma.block.delete({ where: { id } });
+    await this.shops.invalidateSlugCacheByShopId(block.shopId);
     return { message: "بلوک حذف شد" };
   }
 
@@ -104,6 +113,7 @@ export class BlocksService {
         }),
       ),
     );
+    await this.shops.invalidateSlugCacheByShopId(shopId);
     return { message: "ترتیب ذخیره شد" };
   }
 

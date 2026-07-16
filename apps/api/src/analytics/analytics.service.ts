@@ -61,14 +61,18 @@ export class AnalyticsService {
   }
 
   private async getDailyStats(shopId: string, since: Date, event: string) {
-    const rows = await this.prisma.analytics.groupBy({
-      by: ["createdAt"],
-      where: { shopId, event, createdAt: { gte: since } },
-      _count: { id: true },
-      orderBy: { createdAt: "asc" },
-    });
+    // Truncate to day in Postgres so aggregation happens server-side instead of
+    // pulling back one row per event (groupBy on the raw timestamp column never
+    // actually groups anything, since events rarely share the same millisecond).
+    const rows = await this.prisma.$queryRaw<{ day: Date; count: bigint }[]>`
+      SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS count
+      FROM "Analytics"
+      WHERE "shopId" = ${shopId} AND event = ${event} AND "createdAt" >= ${since}
+      GROUP BY day
+      ORDER BY day ASC
+    `;
 
-    // Bucket into days
+    // Bucket into days (fills gaps with 0 for days with no events)
     const buckets: Record<string, number> = {};
     const now = new Date();
     const days = Math.ceil((now.getTime() - since.getTime()) / 86400000);
@@ -80,8 +84,8 @@ export class AnalyticsService {
     }
 
     for (const row of rows) {
-      const key = row.createdAt.toISOString().slice(0, 10);
-      buckets[key] = (buckets[key] || 0) + row._count.id;
+      const key = row.day.toISOString().slice(0, 10);
+      buckets[key] = (buckets[key] || 0) + Number(row.count);
     }
 
     return Object.entries(buckets).map(([date, count]) => ({ date, count }));

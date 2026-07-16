@@ -1,6 +1,6 @@
 # 011 — Add Redis cache for the shop-by-slug lookup
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `6afe742`
 Category: Performance | Impact: High | Effort: M | Risk of fix: Low | Confidence: High
 

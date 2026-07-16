@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { RedisService } from "../redis/redis.service";
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
 import { CreateBankCardDto, UpdateBankCardDto } from "./dto/bank-card.dto";
@@ -14,7 +15,25 @@ const MAX_BANK_CARDS = 4;
 
 @Injectable()
 export class ShopsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
+
+  private static readonly SHOP_CACHE_TTL = 120; // seconds — short, since mutations also invalidate explicitly
+  private shopCacheKey(slug: string) {
+    return `shop:bySlug:${slug}`;
+  }
+
+  async invalidateSlugCache(slug: string): Promise<void> {
+    await this.redis.del(this.shopCacheKey(slug));
+  }
+
+  /** For callers that only have a shopId (e.g. BlocksService), not the slug directly. */
+  async invalidateSlugCacheByShopId(shopId: string): Promise<void> {
+    const shop = await this.prisma.shop.findUnique({ where: { id: shopId }, select: { slug: true } });
+    if (shop) await this.invalidateSlugCache(shop.slug);
+  }
 
   async create(userId: string, dto: CreateShopDto) {
     const existing = await this.prisma.shop.findUnique({ where: { userId } });
@@ -29,6 +48,10 @@ export class ShopsService {
   }
 
   async findBySlug(slug: string) {
+    const cacheKey = this.shopCacheKey(slug);
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const shop = await this.prisma.shop.findUnique({
       where: { slug },
       include: {
@@ -44,14 +67,42 @@ export class ShopsService {
     // Expose only the owner's plan (drives the free "Made with Weelink" badge)
     const { user, bankCards, ...rest } = shop as any;
     const activeCard = bankCards?.[0];
-    return {
+
+    // Storefront link counts + active flash sales — fetched here (and cached alongside
+    // everything else) instead of via separate client-side calls from the bio page.
+    const [productsCount, filesCount, coursesCount, servicesCount, activeFlashSalesRaw] = await Promise.all([
+      this.prisma.product.count({ where: { shopId: shop.id, isAvailable: true } }),
+      this.prisma.digitalFile.count({ where: { shopId: shop.id, isActive: true } }),
+      this.prisma.course.count({ where: { shopId: shop.id, isActive: true } }),
+      this.prisma.appointmentService.count({ where: { shopId: shop.id, isActive: true } }),
+      this.prisma.flashSale.findMany({
+        where: { shopId: shop.id, isActive: true, endsAt: { gt: new Date() } },
+        orderBy: { endsAt: "asc" },
+      }),
+    ]);
+    const activeFlashSales = activeFlashSalesRaw.map((s) => ({
+      ...s,
+      originalPrice: s.originalPrice?.toString(),
+      salePrice: s.salePrice?.toString(),
+    }));
+
+    const result = {
       ...rest,
       ownerPlan: user?.plan ?? "FREE",
       // Flattened for backward compat with checkout/booking/PurchaseModal
       cardNumber: activeCard?.cardNumber ?? null,
       cardHolder: activeCard?.cardHolder ?? null,
       bankName: activeCard?.bankName ?? null,
+      storefrontCounts: {
+        products: productsCount,
+        files: filesCount,
+        courses: coursesCount,
+        services: servicesCount,
+      },
+      activeFlashSales,
     };
+    await this.redis.set(cacheKey, JSON.stringify(result), ShopsService.SHOP_CACHE_TTL);
+    return result;
   }
 
   async findByUser(userId: string) {
@@ -103,9 +154,11 @@ export class ShopsService {
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
     const count = await this.prisma.bankCard.count({ where: { shopId: shop.id } });
     if (count >= MAX_BANK_CARDS) throw new ConflictException("حداکثر ۴ کارت بانکی می‌توانید ثبت کنید");
-    return this.prisma.bankCard.create({
+    const card = await this.prisma.bankCard.create({
       data: { shopId: shop.id, ...dto, isActive: count === 0, sortOrder: count },
     });
+    await this.invalidateSlugCache(shop.slug);
+    return card;
   }
 
   async updateBankCard(userId: string, cardId: string, dto: UpdateBankCardDto) {
@@ -113,7 +166,9 @@ export class ShopsService {
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
     const card = await this.prisma.bankCard.findUnique({ where: { id: cardId } });
     if (!card || card.shopId !== shop.id) throw new NotFoundException("کارت یافت نشد");
-    return this.prisma.bankCard.update({ where: { id: cardId }, data: dto });
+    const updated = await this.prisma.bankCard.update({ where: { id: cardId }, data: dto });
+    await this.invalidateSlugCache(shop.slug);
+    return updated;
   }
 
   async deleteBankCard(userId: string, cardId: string) {
@@ -129,6 +184,7 @@ export class ShopsService {
       });
       if (next) await this.prisma.bankCard.update({ where: { id: next.id }, data: { isActive: true } });
     }
+    await this.invalidateSlugCache(shop.slug);
     return { success: true };
   }
 
@@ -141,6 +197,7 @@ export class ShopsService {
       this.prisma.bankCard.updateMany({ where: { shopId: shop.id, isActive: true }, data: { isActive: false } }),
       this.prisma.bankCard.update({ where: { id: cardId }, data: { isActive: true } }),
     ]);
+    await this.invalidateSlugCache(shop.slug);
     return { success: true };
   }
 
@@ -162,7 +219,10 @@ export class ShopsService {
       if (taken) throw new ConflictException("این آدرس قبلاً استفاده شده است");
     }
 
-    return this.prisma.shop.update({ where: { userId }, data: dto });
+    const updated = await this.prisma.shop.update({ where: { userId }, data: dto });
+    await this.invalidateSlugCache(shop.slug);
+    if (dto.slug && dto.slug !== shop.slug) await this.invalidateSlugCache(updated.slug);
+    return updated;
   }
 
   async checkSlug(slug: string) {
