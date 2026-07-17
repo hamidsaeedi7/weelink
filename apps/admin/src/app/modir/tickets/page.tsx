@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { adminApi, timeAgo } from "@/lib/api";
 import { Send, RefreshCw, MessageSquare, AlertCircle, Clock, CheckCircle, XCircle } from "lucide-react";
 
-type TicketStatus = "OPEN" | "IN_REVIEW" | "RESOLVED" | "CLOSED";
-type Priority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+type Priority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 interface Reply {
   id: string;
@@ -29,7 +29,7 @@ interface Ticket {
 const STATUS_TABS: { label: string; value: TicketStatus | "ALL" }[] = [
   { label: "همه", value: "ALL" },
   { label: "باز", value: "OPEN" },
-  { label: "در حال بررسی", value: "IN_REVIEW" },
+  { label: "در حال بررسی", value: "IN_PROGRESS" },
   { label: "حل شده", value: "RESOLVED" },
   { label: "بسته", value: "CLOSED" },
 ];
@@ -37,11 +37,11 @@ const STATUS_TABS: { label: string; value: TicketStatus | "ALL" }[] = [
 function statusBadge(status: TicketStatus) {
   const map: Record<TicketStatus, { label: string; icon: React.ElementType; className: string }> = {
     OPEN: { label: "باز", icon: AlertCircle, className: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" },
-    IN_REVIEW: { label: "در بررسی", icon: Clock, className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" },
+    IN_PROGRESS: { label: "در بررسی", icon: Clock, className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" },
     RESOLVED: { label: "حل شده", icon: CheckCircle, className: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" },
     CLOSED: { label: "بسته", icon: XCircle, className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300" },
   };
-  const cfg = map[status];
+  const cfg = map[status] ?? { label: status, icon: AlertCircle, className: "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400" };
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
@@ -54,11 +54,11 @@ function statusBadge(status: TicketStatus) {
 function priorityBadge(priority: Priority) {
   const map: Record<Priority, { label: string; className: string }> = {
     LOW: { label: "کم", className: "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400" },
-    MEDIUM: { label: "متوسط", className: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300" },
+    NORMAL: { label: "متوسط", className: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300" },
     HIGH: { label: "زیاد", className: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" },
     URGENT: { label: "فوری", className: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
   };
-  const cfg = map[priority];
+  const cfg = map[priority] ?? { label: priority, className: "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400" };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
       {cfg.label}
@@ -238,7 +238,7 @@ export default function TicketsPage() {
                   className="input-base text-sm w-40"
                 >
                   <option value="OPEN">باز</option>
-                  <option value="IN_REVIEW">در حال بررسی</option>
+                  <option value="IN_PROGRESS">در حال بررسی</option>
                   <option value="RESOLVED">حل شده</option>
                   <option value="CLOSED">بسته</option>
                 </select>

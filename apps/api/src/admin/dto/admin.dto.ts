@@ -10,10 +10,6 @@ export class UpdateUserDto {
   isBlocked?: boolean;
 
   @IsOptional()
-  @IsIn(["USER", "ADMIN", "SUPER_ADMIN"])
-  role?: string;
-
-  @IsOptional()
   @IsDateString()
   planExpiresAt?: string;
 }

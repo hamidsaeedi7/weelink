@@ -104,7 +104,6 @@ export class AdminService {
     const update: any = {};
     if (data.plan !== undefined) update.plan = data.plan;
     if (data.isBlocked !== undefined) update.isBlocked = data.isBlocked;
-    if (data.role !== undefined) update.role = data.role;
     if (data.planExpiresAt !== undefined) update.planExpiresAt = new Date(data.planExpiresAt);
 
     const updated = await this.prisma.user.update({ where: { id }, data: update });

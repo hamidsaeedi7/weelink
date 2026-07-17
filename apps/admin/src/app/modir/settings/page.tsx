@@ -73,6 +73,8 @@ export default function SettingsPage() {
         setLoading(true);
         const data = await adminApi.getSettings();
         setSettings(data);
+        setUsername(data.adminUsername ?? "");
+        setEmail(data.adminEmail ?? "");
       } catch {
         toast.error("خطا در بارگذاری تنظیمات");
       } finally {
