@@ -7,9 +7,14 @@ import { toast } from "sonner";
 export default function ModirLoginPage() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    if (!form.username.trim()) { setError("نام کاربری یا ایمیل را وارد کنید"); return; }
+    if (!form.password) { setError("رمز عبور را وارد کنید"); return; }
+
     setLoading(true);
     try {
       const res = await fetch("/api/v1/auth/login", {
@@ -78,7 +83,6 @@ export default function ModirLoginPage() {
                              transition-all text-left"
                   placeholder="admin@example.com"
                   dir="ltr"
-                  required
                 />
               </div>
             </div>
@@ -97,10 +101,15 @@ export default function ModirLoginPage() {
                              transition-all"
                   placeholder="••••••••"
                   dir="ltr"
-                  required
                 />
               </div>
             </div>
+
+            {error && (
+              <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
+                {error}
+              </p>
+            )}
 
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl font-semibold text-white transition-all

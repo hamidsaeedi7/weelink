@@ -121,7 +121,6 @@ export default function NewBlogPostPage() {
                 placeholder="عنوان پست را وارد کنید"
                 value={form.title}
                 onChange={handleTitleChange}
-                required
               />
             </div>
             <div>

@@ -116,14 +116,17 @@ export class AdminController {
     return this.admin.changeAdminCredentials(user.id, data);
   }
 
-  // Admins
+  // Admins — creating/changing admin accounts is SUPER_ADMIN-only, not any ADMIN
+  // (this overrides the class-level @Roles("ADMIN", "SUPER_ADMIN") for just these two routes).
   @Get("admins") getAdmins() { return this.admin.getAdmins(); }
   @Post("admins")
+  @Roles("SUPER_ADMIN")
   createAdmin(
     @CurrentUser() user: { id: string },
     @Body() dto: { email: string; password: string; role: "ADMIN" | "WRITER" },
   ) { return this.admin.createAdmin(user.id, dto); }
   @Put("admins/:id/role")
+  @Roles("SUPER_ADMIN")
   promoteUser(
     @CurrentUser() user: { id: string },
     @Param("id") id: string,

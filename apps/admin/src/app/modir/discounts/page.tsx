@@ -121,7 +121,6 @@ export default function DiscountsPage() {
                   value={form.code}
                   onChange={(e) => set("code", e.target.value.toUpperCase())}
                   dir="ltr"
-                  required
                 />
                 <button
                   type="button"
@@ -160,7 +159,6 @@ export default function DiscountsPage() {
                 onChange={(e) => set("value", e.target.value)}
                 min={1}
                 max={form.type === "percent" ? 100 : undefined}
-                required
                 dir="ltr"
               />
             </div>

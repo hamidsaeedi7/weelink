@@ -111,7 +111,6 @@ export default function NotificationsPage() {
               placeholder="عنوان اعلان"
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
-              required
             />
           </div>
 
@@ -125,7 +124,6 @@ export default function NotificationsPage() {
               placeholder="متن اعلان را وارد کنید..."
               value={form.body}
               onChange={(e) => set("body", e.target.value)}
-              required
             />
           </div>
 

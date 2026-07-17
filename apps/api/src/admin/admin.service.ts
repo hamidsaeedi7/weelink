@@ -448,6 +448,10 @@ export class AdminService {
   }
 
   async promoteUser(adminId: string, targetId: string, role: "ADMIN" | "USER") {
+    // The "ADMIN" | "USER" parameter type is compile-time only — Nest's @Body("role")
+    // extracts whatever the client actually sent, so this must be checked at runtime too,
+    // or a caller could set role to "SUPER_ADMIN" (or any other string) directly via the API.
+    if (!["ADMIN", "USER"].includes(role)) throw new BadRequestException("نقش نامعتبر است");
     const updated = await this.prisma.user.update({
       where: { id: targetId },
       data: { role },
