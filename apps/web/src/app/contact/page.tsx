@@ -28,9 +28,16 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    if (!form.name.trim()) { setError("نام خود را وارد کنید"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { setError("ایمیل معتبر وارد کنید"); return; }
+    if (!form.subject.trim()) { setError("موضوع پیام را وارد کنید"); return; }
+    if (!form.message.trim()) { setError("متن پیام را وارد کنید"); return; }
+
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     setSent(true);
@@ -109,8 +116,8 @@ export default function ContactPage() {
                         نام
                       </label>
                       <input
-                        value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                        required placeholder="نام شما"
+                        value={form.name} onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setError(""); }}
+                        placeholder="نام شما"
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                    border border-gray-200 dark:border-white/10 text-sm
                                    focus:outline-none focus:border-orange-500/50 focus:ring-2
@@ -121,8 +128,8 @@ export default function ContactPage() {
                         ایمیل
                       </label>
                       <input
-                        value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                        type="email" required placeholder="email@example.com" dir="ltr"
+                        value={form.email} onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setError(""); }}
+                        type="email" placeholder="email@example.com" dir="ltr"
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                    border border-gray-200 dark:border-white/10 text-sm
                                    focus:outline-none focus:border-orange-500/50 focus:ring-2
@@ -134,8 +141,8 @@ export default function ContactPage() {
                       موضوع
                     </label>
                     <input
-                      value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
-                      required placeholder="موضوع پیام"
+                      value={form.subject} onChange={(e) => { setForm((f) => ({ ...f, subject: e.target.value })); setError(""); }}
+                      placeholder="موضوع پیام"
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                  border border-gray-200 dark:border-white/10 text-sm
                                  focus:outline-none focus:border-orange-500/50 focus:ring-2
@@ -146,13 +153,18 @@ export default function ContactPage() {
                       پیام
                     </label>
                     <textarea
-                      value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                      required rows={5} placeholder="پیام خود را بنویسید..."
+                      value={form.message} onChange={(e) => { setForm((f) => ({ ...f, message: e.target.value })); setError(""); }}
+                      rows={5} placeholder="پیام خود را بنویسید..."
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                  border border-gray-200 dark:border-white/10 text-sm
                                  focus:outline-none focus:border-orange-500/50 focus:ring-2
                                  focus:ring-orange-500/10 transition-all resize-none" />
                   </div>
+                  {error && (
+                    <p className="text-sm text-red-500 bg-red-500/5 border border-red-500/20 px-3 py-2 rounded-lg">
+                      {error}
+                    </p>
+                  )}
                   <button type="submit" disabled={loading}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3
                                bg-orange-500 hover:bg-orange-400 disabled:opacity-60

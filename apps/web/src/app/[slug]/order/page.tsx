@@ -12,6 +12,7 @@ export default function OrderFormPage() {
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     customerName: "",
@@ -24,10 +25,16 @@ export default function OrderFormPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    if (!form.customerName.trim()) { setError("نام و نام خانوادگی را وارد کنید"); return; }
+    if (!/^09[0-9]{9}$/.test(form.customerPhone)) { setError("شماره موبایل معتبر وارد کنید (مثال: 09123456789)"); return; }
+    if (!form.description.trim()) { setError("محصول یا درخواست خود را توضیح دهید"); return; }
+
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/v1/orders`, {
@@ -52,7 +59,7 @@ export default function OrderFormPage() {
       setOrderNumber(json.data?.orderNumber || json.data?.id || "");
       setStep("success");
     } catch (err: any) {
-      alert(err.message || "خطا در ثبت سفارش. دوباره تلاش کنید.");
+      setError(err.message || "خطا در ثبت سفارش. دوباره تلاش کنید.");
     } finally {
       setLoading(false);
     }
@@ -117,7 +124,6 @@ export default function OrderFormPage() {
                 name="customerName"
                 value={form.customerName}
                 onChange={handleChange}
-                required
                 placeholder="علی رضایی"
                 className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10
                            text-white placeholder:text-gray-600
@@ -137,12 +143,9 @@ export default function OrderFormPage() {
                 name="customerPhone"
                 value={form.customerPhone}
                 onChange={handleChange}
-                required
                 type="tel"
                 placeholder="09123456789"
                 dir="ltr"
-                pattern="09[0-9]{9}"
-                title="شماره موبایل باید با 09 شروع شود"
                 className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10
                            text-white placeholder:text-gray-600 text-left
                            focus:outline-none focus:border-orange-500/50 transition-all"
@@ -161,7 +164,6 @@ export default function OrderFormPage() {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                required
                 rows={3}
                 placeholder="مثلاً: کفش کتانی سایز ۴۲ رنگ مشکی، مدل Nike"
                 className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10
@@ -224,6 +226,12 @@ export default function OrderFormPage() {
                          focus:outline-none focus:border-orange-500/50 transition-all"
             />
           </div>
+
+          {error && (
+            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"

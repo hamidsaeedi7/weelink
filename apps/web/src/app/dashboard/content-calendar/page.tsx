@@ -419,6 +419,7 @@ function PlanModal({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!form.title.trim()) { setError("عنوان محتوا را وارد کنید"); return; }
     setSaving(true);
     try {
       // Send only the fields the API expects (channels are handled server-side).
@@ -477,7 +478,7 @@ function PlanModal({
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1.5">عنوان محتوا *</label>
             <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              required placeholder="مثال: پست معرفی محصول جدید"
+              placeholder="مثال: پست معرفی محصول جدید"
               className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm
                          focus:outline-none focus:border-accent-500/50 transition-all" />
           </div>
