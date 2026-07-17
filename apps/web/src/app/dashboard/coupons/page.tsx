@@ -78,6 +78,8 @@ export default function CouponsPage() {
   }, [scopeType]);
 
   const onSubmit = async (form: any) => {
+    if (!form.code?.trim()) { toast.error("کد تخفیف را وارد کنید"); return; }
+    if (form.value === undefined || form.value === "") { toast.error("مقدار تخفیف را وارد کنید"); return; }
     const value = Number(form.value);
     if (form.type === "percent" && (value < 1 || value > 100)) {
       toast.error("درصد تخفیف باید بین ۱ تا ۱۰۰ باشد");
@@ -160,7 +162,7 @@ export default function CouponsPage() {
           <h2 className="font-bold text-gray-900 dark:text-white mb-4">ایجاد کد تخفیف</h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex gap-2">
-              <input {...register("code", { required: true })}
+              <input {...register("code")}
                 placeholder="کد تخفیف (مثال: SUMMER20)" dir="ltr"
                 className="input-base flex-1 uppercase tracking-widest font-mono text-sm" />
               <button type="button"
@@ -179,7 +181,7 @@ export default function CouponsPage() {
                 <option value="fixed" className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">مبلغ ثابت (تومان)</option>
               </select>
               <div className="relative">
-                <input {...register("value", { required: true, min: 1 })}
+                <input {...register("value")}
                   type="number" placeholder={couponType === "percent" ? "درصد (۱ تا ۱۰۰)" : "مبلغ (تومان)"}
                   className="input-base" />
               </div>
@@ -195,28 +197,28 @@ export default function CouponsPage() {
               </select>
 
               {scopeType === "PRODUCT" && (
-                <select {...register("scopeId", { required: true })}
+                <select {...register("scopeId")}
                   className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                   <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب محصول...</option>
                   {products.map((p) => <option key={p.id} value={p.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{p.name}</option>)}
                 </select>
               )}
               {scopeType === "DIGITAL_FILE" && (
-                <select {...register("scopeId", { required: true })}
+                <select {...register("scopeId")}
                   className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                   <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب فایل...</option>
                   {files.map((f) => <option key={f.id} value={f.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{f.title}</option>)}
                 </select>
               )}
               {scopeType === "COURSE" && (
-                <select {...register("scopeId", { required: true })}
+                <select {...register("scopeId")}
                   className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                   <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب دوره...</option>
                   {courses.map((c) => <option key={c.id} value={c.id} className="bg-gray-100 dark:bg-[#1a1a2e]">{c.title}</option>)}
                 </select>
               )}
               {scopeType === "CATEGORY" && (
-                <select {...register("scopeCategory", { required: true })}
+                <select {...register("scopeCategory")}
                   className="input-base text-sm bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                   <option value="" className="bg-gray-100 dark:bg-[#1a1a2e]">انتخاب دسته...</option>
                   {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c} className="bg-gray-100 dark:bg-[#1a1a2e]">{c}</option>)}

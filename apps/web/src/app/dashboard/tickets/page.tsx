@@ -39,6 +39,8 @@ export default function TicketsPage() {
   }, [selected?.replies?.length]);
 
   const onCreateTicket = async (data: any) => {
+    if (!data.subject?.trim()) { toast.error("موضوع تیکت را وارد کنید"); return; }
+    if (!data.message?.trim()) { toast.error("توضیح مشکل یا سوال خود را بنویسید"); return; }
     try {
       const ticket = await ticketsApi.create(data) as any;
       setTickets((prev) => [ticket, ...prev]);
@@ -134,7 +136,7 @@ export default function TicketsPage() {
               </button>
             </div>
             <form onSubmit={handleSubmit(onCreateTicket)} className="space-y-4">
-              <input {...register("subject", { required: true })}
+              <input {...register("subject")}
                 placeholder="موضوع تیکت *"
                 className="input-base" />
               <select {...register("priority")} className="input-base text-sm">
@@ -143,7 +145,7 @@ export default function TicketsPage() {
                 <option value="URGENT">فوری</option>
                 <option value="LOW">کم اهمیت</option>
               </select>
-              <textarea {...register("message", { required: true })}
+              <textarea {...register("message")}
                 rows={6}
                 placeholder="توضیح کامل مشکل یا سوال خود را بنویسید..."
                 className="input-base resize-none" />

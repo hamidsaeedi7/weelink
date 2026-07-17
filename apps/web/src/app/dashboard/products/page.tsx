@@ -86,7 +86,10 @@ export default function ProductsPage() {
   };
 
   const onSubmit = async (form: any) => {
+    if (!form.name?.trim()) { toast.error("نام محصول را وارد کنید"); return; }
     if (!form.category) { toast.error("دسته محصول را انتخاب کنید"); return; }
+    if (form.price === undefined || form.price === "" || Number(form.price) < 0) { toast.error("قیمت محصول را وارد کنید"); return; }
+    if (!form.paymentMethod) { toast.error("روش پرداخت را انتخاب کنید"); return; }
     const payload: any = {
       name: form.name,
       description: form.description || "",
@@ -238,7 +241,7 @@ export default function ProductsPage() {
                   <p className="mt-1 text-[10px] text-gray-400 text-left">سایز مناسب: ۸۰۰×۸۰۰ پیکسل (مربعی)</p>
                 </div>
 
-                <input {...register("name", { required: true })}
+                <input {...register("name")}
                   placeholder="نام محصول *" className="input-base" />
 
                 <textarea {...register("description")} rows={2}
@@ -247,7 +250,7 @@ export default function ProductsPage() {
                 {/* دسته محصول (اجباری) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">دسته محصول *</label>
-                  <select {...register("category", { required: true })}
+                  <select {...register("category")}
                     className="input-base bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">
                     <option value="" className="bg-gray-100 dark:bg-[#1a1a2e] text-gray-900 dark:text-white">انتخاب دسته...</option>
                     {CATEGORIES.map((c) => (
@@ -259,7 +262,7 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">قیمت (تومان) *</label>
-                    <input {...register("price", { required: true, min: 0 })}
+                    <input {...register("price")}
                       type="number" placeholder="۲۵۰۰۰۰" className="input-base" />
                   </div>
                   <div>
@@ -283,7 +286,7 @@ export default function ProductsPage() {
                             ? "border-accent-500 bg-accent-500/10 text-accent-500 font-bold"
                             : "border-gray-200 dark:border-white/10 text-gray-500"
                         }`}>
-                        <input type="radio" value={o.v} {...register("paymentMethod", { required: true })} className="hidden" />
+                        <input type="radio" value={o.v} {...register("paymentMethod")} className="hidden" />
                         {o.l}
                       </label>
                     ))}

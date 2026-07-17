@@ -44,6 +44,9 @@ export default function AccountPage() {
   };
 
   const onPasswordChange = async (data: any) => {
+    if (!data.oldPassword) { toast.error("رمز عبور فعلی را وارد کنید"); return; }
+    if (!data.newPassword || data.newPassword.length < 6) { toast.error("رمز عبور جدید باید حداقل ۶ کاراکتر باشد"); return; }
+    if (!data.confirmPassword) { toast.error("تکرار رمز عبور جدید را وارد کنید"); return; }
     if (data.newPassword !== data.confirmPassword) {
       toast.error("رمزهای جدید یکسان نیستند");
       return;
@@ -163,7 +166,7 @@ export default function AccountPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 رمز عبور فعلی
               </label>
-              <input {...passForm.register("oldPassword", { required: true })}
+              <input {...passForm.register("oldPassword")}
                 type="password" dir="ltr"
                 placeholder="••••••••"
                 className="input-base" />
@@ -172,7 +175,7 @@ export default function AccountPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 رمز عبور جدید
               </label>
-              <input {...passForm.register("newPassword", { required: true, minLength: 6 })}
+              <input {...passForm.register("newPassword")}
                 type="password" dir="ltr"
                 placeholder="حداقل ۶ کاراکتر"
                 className="input-base" />
@@ -181,7 +184,7 @@ export default function AccountPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 تکرار رمز عبور جدید
               </label>
-              <input {...passForm.register("confirmPassword", { required: true })}
+              <input {...passForm.register("confirmPassword")}
                 type="password" dir="ltr"
                 placeholder="••••••••"
                 className="input-base" />
