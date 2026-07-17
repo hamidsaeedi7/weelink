@@ -93,8 +93,6 @@ export default function SetPasswordPage() {
                   placeholder="مثال: علی رضایی"
                   className="input-base pr-10"
                   autoFocus
-                  required
-                  minLength={3}
                 />
               </div>
             </div>
@@ -112,8 +110,6 @@ export default function SetPasswordPage() {
                   placeholder="حداقل ۸ کاراکتر"
                   className="input-base pr-10 pl-10 text-left"
                   dir="ltr"
-                  required
-                  minLength={8}
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -135,8 +131,6 @@ export default function SetPasswordPage() {
                   placeholder="تکرار رمز"
                   className="input-base pr-10 text-left"
                   dir="ltr"
-                  required
-                  minLength={8}
                 />
               </div>
             </div>

@@ -126,7 +126,6 @@ export default function ForgotPasswordPage() {
                     dir="ltr"
                     inputMode="numeric"
                     autoFocus
-                    required
                   />
                 </div>
               </div>
@@ -168,7 +167,6 @@ export default function ForgotPasswordPage() {
                   className="input-base text-center tracking-[0.5em] font-bold"
                   dir="ltr"
                   autoFocus
-                  required
                 />
               </div>
 
@@ -185,8 +183,6 @@ export default function ForgotPasswordPage() {
                     placeholder="حداقل ۸ کاراکتر"
                     className="input-base pr-10 text-left"
                     dir="ltr"
-                    required
-                    minLength={8}
                   />
                 </div>
               </div>

@@ -23,6 +23,10 @@ export default function LoginPage() {
       setError("شماره موبایل معتبر وارد کنید (مثال: ۰۹۱۲۳۴۵۶۷۸۹)");
       return;
     }
+    if (mode === "password" && !password.trim()) {
+      setError("رمز عبور را وارد کنید");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -113,7 +117,6 @@ export default function LoginPage() {
                   dir="ltr"
                   inputMode="numeric"
                   autoFocus
-                  required
                 />
               </div>
             </div>
@@ -135,8 +138,6 @@ export default function LoginPage() {
                     placeholder="رمز عبور"
                     className="input-base pr-10 pl-10 text-left"
                     dir="ltr"
-                    required
-                    minLength={8}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
