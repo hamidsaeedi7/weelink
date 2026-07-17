@@ -148,7 +148,7 @@ export function Hero() {
                 className="w-2 h-2 rounded-full animate-pulse"
                 style={{ backgroundColor: "var(--accent)" }}
               />
-              <span>بدون کارمزد فروش — برای همیشه رایگان</span>
+              <span>یک لینک ، یک فروشگاه کامل</span>
             </div>
 
             {/* Headline */}

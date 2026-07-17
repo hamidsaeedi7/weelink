@@ -71,7 +71,7 @@ export function Footer() {
           {/* Col 4 — اعتماد و امنیت */}
           <div className="col-span-2 md:col-span-1">
             <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-4">اعتماد و امنیت</h4>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row items-center sm:flex-col sm:items-start gap-3">
               {/* اینماد */}
               {/* eslint-disable-next-line react/no-unknown-property */}
               <a referrerPolicy="origin" target="_blank"
