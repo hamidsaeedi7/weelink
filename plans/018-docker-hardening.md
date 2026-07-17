@@ -1,8 +1,25 @@
 # 018 — Docker hardening: non-root user, pinned pnpm, fixed layer caching
 
-Status: TODO
+Status: DONE (Steps 1-3 only) — Step 4 not attempted
 Written against commit: `74e98a3`
 Category: Docker | Impact: Medium | Effort: M | Risk of fix: Low (Steps 1-3) / Medium (Step 4, optional) | Confidence: High
+
+## Execution note
+
+Steps 1-3 (pin pnpm@11.9.0, fix layer-caching COPY order, add `USER node`) were applied to all
+three Dockerfiles. **They could not be verified with a real `docker build`** — Docker Desktop
+wasn't running locally and wouldn't start in a reasonable time during execution, and this
+project's production server can't build (no outbound npm access, the whole reason this project's
+deploy process never invokes `docker build` in the first place — deploys are `docker cp` +
+`docker commit`, not image rebuilds). Verification was limited to: manually confirming every
+`package.json` path referenced in the new COPY instructions actually exists at that path, and
+static review of Dockerfile syntax. **Since these Dockerfiles are not part of the live deploy path,
+this is lower-risk than it sounds — nothing today depends on them building correctly — but the
+next time someone needs a from-scratch image rebuild (disaster recovery, a fresh server), build
+each Dockerfile once with `docker build -f Dockerfile.api .` (etc.) before relying on it, and fix
+forward if anything's wrong.** Step 4 (optional multi-stage split of `Dockerfile.api`) was skipped
+entirely for the same reason — it's explicitly the riskier, harder-to-verify-blind change and the
+plan's own escape hatch says to only attempt it once Steps 1-3 are confirmed working.
 
 ## Context
 

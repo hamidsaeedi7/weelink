@@ -1,6 +1,6 @@
 # 020 — Add server-side SEO metadata to courses/files public pages
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `74e98a3`
 Category: SEO | Impact: High | Effort: M | Risk of fix: Low | Confidence: High
 

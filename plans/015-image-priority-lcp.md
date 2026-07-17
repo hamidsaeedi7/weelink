@@ -1,6 +1,6 @@
 # 015 — Add `priority` to the bio page's avatar/banner images (LCP)
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `74e98a3`
 Category: Performance (Core Web Vitals) | Impact: High | Effort: S | Risk of fix: Low | Confidence: High
 

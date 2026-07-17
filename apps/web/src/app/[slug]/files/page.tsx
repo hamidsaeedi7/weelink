@@ -1,75 +1,39 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { FileDown, Loader2, ArrowRight } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
-import { PurchaseModal } from "@/components/PurchaseModal";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import FilesClient from "./FilesClient";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-interface DFile { id: string; title: string; description?: string; coverUrl?: string; price: string; isFree: boolean; }
+async function getData(slug: string) {
+  try {
+    const [filesRes, shopRes] = await Promise.all([
+      fetch(`${API}/api/v1/shops/${slug}/digital-files`, { next: { revalidate: 60 } }),
+      fetch(`${API}/api/v1/shops/${slug}`, { next: { revalidate: 60 } }),
+    ]);
+    if (!shopRes.ok) return null;
+    return {
+      files: filesRes.ok ? await filesRes.json() : [],
+      shop: await shopRes.json(),
+    };
+  } catch {
+    return null;
+  }
+}
 
-export default function PublicFilesPage() {
-  const slug = useParams().slug as string;
-  const [files, setFiles] = useState<DFile[]>([]);
-  const [shop, setShop] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [buy, setBuy] = useState<DFile | null>(null);
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const data = await getData(params.slug);
+  if (!data) return { title: "فروشگاه یافت نشد" };
+  const shop = data.shop.data || data.shop;
+  return {
+    title: `فایل‌های دیجیتال ${shop.name}`,
+    description: shop.bio || `فایل‌های دیجیتال ${shop.name} در ویلینک`,
+  };
+}
 
-  useEffect(() => {
-    Promise.all([
-      fetch(`${API}/api/v1/shops/${slug}/digital-files`).then((r) => r.json()).catch(() => null),
-      fetch(`${API}/api/v1/shops/${slug}`).then((r) => r.json()).catch(() => null),
-    ]).then(([f, s]) => {
-      setFiles((f?.data ?? f ?? []) as DFile[]);
-      setShop(s?.data ?? s);
-      setLoading(false);
-    });
-  }, [slug]);
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0A0A0F]"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>;
-
-  return (
-    <div className="min-h-screen bg-[#0A0A0F] text-white py-8 px-4">
-      <div className="max-w-lg mx-auto space-y-5">
-        <div className="relative text-center">
-          <a href={`/${slug}`} title="بازگشت به فروشگاه"
-            className="absolute right-0 top-0 p-2 rounded-xl bg-white/5 border border-white/10 text-white/60
-                       hover:text-orange-500 hover:border-orange-500/40 transition-all">
-            <ArrowRight className="w-5 h-5" />
-          </a>
-          <h1 className="text-xl font-black flex items-center justify-center gap-2"><FileDown className="w-5 h-5 text-orange-500" /> فایل‌های دیجیتال</h1>
-          {shop?.name && <p className="text-sm text-white/50 mt-1">{shop.name}</p>}
-        </div>
-
-        {files.length === 0 ? (
-          <p className="text-center text-white/40 py-16">فایلی برای فروش موجود نیست</p>
-        ) : (
-          <div className="space-y-3">
-            {files.map((f) => (
-              <div key={f.id} className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                {f.coverUrl && <img src={f.coverUrl} alt={f.title} className="w-full h-40 object-cover" />}
-                <div className="p-4 space-y-2">
-                  <h3 className="font-bold">{f.title}</h3>
-                  {f.description && <p className="text-xs text-white/50 line-clamp-2">{f.description}</p>}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="font-black text-orange-500">{f.isFree ? "رایگان" : formatPrice(Number(f.price))}</span>
-                    <button onClick={() => setBuy(f)}
-                      className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-sm font-bold transition-all">
-                      {f.isFree ? "دریافت" : "خرید"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {buy && (
-        <PurchaseModal item={buy} shop={shop} onClose={() => setBuy(null)} />
-      )}
-    </div>
-  );
+export default async function FilesPage({ params }: { params: { slug: string } }) {
+  const data = await getData(params.slug);
+  if (!data) notFound();
+  const files = Array.isArray(data.files.data) ? data.files.data : data.files;
+  const shop = data.shop.data || data.shop;
+  return <FilesClient slug={params.slug} files={files} shop={shop} />;
 }

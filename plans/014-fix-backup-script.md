@@ -1,6 +1,6 @@
 # 014 — Fix backup.sh: include uploads, work against production
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `74e98a3`
 Category: Backup | Impact: High | Effort: S | Risk of fix: Low | Confidence: High
 

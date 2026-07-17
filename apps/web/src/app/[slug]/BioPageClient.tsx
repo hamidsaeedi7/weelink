@@ -119,7 +119,7 @@ export function BioPageClient({ shop }: { shop: Shop }) {
       {/* Banner */}
       {shop.bannerUrl && (
         <div className="w-full max-w-lg h-36 relative overflow-hidden">
-          <Image src={shop.bannerUrl} alt="" fill sizes="512px" className="object-cover" />
+          <Image src={shop.bannerUrl} alt="" fill sizes="512px" className="object-cover" priority />
         </div>
       )}
 
@@ -132,7 +132,7 @@ export function BioPageClient({ shop }: { shop: Shop }) {
             style={{ borderColor: `${primary}60`, boxShadow: `0 0 25px ${primary}30` }}
           >
             {shop.avatarUrl ? (
-              <Image src={shop.avatarUrl} alt={shop.name} fill sizes="80px" className="object-cover" />
+              <Image src={shop.avatarUrl} alt={shop.name} fill sizes="80px" className="object-cover" priority />
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center text-3xl font-black text-white"

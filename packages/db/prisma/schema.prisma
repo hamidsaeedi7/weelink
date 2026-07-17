@@ -273,6 +273,7 @@ model Order {
   @@index([shopId, status])
   @@index([orderNumber])
   @@index([createdAt])
+  @@index([shopId, createdAt])
 }
 
 // ─── Analytics ───────────────────────────────────────────────────────────────
@@ -336,6 +337,7 @@ model Coupon {
   shop Shop? @relation(fields: [shopId], references: [id], onDelete: SetNull)
 
   @@index([code])
+  @@index([shopId])
 }
 
 // ─── Ticket ──────────────────────────────────────────────────────────────────

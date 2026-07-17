@@ -1,6 +1,6 @@
 # 013 — Fix robots.txt sitemap domain mismatch
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `74e98a3`
 Category: SEO | Impact: High | Effort: S | Risk of fix: Low | Confidence: High
 

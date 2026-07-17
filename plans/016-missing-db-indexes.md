@@ -1,6 +1,6 @@
 # 016 — Add missing indexes on `Order` and `Coupon`
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `74e98a3`
 Category: Database | Impact: Medium | Effort: S | Risk of fix: Low | Confidence: High
 

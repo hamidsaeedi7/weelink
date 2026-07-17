@@ -43,14 +43,14 @@ cache-control header confirmed, boot guard passed on restart, new API routes map
 | 010 | [Upload cache-control headers](010-upload-cache-control-headers.md) | Performance | Medium | S | DONE |
 | 011 | [Redis cache for shop-by-slug](011-redis-cache-shop-by-slug.md) | Performance | High | M | DONE |
 | 012 | [Bio-page server-side storefront data](012-bio-page-server-side-storefront-data.md) | Performance | High | M | DONE |
-| 013 | [Fix robots.ts sitemap domain](013-fix-robots-sitemap-domain.md) | SEO | High | S | TODO |
-| 014 | [Fix backup.sh (uploads + prod)](014-fix-backup-script.md) | Backup | High | S | TODO |
-| 015 | [Avatar/banner `priority` (LCP)](015-image-priority-lcp.md) | Performance | High | S | TODO |
-| 016 | [Missing DB indexes (Order, Coupon)](016-missing-db-indexes.md) | Database | Medium | S | TODO |
-| 017 | [Dashboard noindex metadata](017-dashboard-noindex.md) | SEO | Medium | S | TODO |
-| 018 | [Docker hardening](018-docker-hardening.md) | Docker | Medium | M | TODO |
-| 019 | [Compose resource limits + healthchecks](019-compose-resource-limits-healthchecks.md) | Ops | High | M | TODO |
-| 020 | [SEO metadata for course/file pages](020-seo-metadata-course-file-pages.md) | SEO | High | M | TODO |
+| 013 | [Fix robots.ts sitemap domain](013-fix-robots-sitemap-domain.md) | SEO | High | S | DONE |
+| 014 | [Fix backup.sh (uploads + prod)](014-fix-backup-script.md) | Backup | High | S | DONE |
+| 015 | [Avatar/banner `priority` (LCP)](015-image-priority-lcp.md) | Performance | High | S | DONE |
+| 016 | [Missing DB indexes (Order, Coupon)](016-missing-db-indexes.md) | Database | Medium | S | DONE |
+| 017 | [Dashboard noindex metadata](017-dashboard-noindex.md) | SEO | Medium | S | DONE |
+| 018 | [Docker hardening](018-docker-hardening.md) | Docker | Medium | M | DONE (Steps 1-3; Step 4 skipped) |
+| 019 | [Compose resource limits + healthchecks](019-compose-resource-limits-healthchecks.md) | Ops | High | M | DONE — see incident notes in the plan |
+| 020 | [SEO metadata for course/file pages](020-seo-metadata-course-file-pages.md) | SEO | High | M | DONE |
 
 ### Second audit pass (013-020)
 

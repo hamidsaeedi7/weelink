@@ -1,8 +1,52 @@
 # 019 — Add resource limits and missing healthchecks to production compose
 
-Status: TODO
+Status: DONE — executed and live-verified in production
 Written against commit: `74e98a3`
 Category: Ops/DevOps | Impact: High | Effort: M | Risk of fix: Low | Confidence: High
+
+## Post-execution incident notes (read before touching this file again)
+
+Applying this plan caused a real (~30 min) production incident, entirely from pre-existing bugs
+this plan's `--force-recreate` was the first thing in a long time to actually exercise. Root causes
+and fixes, all now applied and live:
+
+1. **`postgres`/`redis` got stuck in `Created` (never started)** after the very first
+   `docker compose up -d --force-recreate` — likely a compose/daemon quirk recreating dependency
+   services before their dependents were ready to be resolved by `--no-build`. Fixed in the moment
+   with `docker start weelink-postgres-1 weelink-redis-1`. Data was never at risk (named volumes
+   `weelink_prod_postgres`/`weelink_prod_redis` persisted throughout) but the API had no working DB
+   for a few minutes. **If recreating this stack again, watch `docker ps` immediately after `up`
+   and don't assume "Recreated" in the log means "Started."**
+2. **`web`/`admin` service images only existed under the `:prod` tag**, not the `:latest` tag
+   Compose implicitly looks for on some recreate paths — caused `api`'s recreate to fail outright
+   with "No such image: weelink-api:latest". Fixed by also tagging `docker tag weelink-api:prod
+   weelink-api:latest` (and same for `web`/`admin`). **Any future manual `docker commit ... :prod`
+   deploy should also tag `:latest` to the same image, or this will recur.**
+3. **Next.js standalone (`web`/`admin`) binds IPv4-only** (`HOSTNAME=0.0.0.0` in the Dockerfiles),
+   but `localhost` inside the container resolves to `::1` (IPv6) first — so the healthchecks this
+   plan added as `wget http://localhost:PORT/` always failed with "Connection refused" even though
+   the app was running fine. Fixed by using `http://127.0.0.1:PORT/` instead, which is what's in
+   this file now. `api`'s existing healthcheck was untouched since NestJS's default `app.listen()`
+   binds dual-stack and `localhost` already worked there.
+4. **`nginx.conf` proxies two `server_name` blocks (`medadplus.net`/`api.medadplus.net`) to
+   `host.docker.internal`** — that's for an *entirely separate, unrelated project* ("مداد+") that
+   runs directly on the host, not in this compose stack (see the comment at `nginx.conf:148`). This
+   is intentional, not a bug — do not "fix" it by changing those `proxy_pass` targets. The actual
+   gap was that `host.docker.internal` doesn't resolve on Linux Docker Engine without an explicit
+   `extra_hosts: ["host.docker.internal:host-gateway"]` entry, which was missing from the `nginx`
+   service. Added and confirmed working — this file now has it.
+5. **`nginx`'s madad-plus SSL cert (`/etc/nginx/ssl-madad/madad.crt`) lived on the host but was
+   never declared as a compose volume** — the long-running old `nginx` container (27h uptime before
+   this plan touched it) must have gotten it some other way (manual `docker cp`, or an older compose
+   file version) that didn't survive into this file. Added
+   `- /etc/nginx/ssl-madad:/etc/nginx/ssl-madad:ro` to `nginx`'s volumes; confirmed present on the
+   host and now correctly mounted.
+
+**Lesson for future infra changes on this stack**: nothing here had been restarted in a long time
+(`nginx` specifically had 27h uptime), so several unrelated pre-existing config gaps were latent and
+only surfaced when `--force-recreate` actually exercised the full startup path for every service at
+once. Before the next full-stack recreate, consider recreating one service at a time and checking
+`docker ps`/`docker logs` after each, rather than all 6 in one shot.
 
 ## Context
 

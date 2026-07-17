@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard/", "/api/", "/payment/", "/onboarding"],
       },
     ],
-    sitemap: "https://weeelink.com/sitemap.xml",
+    sitemap: "https://weeelink.ir/sitemap.xml",
   };
 }
