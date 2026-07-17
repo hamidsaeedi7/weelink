@@ -71,7 +71,7 @@ export default function NewBlogPostPage() {
         tags: form.tags,
         coverImage: form.coverImage,
         seoTitle: form.seoTitle,
-        seoDescription: form.seoDesc,
+        seoDesc: form.seoDesc,
         isPublished: form.isPublished,
       });
       toast.success("پست با موفقیت ایجاد شد");

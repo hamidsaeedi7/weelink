@@ -291,16 +291,17 @@ export class AdminService {
   // ─── Page Content ─────────────────────────────────────────────────────────
 
   async getPageContent(id: string) {
-    const content = await this.prisma.pageContent.findUnique({ where: { id } });
-    return content || { id, content: {}, title: id };
+    const row = await this.prisma.pageContent.findUnique({ where: { id } });
+    return (row?.content as Record<string, unknown>) ?? {};
   }
 
   async updatePageContent(id: string, data: any) {
-    return this.prisma.pageContent.upsert({
+    const row = await this.prisma.pageContent.upsert({
       where: { id },
-      create: { id, ...data },
-      update: data,
+      create: { id, content: data },
+      update: { content: data },
     });
+    return row.content;
   }
 
   // ─── Landing Pages ────────────────────────────────────────────────────────

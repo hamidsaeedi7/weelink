@@ -67,7 +67,10 @@ export default function NotificationsPage() {
     if (!form.body.trim()) { toast.error("متن الزامی است"); return; }
     setSending(true);
     try {
-      await adminApi.sendNotification(form);
+      // targetPlan is nullable on the backend ("همه" = no filter); the API
+      // rejects any value outside FREE/PRO, so omit it rather than send "ALL".
+      const { targetPlan, ...rest } = form;
+      await adminApi.sendNotification(targetPlan === "ALL" ? rest : form);
       toast.success("اعلان ارسال شد");
       setForm({ title: "", body: "", type: "info", targetPlan: "ALL" });
       loadNotifications();

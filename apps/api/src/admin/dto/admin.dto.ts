@@ -19,7 +19,7 @@ export class CreateGlobalCouponDto {
   @MaxLength(30)
   code: string;
 
-  @IsIn(["PERCENT", "FIXED"])
+  @IsIn(["percent", "fixed"])
   type: string;
 
   @IsInt()
