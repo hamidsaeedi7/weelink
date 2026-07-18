@@ -46,7 +46,7 @@ export default function DomainsPage() {
   const load = async () => {
     try {
       const r = await fetch(`${API}/api/v1/domains`, { headers: auth() });
-      if (r.ok) setInfo(await r.json());
+      if (r.ok) setInfo((await r.json()).data);
     } catch { /* no domain set yet */ }
     finally { setLoading(false); }
   };
@@ -114,7 +114,7 @@ export default function DomainsPage() {
     setCdnLoading(true);
     try {
       const r = await fetch(`${API}/api/v1/domains/refresh-cdn`, { headers: auth() });
-      if (r.ok) setInfo(await r.json());
+      if (r.ok) setInfo((await r.json()).data);
     } catch { /* ignore */ }
     finally { setCdnLoading(false); }
   };
