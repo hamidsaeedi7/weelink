@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Phone, MapPin } from "lucide-react";
 
 const LINKS = {
   محصول: [
@@ -34,6 +35,21 @@ export function Footer() {
               پلتفرم لینک بیو فارسی برای فروشگاه‌های اینستاگرامی و کسب‌وکارهای ایرانی.
               بدون کارمزد، با پشتیبانی پیام‌رسان‌های ایرانی.
             </p>
+            <div className="space-y-2.5 pt-1">
+              <a href="tel:+989107192646"
+                className="flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-500
+                           hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-fit">
+                <Phone className="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-600" />
+                <span dir="ltr">۰۹۱۰۷۱۹۲۶۴۶</span>
+              </a>
+              <a href="https://maps.google.com/?q=تهران، پیروزی، خیابان اول نیروی هوایی، کوچه کاظمی، پلاک ۱۱"
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-start gap-2.5 text-sm text-gray-500 dark:text-gray-500
+                           hover:text-blue-600 dark:hover:text-blue-400 transition-colors max-w-xs">
+                <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-gray-400 dark:text-gray-600" />
+                <span className="leading-relaxed">تهران، پیروزی، خیابان اول نیروی هوایی، کوچه کاظمی، پلاک ۱۱</span>
+              </a>
+            </div>
           </div>
 
           {/* Col 2 — محصول */}
