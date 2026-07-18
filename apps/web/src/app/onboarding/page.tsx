@@ -130,7 +130,7 @@ export default function OnboardingPage() {
               </div>
               {slug && (
                 <p className="mt-1.5 text-xs text-gray-600 font-mono" dir="ltr">
-                  weeelink.com/<span className="text-orange-400">{slug}</span>
+                  weeelink.ir/<span className="text-orange-400">{slug}</span>
                 </p>
               )}
               {errors.slug && (

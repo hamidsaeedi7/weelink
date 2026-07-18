@@ -24,7 +24,7 @@ export default function EmbedPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const shopUrl = `https://weeelink.com/${slug}`;
+  const shopUrl = `https://weeelink.ir/${slug}`;
 
   const resolvedColor =
     buttonColor === "orange"

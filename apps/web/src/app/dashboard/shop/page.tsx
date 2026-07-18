@@ -202,7 +202,7 @@ export default function ShopSettingsPage() {
         {shop?.slug && (
           <a href={`/${shop.slug}`} target="_blank" rel="noopener noreferrer"
             className="text-sm text-accent-500 hover:text-accent-400 inline-flex items-center gap-1 mt-1">
-            weeelink.com/{shop.slug}
+            weeelink.ir/{shop.slug}
             <ExternalLink className="w-3 h-3" />
           </a>
         )}

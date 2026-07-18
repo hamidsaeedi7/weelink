@@ -54,7 +54,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
   }
 
   const name = shop.name || params.slug;
-  const bio = shop.bio || "لینک بیو فارسی | weeelink.com";
+  const bio = shop.bio || "لینک بیو فارسی | weeelink.ir";
   const logoUrl = shop.logo ? `${API}/uploads/${shop.logo}` : null;
 
   return new ImageResponse(
@@ -185,7 +185,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
               fontWeight: "bold",
             }}
           >
-            ویلینک | weeelink.com
+            ویلینک | weeelink.ir
           </div>
         </div>
       </div>

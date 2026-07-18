@@ -18,8 +18,8 @@ const CHANNELS = [
     icon: Mail,
     title: "ایمیل",
     desc: "پاسخ تا ۲۴ ساعت",
-    link: "mailto:support@weeelink.com",
-    label: "support@weeelink.com",
+    link: "mailto:support@weeelink.ir",
+    label: "support@weeelink.ir",
     color: "text-orange-500 bg-orange-500/10",
   },
 ];

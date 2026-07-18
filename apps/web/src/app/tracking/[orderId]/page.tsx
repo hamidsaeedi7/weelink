@@ -170,7 +170,7 @@ export default async function TrackingPage({ params }: { params: { orderId: stri
             {/* Shop footer */}
             <div className="text-center text-xs text-gray-400 space-y-1 pb-6">
               <p>این سفارش توسط فروشگاه <span className="font-bold text-orange-500">{data.shopName}</span> پردازش می‌شود.</p>
-              <p>powered by <span className="font-bold">weeelink.com</span></p>
+              <p>powered by <span className="font-bold">weeelink.ir</span></p>
             </div>
           </>
         )}
