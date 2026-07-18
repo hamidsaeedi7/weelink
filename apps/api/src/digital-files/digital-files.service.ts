@@ -162,7 +162,7 @@ export class DigitalFilesService {
     return { free: false, gatewayUrl };
   }
 
-  /** Called by the gateway callback once Zarinpal confirms payment. Idempotent. */
+  /** Called by the gateway callback once Zibal confirms payment. Idempotent. */
   async finalizePurchase(purchaseId: string) {
     const purchase = await this.prisma.digitalPurchase.findUnique({ where: { id: purchaseId } });
     if (!purchase) throw new NotFoundException("خرید یافت نشد");

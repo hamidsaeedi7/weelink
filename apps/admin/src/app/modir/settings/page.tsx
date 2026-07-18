@@ -39,7 +39,7 @@ interface Settings {
   customLinks?: CustomLink[];
   planPrices?: { monthly: number; sixMonths: number; yearly: number };
   paymentConfig?: {
-    zarinpal?: { merchantId: string; sandbox: boolean };
+    zibal?: { merchantId: string };
     kavehNegar?: { apiKey: string; sender: string };
     enamad?: { code: string; link: string };
   };
@@ -306,22 +306,14 @@ export default function SettingsPage() {
             <div className="space-y-6">
               <h2 className="text-white font-semibold text-lg border-b border-white/10 pb-3">درگاه‌ها و سرویس‌ها</h2>
 
-              {/* زرین‌پال */}
+              {/* زیبال */}
               <div className="space-y-3">
-                <h3 className="text-white/80 text-sm font-semibold flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block"></span> زرین‌پال</h3>
+                <h3 className="text-white/80 text-sm font-semibold flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block"></span> زیبال</h3>
+                <p className="text-white/40 text-xs pr-4">همین یک مرچنت هم برای ارتقا پلن Pro و هم برای خرید فایل دیجیتال/دوره توسط مشتری استفاده می‌شود — در پنل ادمین این دو در دو گزارش جدا (اشتراک‌ها / درگاه ویلینک) دیده می‌شوند.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-4">
                   <div>
                     <label className="text-white/60 text-xs mb-1 block">Merchant ID</label>
-                    <input className="input-base w-full font-mono text-sm" value={payConf.zarinpal?.merchantId ?? ""} onChange={e => set("paymentConfig", { ...payConf, zarinpal: { ...payConf.zarinpal, merchantId: e.target.value, sandbox: payConf.zarinpal?.sandbox ?? false } })} />
-                  </div>
-                  <div className="flex items-end">
-                    <label className="flex items-center gap-3 cursor-pointer pb-2">
-                      <div className={`relative w-10 h-6 rounded-full transition ${payConf.zarinpal?.sandbox ? "bg-amber-500" : "bg-white/20"}`}
-                        onClick={() => set("paymentConfig", { ...payConf, zarinpal: { ...payConf.zarinpal, merchantId: payConf.zarinpal?.merchantId ?? "", sandbox: !payConf.zarinpal?.sandbox } })}>
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${payConf.zarinpal?.sandbox ? "right-1" : "left-1"}`} />
-                      </div>
-                      <span className="text-white/60 text-sm">حالت آزمایشی (Sandbox)</span>
-                    </label>
+                    <input className="input-base w-full font-mono text-sm" value={payConf.zibal?.merchantId ?? ""} onChange={e => set("paymentConfig", { ...payConf, zibal: { merchantId: e.target.value } })} />
                   </div>
                 </div>
               </div>

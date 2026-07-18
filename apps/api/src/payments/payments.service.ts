@@ -45,42 +45,42 @@ export class PaymentsService {
     this.merchantId = this.config.get<string>("ZIBAL_MERCHANT_ID") || "";
   }
 
-  /** Live-reads the Zarinpal merchant config from SiteSettings (no cache, no restart needed —
-   *  as soon as an admin saves it in /modir/settings the gateway starts working). */
-  private async getZarinpalConfig(): Promise<{ merchantId: string; sandbox: boolean }> {
+  /** Live-reads the Zibal merchant config from SiteSettings (no cache, no restart needed —
+   *  as soon as an admin saves it in /modir/settings the gateway starts working). Falls back
+   *  to the ZIBAL_MERCHANT_ID env var so nothing breaks before the first admin save.
+   *  Shared by both the PRO-plan flow and the buyer marketplace flow — one merchant, two
+   *  separate ledgers (Subscription vs GatewayTransaction) so admin reporting stays split. */
+  private async getZibalConfig(): Promise<{ merchantId: string }> {
     const settings = await this.prisma.siteSettings.findUnique({ where: { id: "default" } });
-    const zarinpal = (settings?.paymentConfig as any)?.zarinpal || {};
-    return { merchantId: zarinpal.merchantId || "", sandbox: !!zarinpal.sandbox };
+    const zibal = (settings?.paymentConfig as any)?.zibal || {};
+    return { merchantId: zibal.merchantId || this.merchantId };
   }
 
   async requestGatewayPayment(input: RequestGatewayPaymentInput) {
-    const { merchantId, sandbox } = await this.getZarinpalConfig();
+    const { merchantId } = await this.getZibalConfig();
     if (!merchantId) {
       throw new BadRequestException("درگاه پرداخت ویلینک هنوز توسط مدیریت پیکربندی نشده است");
     }
     if (input.amount <= 0) throw new BadRequestException("مبلغ نامعتبر است");
 
-    const base = sandbox ? "https://sandbox.zarinpal.com" : "https://payment.zarinpal.com";
-    const res = await fetch(`${base}/pg/v4/payment/request.json`, {
+    const res = await fetch(`${ZIBAL_BASE}/request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        merchant_id: merchantId,
+        merchant: merchantId,
         amount: input.amount,
-        callback_url: input.callbackUrl,
+        callbackUrl: input.callbackUrl,
         description: input.description,
-        metadata: { mobile: input.buyerPhone, name: input.buyerName },
       }),
     });
 
     const data: any = await res.json();
-    if (data?.data?.code !== 100) {
-      this.logger.error(`Zarinpal request failed: ${JSON.stringify(data)}`);
-      const msg = data?.errors?.message || `کد ${data?.errors?.code ?? data?.data?.code}`;
-      throw new BadRequestException(`خطا در اتصال به درگاه ویلینک: ${msg}`);
+    if (data?.result !== 100) {
+      this.logger.error(`Zibal request failed: ${JSON.stringify(data)}`);
+      throw new BadRequestException(`خطا در اتصال به درگاه زیبال: کد ${data?.result}`);
     }
 
-    const authority = data.data.authority as string;
+    const trackId = String(data.trackId);
     const amount = BigInt(input.amount);
     const platformFee = (amount * PLATFORM_FEE_PERCENT) / 100n;
     const sellerPayable = amount - platformFee;
@@ -95,50 +95,47 @@ export class PaymentsService {
         amount,
         platformFee,
         sellerPayable,
-        authority,
+        authority: trackId,
         status: "PENDING",
       },
     });
 
-    const gatewayUrl = `${base}/pg/StartPay/${authority}`;
-    return { authority, gatewayUrl };
+    return { authority: trackId, gatewayUrl: `${ZIBAL_GATEWAY}/${trackId}` };
   }
 
-  async verifyGatewayPayment(authority: string, status: string) {
-    if (!authority) throw new BadRequestException("اطلاعات تراکنش ناقص است");
+  async verifyGatewayPayment(trackId: string, success: string) {
+    if (!trackId) throw new BadRequestException("اطلاعات تراکنش ناقص است");
 
-    const txn = await this.prisma.gatewayTransaction.findUnique({ where: { authority } });
+    const txn = await this.prisma.gatewayTransaction.findUnique({ where: { authority: trackId } });
     if (!txn) throw new NotFoundException("تراکنش یافت نشد");
 
     if (txn.status === "PAID") {
       return { success: true, refNumber: txn.refNumber, shopId: txn.shopId, type: txn.type, refId: txn.refId, alreadyVerified: true };
     }
 
-    if (status !== "OK") {
-      await this.prisma.gatewayTransaction.update({ where: { authority }, data: { status: "FAILED" } });
+    if (success !== "1") {
+      await this.prisma.gatewayTransaction.update({ where: { authority: trackId }, data: { status: "FAILED" } });
       throw new BadRequestException("پرداخت توسط کاربر لغو شد");
     }
 
-    const { merchantId, sandbox } = await this.getZarinpalConfig();
-    const base = sandbox ? "https://sandbox.zarinpal.com" : "https://payment.zarinpal.com";
-    const res = await fetch(`${base}/pg/v4/payment/verify.json`, {
+    const { merchantId } = await this.getZibalConfig();
+    const res = await fetch(`${ZIBAL_BASE}/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ merchant_id: merchantId, amount: Number(txn.amount), authority }),
+      body: JSON.stringify({ merchant: merchantId, trackId: Number(trackId) }),
     });
 
     const data: any = await res.json();
-    // 100 = success, 101 = already verified (idempotent)
-    if (data?.data?.code !== 100 && data?.data?.code !== 101) {
-      this.logger.error(`Zarinpal verify failed for ${authority}: ${JSON.stringify(data)}`);
-      await this.prisma.gatewayTransaction.update({ where: { authority }, data: { status: "FAILED" } });
-      const msg = data?.errors?.message || `کد ${data?.errors?.code ?? data?.data?.code}`;
-      throw new BadRequestException(`تأیید پرداخت ناموفق: ${msg}`);
+    // 100 = success, 201 = already verified (idempotent)
+    if (data?.result !== 100 && data?.result !== 201) {
+      this.logger.error(`Zibal verify failed for ${trackId}: ${JSON.stringify(data)}`);
+      await this.prisma.gatewayTransaction.update({ where: { authority: trackId }, data: { status: "FAILED" } });
+      throw new BadRequestException(`تأیید پرداخت ناموفق: کد ${data?.result}`);
     }
 
-    const refNumber = String(data.data.ref_id ?? authority);
+    const refNumber = String(data.refNumber ?? trackId);
     await this.prisma.gatewayTransaction.update({
-      where: { authority },
+      where: { authority: trackId },
       data: { status: "PAID", refNumber },
     });
 
@@ -149,11 +146,16 @@ export class PaymentsService {
     const price = PRO_PLAN_PRICES[months];
     if (!price) throw new BadRequestException("مدت زمان پلن نامعتبر است");
 
+    const { merchantId } = await this.getZibalConfig();
+    if (!merchantId) {
+      throw new BadRequestException("درگاه پرداخت ویلینک هنوز توسط مدیریت پیکربندی نشده است");
+    }
+
     const res = await fetch(`${ZIBAL_BASE}/request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        merchant: this.merchantId,
+        merchant: merchantId,
         // Zibal expects the amount in Rial; our plan prices are stored in Toman.
         amount: price * 10,
         callbackUrl,
@@ -186,10 +188,11 @@ export class PaymentsService {
       throw new BadRequestException("پرداخت توسط کاربر لغو شد");
     }
 
+    const { merchantId } = await this.getZibalConfig();
     const res = await fetch(`${ZIBAL_BASE}/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ merchant: this.merchantId, trackId: Number(trackId) }),
+      body: JSON.stringify({ merchant: merchantId, trackId: Number(trackId) }),
     });
 
     const data: any = await res.json();

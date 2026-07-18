@@ -8,11 +8,12 @@ import { OrdersService } from "../orders/orders.service";
 const WEB_URL = process.env.WEB_URL || process.env.FRONTEND_URL || "http://localhost:3000";
 
 /**
- * Weelink Zarinpal gateway — shared platform merchant used for digital-file/course/product
- * purchases (10% platform fee ledger). Zarinpal redirects the buyer's browser here via GET
- * with ?Authority=...&Status=OK|NOK after they finish/cancel payment. Lives in its own module
- * (rather than PaymentsModule) so it can depend on DigitalFilesModule/CoursesModule/OrdersModule
- * without creating a circular import (those modules depend on PaymentsModule, not vice versa).
+ * Weelink Zibal gateway — shared platform merchant (same one used for PRO plan upgrades) used
+ * for digital-file/course/product purchases (10% platform fee ledger). Zibal redirects the
+ * buyer's browser here via GET with ?trackId=...&success=1|0 after they finish/cancel payment.
+ * Lives in its own module (rather than PaymentsModule) so it can depend on
+ * DigitalFilesModule/CoursesModule/OrdersModule without creating a circular import (those
+ * modules depend on PaymentsModule, not vice versa).
  */
 @Controller("payments/gateway")
 export class GatewayCallbackController {
@@ -24,9 +25,9 @@ export class GatewayCallbackController {
   ) {}
 
   @Get("callback")
-  async callback(@Query("Authority") authority: string, @Query("Status") status: string, @Res() res: Response) {
+  async callback(@Query("trackId") trackId: string, @Query("success") success: string, @Res() res: Response) {
     try {
-      const result = await this.payments.verifyGatewayPayment(authority, status);
+      const result = await this.payments.verifyGatewayPayment(trackId, success);
 
       if (result.type === "DIGITAL_FILE" && result.refId) {
         const { downloadUrl } = await this.digitalFiles.finalizePurchase(result.refId);

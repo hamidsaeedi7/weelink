@@ -115,7 +115,7 @@ export class OrdersService {
     return { ...this.serialize(finalOrder), paymentMethod };
   }
 
-  /** Called by the gateway callback once Zarinpal confirms payment, or directly for free/coupon-covered orders. */
+  /** Called by the gateway callback once Zibal confirms payment, or directly for free/coupon-covered orders. */
   async finalizeOrder(orderId: string) {
     const order = await this.prisma.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundException("سفارش یافت نشد");

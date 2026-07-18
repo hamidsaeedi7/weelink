@@ -275,7 +275,7 @@ export class CoursesService {
     throw new BadRequestException("خطا در تولید کد لایسنس");
   }
 
-  /** Called by the gateway callback once Zarinpal confirms payment. Idempotent. */
+  /** Called by the gateway callback once Zibal confirms payment. Idempotent. */
   async finalizeEnrollment(enrollmentId: string) {
     const enrollment = await this.prisma.courseEnrollment.findUnique({
       where: { id: enrollmentId },
