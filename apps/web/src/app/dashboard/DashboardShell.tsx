@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import {
-  LogOut, Menu, X, Sun, Moon, ChevronDown, Bell,
+  LogOut, Menu, X, Sun, Moon, ChevronDown, Bell, Smartphone,
 } from "lucide-react";
 import { ProUpgradeModal } from "@/components/ProUpgradeModal";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -101,16 +101,19 @@ function SidebarContent({
       </div>
 
       <div className="space-y-1 pt-3 border-t border-gray-200 dark:border-white/[0.06]">
-        <button
-          onClick={onToggleTheme}
-          suppressHydrationWarning
-          className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-xs
-                     text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">
-          {mounted ? (theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />) : <Moon className="w-3.5 h-3.5" />}
-          <span suppressHydrationWarning>
-            {mounted ? (theme === "dark" ? "حالت روشن" : "حالت تاریک") : "حالت تاریک"}
-          </span>
-        </button>
+        {/* On mobile the theme toggle lives in the top header next to the bell instead */}
+        {!mobile && (
+          <button
+            onClick={onToggleTheme}
+            suppressHydrationWarning
+            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-xs
+                       text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">
+            {mounted ? (theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />) : <Moon className="w-3.5 h-3.5" />}
+            <span suppressHydrationWarning>
+              {mounted ? (theme === "dark" ? "حالت روشن" : "حالت تاریک") : "حالت تاریک"}
+            </span>
+          </button>
+        )}
         <button
           onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
           className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-xs
@@ -120,6 +123,23 @@ function SidebarContent({
         </button>
       </div>
     </div>
+  );
+}
+
+function AnimatedThemeToggle({ mounted, theme, onToggle }: { mounted: boolean; theme: string | undefined; onToggle: () => void }) {
+  const isDark = mounted && theme === "dark";
+  return (
+    <button
+      onClick={onToggle}
+      suppressHydrationWarning
+      aria-label="تغییر تم"
+      className="relative w-8 h-8 rounded-full flex items-center justify-center glass-chrome
+                 text-gray-500 dark:text-gray-400 overflow-hidden shrink-0">
+      <Sun className={`w-4 h-4 absolute transition-all duration-500 ease-out
+                       ${isDark ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-50"}`} />
+      <Moon className={`w-4 h-4 absolute transition-all duration-500 ease-out
+                        ${isDark ? "opacity-0 -rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"}`} />
+    </button>
   );
 }
 
@@ -261,11 +281,19 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <button className="md:hidden p-2 text-gray-500" onClick={() => setOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3 mr-auto">
+          <div className="flex items-center gap-2 sm:gap-3 mr-auto">
             <CommandPalette />
+            <Link href={slug ? `/${slug}` : "/dashboard/shop"} target="_blank"
+              className="md:hidden w-8 h-8 rounded-full flex items-center justify-center glass-chrome
+                         text-gray-500 dark:text-gray-400 shrink-0" aria-label="مشاهده صفحه بیو">
+              <Smartphone className="w-4 h-4" />
+            </Link>
+            <div className="md:hidden">
+              <AnimatedThemeToggle mounted={mounted} theme={theme} onToggle={toggleTheme} />
+            </div>
             <NotificationBell />
             <Link href={slug ? `/${slug}` : "/dashboard/shop"} target="_blank"
-              className="hidden sm:inline text-xs text-gray-500 hover:text-accent-500 transition-colors">
+              className="hidden md:inline text-xs text-gray-500 hover:text-accent-500 transition-colors">
               مشاهده صفحه بیو ↗
             </Link>
           </div>

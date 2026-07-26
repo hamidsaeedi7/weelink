@@ -1,13 +1,13 @@
 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFAA50"/>
-      <stop offset="45%" stop-color="#F97316"/>
+      <stop offset="0%" stop-color="#5CE8C6"/>
+      <stop offset="45%" stop-color="#0EA88A"/>
       <stop offset="100%" stop-color="#111111"/>
     </linearGradient>
     <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFB870" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#F97316" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#7BF0D3" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0EA88A" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="wave2" x1="100%" y1="100%" x2="0%" y2="0%">
       <stop offset="0%" stop-color="#222222" stop-opacity="0.6"/>
@@ -36,5 +36,5 @@
         transform="rotate(-35 87 122)"/>
 
   <!-- Center dot -->
-  <circle cx="100" cy="100" r="11" fill="#F97316" stroke="#1a1a1a" stroke-width="3"/>
+  <circle cx="100" cy="100" r="11" fill="#0EA88A" stroke="#1a1a1a" stroke-width="3"/>
 </svg>

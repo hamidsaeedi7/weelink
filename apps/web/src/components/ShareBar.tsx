@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { BrandLogo } from "./blocks/brand-icons";
 
 // دکمهٔ «کپی لینک» + اشتراک‌گذاری در تلگرام/واتساپ/ایتا/بله/روبیکا
-export function ShareBar({ url, text = "صفحهٔ من در ویلینک" }: { url: string; text?: string }) {
+export function ShareBar({ url, text = "صفحهٔ من در ویلینک", className = "" }: { url: string; text?: string; className?: string }) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
   const u = encodeURIComponent(url);
@@ -36,10 +36,10 @@ export function ShareBar({ url, text = "صفحهٔ من در ویلینک" }: { 
   };
 
   return (
-    <div className="relative flex items-center gap-2">
+    <div className={`relative flex items-center gap-2 ${className}`}>
       <button
         onClick={copy}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
+        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm
                    border border-gray-200 dark:border-white/10
                    text-gray-600 dark:text-gray-400 hover:border-accent-500/50 hover:text-accent-500 transition-all">
         {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
@@ -48,7 +48,7 @@ export function ShareBar({ url, text = "صفحهٔ من در ویلینک" }: { 
 
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
+        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm
                    border border-gray-200 dark:border-white/10
                    text-gray-600 dark:text-gray-400 hover:border-accent-500/50 hover:text-accent-500 transition-all">
         <Share2 className="w-4 h-4" />

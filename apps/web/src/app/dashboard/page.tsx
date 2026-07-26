@@ -191,7 +191,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">دسترسی سریع</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((a, i) => (
             <Link key={i} href={a.href}
               className="glass-card p-5 hover:border-accent-500/20 transition-all duration-200

@@ -133,7 +133,7 @@ export default function BlocksPage() {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-black text-gray-900 dark:text-white">ویرایش لینک‌ها</h1>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -141,22 +141,22 @@ export default function BlocksPage() {
             {saving && <span className="text-accent-400 mr-2">• در حال ذخیره...</span>}
           </p>
         </div>
-        {/* موبایل: پیش‌نمایش/کپی/اشتراک در یک ردیف، «بلوک جدید» تمام‌عرض زیرشان — دسکتاپ: همه در یک خط */}
-        <div className="w-full sm:w-auto space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-2">
+        {/* موبایل: پیش‌نمایش/کپی/اشتراک در یک ردیف تراز‌شده، «بلوک جدید» تمام‌عرض زیرشان — دسکتاپ: همه در یک خط */}
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
           {slug && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <a
                 href={`/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm
                            border border-gray-200 dark:border-white/10
                            text-gray-600 dark:text-gray-400 hover:border-accent-500/50
                            hover:text-accent-500 transition-all">
                 <Eye className="w-4 h-4" />
                 پیش‌نمایش
               </a>
-              <ShareBar url={`https://weeelink.ir/${slug}`} />
+              <ShareBar url={`https://weeelink.ir/${slug}`} className="flex-1 sm:flex-none" />
             </div>
           )}
           <button

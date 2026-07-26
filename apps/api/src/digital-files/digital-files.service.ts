@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from "../prisma/prisma.service";
 import { PaymentsService } from "../payments/payments.service";
 import { CouponsService } from "../coupons/coupons.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 import { CreateDigitalFileDto, UpdateDigitalFileDto, PurchaseDigitalFileDto } from "./dto/digital-file.dto";
 
 const API_URL = process.env.API_URL || "http://localhost:4000";
@@ -14,9 +15,14 @@ export class DigitalFilesService {
     private coupons: CouponsService,
   ) {}
 
-  private async getShopId(userId: string) {
-    const shop = await this.prisma.shop.findUnique({ where: { userId }, select: { id: true } });
+  private async getShopId(userId: string, requirePro = false) {
+    const shop = await this.prisma.shop.findUnique({
+      where: { userId },
+      select: { id: true, user: { select: { plan: true } } },
+    });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    if (requirePro && (shop as any).user.plan !== "PRO")
+      throw new ProRequiredException();
     return shop.id;
   }
 
@@ -25,7 +31,7 @@ export class DigitalFilesService {
   }
 
   async create(userId: string, dto: CreateDigitalFileDto) {
-    const shopId = await this.getShopId(userId);
+    const shopId = await this.getShopId(userId, true);
     return this.serialize(
       await this.prisma.digitalFile.create({
         data: { shopId, ...dto, price: BigInt(dto.price ?? 0) },

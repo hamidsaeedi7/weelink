@@ -45,7 +45,7 @@ export class CoursesService {
   }
 
   async create(userId: string, dto: any) {
-    const shopId = await this.getShopId(userId);
+    const shopId = await this.getShopId(userId, true);
     return this.serialize(
       await this.prisma.course.create({
         data: { shopId, ...dto, price: BigInt(dto.price ?? 0) },

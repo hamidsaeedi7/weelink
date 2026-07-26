@@ -103,11 +103,14 @@ export default function DigitalFilesPage() {
         headers: { ...auth(), "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!r.ok) throw new Error();
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.code === "PRO_REQUIRED" ? "فروش فایل دیجیتال مخصوص پلن پرو است" : "خطا در ذخیره");
+      }
       toast.success(editing ? "ویرایش شد" : "فایل اضافه شد");
       setShowForm(false);
       load();
-    } catch { toast.error("خطا در ذخیره"); }
+    } catch (e: any) { toast.error(e?.message || "خطا در ذخیره"); }
     finally { setSaving(false); }
   };
 

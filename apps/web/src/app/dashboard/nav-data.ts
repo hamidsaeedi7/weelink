@@ -49,7 +49,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "فروش",
     items: [
       { href: "/dashboard/products", icon: ShoppingBag, label: "محصولات فیزیکی" },
-      { href: "/dashboard/digital-files", icon: FileDown, label: "فایل دیجیتال" },
+      { href: "/dashboard/digital-files", icon: FileDown, label: "فایل دیجیتال", pro: true },
       { href: "/dashboard/courses", icon: BookOpen, label: "دوره‌های آموزشی", pro: true },
       { href: "/dashboard/appointments", icon: CalendarCheck, label: "نوبت‌دهی آنلاین", pro: true },
       { href: "/dashboard/flash-sale", icon: Flame, label: "فلش سیل", pro: true },

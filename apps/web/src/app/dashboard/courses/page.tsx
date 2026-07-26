@@ -170,11 +170,14 @@ export default function CoursesPage() {
         headers: { ...auth(), "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!r.ok) throw new Error();
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.code === "PRO_REQUIRED" ? "فروش دوره آموزشی مخصوص پلن پرو است" : "خطا");
+      }
       toast.success(editing ? "ویرایش شد" : "دوره اضافه شد");
       setShowForm(false);
       load();
-    } catch { toast.error("خطا"); }
+    } catch (e: any) { toast.error(e?.message || "خطا"); }
     finally { setSaving(false); }
   };
 
