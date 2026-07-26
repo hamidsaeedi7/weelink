@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Static pages default to a 1-year CDN cache (s-maxage) with no way to purge
+// on deploy since weeelink.ir sits behind a third-party CDN (ArvanCloud), not
+// Vercel's own auto-invalidating edge. Bound staleness to 1 hour instead.
+export const revalidate = 3600;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
