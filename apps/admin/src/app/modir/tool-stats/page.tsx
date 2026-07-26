@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ const TYPE_COLORS: Record<string, string> = {
   MAP: "bg-teal-500",
   EMAIL_CAPTURE: "bg-indigo-500",
   DIVIDER: "bg-gray-500",
-  GROUP: "bg-orange-500",
+  GROUP: "bg-emerald-500",
   FEATURED: "bg-yellow-500",
 };
 

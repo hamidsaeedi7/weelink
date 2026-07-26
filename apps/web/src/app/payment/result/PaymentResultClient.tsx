@@ -93,10 +93,10 @@ export default function PaymentResultClient() {
         {success && type === "COURSE" && license && (
           <div className="bg-white/5 rounded-2xl border border-white/10 p-4 space-y-3 text-right">
             <div className="flex items-center gap-2 text-sm font-bold text-white justify-center">
-              <KeyRound className="w-4 h-4 text-orange-500" /> کد لایسنس شما
+              <KeyRound className="w-4 h-4 text-accent-500" /> کد لایسنس شما
             </div>
             <button onClick={copyLicense}
-              className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl bg-black/20 border border-white/10 hover:border-orange-500/40">
+              className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl bg-black/20 border border-white/10 hover:border-accent-500/40">
               <span className="font-mono text-base tracking-widest text-white" dir="ltr">{license}</span>
               <Copy className="w-4 h-4 text-white/40" />
             </button>
@@ -104,10 +104,10 @@ export default function PaymentResultClient() {
             {courseUrl && (
               <>
                 <div className="flex items-center gap-2 text-sm font-bold text-white justify-center pt-1">
-                  <Link2 className="w-4 h-4 text-orange-500" /> لینک دوره شما
+                  <Link2 className="w-4 h-4 text-accent-500" /> لینک دوره شما
                 </div>
                 <button onClick={copyCourseUrl}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl bg-black/20 border border-white/10 hover:border-orange-500/40">
+                  className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl bg-black/20 border border-white/10 hover:border-accent-500/40">
                   <span className="font-mono text-xs text-white truncate" dir="ltr">{courseUrl}</span>
                   <Copy className="w-4 h-4 text-white/40 shrink-0" />
                 </button>
@@ -121,12 +121,12 @@ export default function PaymentResultClient() {
             <div className="flex gap-2">
               {courseId && shopSlug && (
                 <a href={`/${shopSlug}/course/${courseId}?license=${encodeURIComponent(license)}`}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-all">
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold transition-all">
                   <LogIn className="w-4 h-4" /> ورود به دوره
                 </a>
               )}
               <button onClick={shareAll}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-white/70 text-sm font-bold hover:border-orange-500/40 hover:text-orange-400 transition-all">
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-white/70 text-sm font-bold hover:border-accent-500/40 hover:text-accent-400 transition-all">
                 <Share2 className="w-4 h-4" /> اشتراک‌گذاری
               </button>
             </div>
@@ -136,13 +136,13 @@ export default function PaymentResultClient() {
         <div className="flex flex-col gap-3">
           {!success && (
             <button onClick={() => window.history.back()}
-              className="py-3 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all">
+              className="py-3 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all">
               تلاش مجدد
             </button>
           )}
           <Link href="/"
             className="py-3 rounded-xl border border-white/10 text-gray-400 text-sm font-bold
-                       hover:border-orange-500/30 hover:text-orange-400 transition-all
+                       hover:border-accent-500/30 hover:text-accent-400 transition-all
                        flex items-center justify-center gap-2">
             <ArrowRight className="w-4 h-4" />
             بازگشت به خانه

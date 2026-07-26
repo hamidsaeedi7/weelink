@@ -46,12 +46,12 @@ export default function ModirLoginPage() {
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                        w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/3 rounded-full blur-2xl" />
+                        w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/3 rounded-full blur-2xl" />
         {/* Dot pattern */}
         <div className="absolute inset-0 opacity-[0.03]"
              style={{
-               backgroundImage: "radial-gradient(circle, rgba(249,115,22,0.5) 1px, transparent 1px)",
+               backgroundImage: "radial-gradient(circle, rgba(16,185,129,0.5) 1px, transparent 1px)",
                backgroundSize: "28px 28px",
              }} />
       </div>
@@ -60,7 +60,7 @@ export default function ModirLoginPage() {
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                          bg-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.4)] mb-4">
+                          bg-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)] mb-4">
             <Shield className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-xl font-black text-white">پنل مدیریت ویلینک</h1>
@@ -79,7 +79,7 @@ export default function ModirLoginPage() {
                   onChange={(e) => setForm({ ...form, username: e.target.value })}
                   className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10
                              text-white placeholder:text-gray-600
-                             focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/10
+                             focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10
                              transition-all text-left"
                   placeholder="admin@example.com"
                   dir="ltr"
@@ -97,7 +97,7 @@ export default function ModirLoginPage() {
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10
                              text-white
-                             focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/10
+                             focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10
                              transition-all"
                   placeholder="••••••••"
                   dir="ltr"
@@ -113,8 +113,8 @@ export default function ModirLoginPage() {
 
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl font-semibold text-white transition-all
-                         bg-orange-500 hover:bg-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.3)]
-                         hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]
+                         bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]
+                         hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]
                          disabled:opacity-60 disabled:cursor-not-allowed active:scale-95">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

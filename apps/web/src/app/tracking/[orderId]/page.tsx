@@ -56,8 +56,8 @@ export default async function TrackingPage({ params }: { params: { orderId: stri
       <div className="max-w-lg mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-1">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-500/10 rounded-2xl mb-2">
-            <Package className="w-7 h-7 text-orange-500" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-accent-500/10 rounded-2xl mb-2">
+            <Package className="w-7 h-7 text-accent-500" />
           </div>
           <h1 className="text-xl font-black text-gray-900 dark:text-white">ردیابی مرسوله</h1>
           {data && (
@@ -98,7 +98,7 @@ export default async function TrackingPage({ params }: { params: { orderId: stri
               {data.trackingCode && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">کد رهگیری</span>
-                  <span className="text-sm font-mono font-bold text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-3 py-1 rounded-lg">
+                  <span className="text-sm font-mono font-bold text-accent-500 bg-accent-50 dark:bg-accent-500/10 px-3 py-1 rounded-lg">
                     {data.trackingCode}
                   </span>
                 </div>
@@ -138,7 +138,7 @@ export default async function TrackingPage({ params }: { params: { orderId: stri
                         {/* Icon */}
                         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center z-10
                           ${isLatest
-                            ? "bg-orange-500 text-white"
+                            ? "bg-accent-500 text-white"
                             : "bg-gray-100 dark:bg-white/10 text-gray-400"}`}>
                           <TimelineIcon status={event.status} />
                         </div>
@@ -146,7 +146,7 @@ export default async function TrackingPage({ params }: { params: { orderId: stri
                         {/* Content */}
                         <div className="flex-1 pt-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-sm font-bold ${isLatest ? "text-orange-500" : "text-gray-700 dark:text-gray-300"}`}>
+                            <span className={`text-sm font-bold ${isLatest ? "text-accent-500" : "text-gray-700 dark:text-gray-300"}`}>
                               {evStatus?.label ?? event.status}
                             </span>
                             {event.location && (
@@ -169,7 +169,7 @@ export default async function TrackingPage({ params }: { params: { orderId: stri
 
             {/* Shop footer */}
             <div className="text-center text-xs text-gray-400 space-y-1 pb-6">
-              <p>این سفارش توسط فروشگاه <span className="font-bold text-orange-500">{data.shopName}</span> پردازش می‌شود.</p>
+              <p>این سفارش توسط فروشگاه <span className="font-bold text-accent-500">{data.shopName}</span> پردازش می‌شود.</p>
               <p>powered by <span className="font-bold">weeelink.ir</span></p>
             </div>
           </>

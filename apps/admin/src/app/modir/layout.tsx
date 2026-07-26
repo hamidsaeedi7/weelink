@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -58,9 +58,9 @@ function NavItem({ item, onClick }: { item: any; onClick?: () => void }) {
     <Link href={item.href} onClick={onClick}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group
         ${active
-          ? "bg-orange-500/15 text-orange-400 border border-orange-500/20"
+          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
           : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-gray-200"}`}>
-      <item.icon className={`w-4 h-4 shrink-0 ${active ? "text-orange-400" : "group-hover:text-orange-400 transition-colors"}`} />
+      <item.icon className={`w-4 h-4 shrink-0 ${active ? "text-emerald-400" : "group-hover:text-emerald-400 transition-colors"}`} />
       {item.label}
     </Link>
   );
@@ -105,12 +105,12 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
       <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100 dark:border-white/[0.06]">
         <div className="relative">
           <img src="/weeelink.svg" alt="ویلینک" className="w-9 h-9 rounded-xl" />
-          <div className="absolute -bottom-1 -left-1 w-4 h-4 rounded-full bg-orange-500 border-2 border-white dark:border-[#0D0D18] flex items-center justify-center">
+          <div className="absolute -bottom-1 -left-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0D0D18] flex items-center justify-center">
             <Shield className="w-2 h-2 text-white" />
           </div>
         </div>
         <div>
-          <div className="font-black text-sm text-gray-900 dark:text-white">وی<span className="text-orange-500">لینک</span></div>
+          <div className="font-black text-sm text-gray-900 dark:text-white">وی<span className="text-emerald-500">لینک</span></div>
           <div className="text-[10px] text-gray-400">پنل مدیریت</div>
         </div>
         {onClose && (
@@ -209,7 +209,7 @@ export default function ModirLayout({ children }: { children: React.ReactNode })
               placeholder="جستجوی کاربر..."
               className="w-full pr-9 pl-4 py-2 rounded-xl text-sm
                          bg-gray-100 dark:bg-white/5 border border-transparent
-                         focus:border-orange-500/40 focus:outline-none focus:ring-2 focus:ring-orange-500/10
+                         focus:border-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/10
                          text-gray-700 dark:text-gray-300 transition-all" />
             {searchResults.length > 0 && (
               <div className="absolute top-full right-0 mt-1 w-full bg-white dark:bg-[#1A1A2E]
@@ -218,7 +218,7 @@ export default function ModirLayout({ children }: { children: React.ReactNode })
                   <Link key={u.id} href={`/modir/users/${u.id}`}
                     onClick={() => { setSearchResults([]); setSearch(""); }}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                    <div className="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center text-xs font-bold text-orange-400">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400">
                       {(u.email || u.phone || "U")[0].toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -232,7 +232,7 @@ export default function ModirLayout({ children }: { children: React.ReactNode })
           </div>
 
           <a href={process.env.NEXT_PUBLIC_WEB_URL || "https://weeelink.ir"} target="_blank" rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 hover:text-orange-500 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 mr-auto">
+            className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 hover:text-emerald-500 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 mr-auto">
             <Globe className="w-3.5 h-3.5" />
             مشاهده سایت
           </a>

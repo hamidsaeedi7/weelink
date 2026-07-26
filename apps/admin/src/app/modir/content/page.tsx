@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Save, Plus, Trash2 } from "lucide-react";
@@ -316,11 +316,11 @@ function LivePreview({ tab, data }: { tab: string; data: ContentData }) {
               <span className="font-black text-white">{data.logoText || "ویلینک"}</span>
               <nav className="hidden sm:flex items-center gap-4">
                 {(data.navLinks ?? []).map((l, i) => (
-                  <span key={i} className="text-sm text-gray-400 hover:text-orange-400 cursor-pointer">{l.label || "—"}</span>
+                  <span key={i} className="text-sm text-gray-400 hover:text-emerald-400 cursor-pointer">{l.label || "—"}</span>
                 ))}
               </nav>
             </div>
-            {data.phone && <span className="text-sm text-orange-400 font-mono" dir="ltr">{data.phone}</span>}
+            {data.phone && <span className="text-sm text-emerald-400 font-mono" dir="ltr">{data.phone}</span>}
           </div>
         )}
 
@@ -328,7 +328,7 @@ function LivePreview({ tab, data }: { tab: string; data: ContentData }) {
           <div className="p-6">
             <h2 className="text-lg font-black text-white mb-4">{tab === "about" ? "درباره ما" : "تماس با ما"}</h2>
             <div
-              className="prose prose-invert prose-sm max-w-none text-gray-300 [&_a]:text-orange-400"
+              className="prose prose-invert prose-sm max-w-none text-gray-300 [&_a]:text-emerald-400"
               dangerouslySetInnerHTML={{ __html: data.content || "<p class='text-gray-500'>محتوایی وارد نشده…</p>" }}
             />
             {tab === "contact" && data.address && (

@@ -40,11 +40,11 @@ export default function MockPaymentClient() {
     <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30
+          <div className="w-16 h-16 rounded-2xl bg-accent-500/20 border border-accent-500/30
                           flex items-center justify-center mx-auto">
-            <ShieldCheck className="w-8 h-8 text-orange-400" />
+            <ShieldCheck className="w-8 h-8 text-accent-400" />
           </div>
-          <p className="text-xs text-gray-500 bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-1.5 inline-block">
+          <p className="text-xs text-gray-500 bg-accent-500/10 border border-accent-500/20 rounded-lg px-3 py-1.5 inline-block">
             🔒 درگاه آزمایشی ویلینک — محیط توسعه
           </p>
         </div>
@@ -57,7 +57,7 @@ export default function MockPaymentClient() {
             </div>
             <div className="space-y-1">
               <p className="text-xs text-gray-500">مبلغ پرداختی</p>
-              <p className="text-3xl font-black text-orange-400">{formatPrice(amount)}</p>
+              <p className="text-3xl font-black text-accent-400">{formatPrice(amount)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-gray-500">کد پیگیری</p>
@@ -71,7 +71,7 @@ export default function MockPaymentClient() {
               defaultValue="6219 8610 3452 7890"
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3
                          text-white text-sm font-mono text-center focus:outline-none
-                         focus:border-orange-500/50"
+                         focus:border-accent-500/50"
               dir="ltr"
               readOnly
             />
@@ -99,7 +99,7 @@ export default function MockPaymentClient() {
             <button
               onClick={handlePay}
               disabled={processing}
-              className="flex-1 py-3 rounded-xl bg-orange-500 hover:bg-orange-400
+              className="flex-1 py-3 rounded-xl bg-accent-500 hover:bg-accent-400
                          text-white text-sm font-bold transition-all
                          flex items-center justify-center gap-2
                          shadow-[0_0_20px_rgba(249,115,22,0.3)]">

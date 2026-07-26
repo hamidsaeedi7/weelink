@@ -1,392 +1,385 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
-import {
-  Save, ArrowUp, ArrowDown, Trash2, Plus, ChevronDown, ChevronUp,
-  Layers, Star, AlignLeft, HelpCircle, Code2, Zap, ArrowRight,
-} from "lucide-react";
-import { adminApi } from "@/lib/api";
+import { adminApi, fmtPrice, fmtDate } from "@/lib/api";
+import { DollarSign, ShoppingCart, CreditCard, RefreshCw, Landmark, Percent } from "lucide-react";
 
-type BlockType = "hero" | "features" | "text_image" | "cta" | "faq" | "html";
+type OrderStatus = "PENDING" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
+type PaymentStatus = "PAID" | "UNPAID" | "REFUNDED";
 
-interface Block {
+interface Order {
   id: string;
-  type: BlockType;
-  data: Record<string, unknown>;
+  orderNumber: string;
+  customerName: string;
+  shop: { name: string };
+  totalPrice: number;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  createdAt: string;
 }
 
-interface LandingPage {
+interface Subscription {
   id: string;
-  title: string;
-  slug: string;
-  isPublished: boolean;
-  blocks: Block[];
+  user: { email?: string; phone?: string };
+  plan: string;
+  durationMonths: number;
+  price: number;
+  startsAt: string;
+  expiresAt: string;
 }
 
-const BLOCK_TYPES: { type: BlockType; label: string; icon: React.ReactNode; desc: string }[] = [
-  { type: "hero", label: "هیرو", icon: <Star size={22} />, desc: "بنر اصلی با عنوان و دکمه" },
-  { type: "features", label: "ویژگی‌ها", icon: <Layers size={22} />, desc: "گرید کارت‌های ویژگی" },
-  { type: "text_image", label: "متن + تصویر", icon: <AlignLeft size={22} />, desc: "متن در کنار تصویر" },
-  { type: "cta", label: "فراخوان عمل", icon: <Zap size={22} />, desc: "بخش دعوت به اقدام" },
-  { type: "faq", label: "سوالات متداول", icon: <HelpCircle size={22} />, desc: "آکاردئون سوال‌وجواب" },
-  { type: "html", label: "HTML خام", icon: <Code2 size={22} />, desc: "کد HTML سفارشی" },
-];
-
-const defaultData = (type: BlockType): Record<string, unknown> => {
-  switch (type) {
-    case "hero": return { title: "", subtitle: "", btnText: "", btnLink: "", bgImage: "" };
-    case "features": return { title: "", items: [{ icon: "⭐", title: "", desc: "" }] };
-    case "text_image": return { title: "", text: "", image: "", dir: "right" };
-    case "cta": return { title: "", subtitle: "", btnText: "", btnLink: "", bgColor: "#6366f1" };
-    case "faq": return { title: "", items: [{ q: "", a: "" }] };
-    case "html": return { code: "" };
-    default: return {};
-  }
-};
-
-let idCounter = 0;
-const genId = () => `blk_${Date.now()}_${idCounter++}`;
-
-function HeroEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
-  const set = (k: string, v: string) => onChange({ ...data, [k]: v });
-  return (
-    <div className="space-y-3">
-      <div><label className="text-white/60 text-xs mb-1 block">عنوان اصلی</label><input className="input-base w-full" value={String(data.title ?? "")} onChange={e => set("title", e.target.value)} /></div>
-      <div><label className="text-white/60 text-xs mb-1 block">زیرعنوان</label><input className="input-base w-full" value={String(data.subtitle ?? "")} onChange={e => set("subtitle", e.target.value)} /></div>
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className="text-white/60 text-xs mb-1 block">متن دکمه</label><input className="input-base w-full" value={String(data.btnText ?? "")} onChange={e => set("btnText", e.target.value)} /></div>
-        <div><label className="text-white/60 text-xs mb-1 block">لینک دکمه</label><input className="input-base w-full" value={String(data.btnLink ?? "")} onChange={e => set("btnLink", e.target.value)} /></div>
-      </div>
-      <div><label className="text-white/60 text-xs mb-1 block">تصویر پس‌زمینه (URL)</label><input className="input-base w-full" value={String(data.bgImage ?? "")} onChange={e => set("bgImage", e.target.value)} placeholder="https://..." /></div>
-    </div>
-  );
+interface FinanceData {
+  totalRevenue: number;
+  totalOrders: number;
+  activeSubscriptions: number;
+  orders: Order[];
+  subscriptions: Subscription[];
 }
 
-function FeaturesEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
-  const items = (data.items as Array<{ icon: string; title: string; desc: string }>) ?? [];
-  const setItem = (i: number, k: string, v: string) => {
-    const next = items.map((it, idx) => idx === i ? { ...it, [k]: v } : it);
-    onChange({ ...data, items: next });
+function orderStatusBadge(status: OrderStatus) {
+  const map: Record<OrderStatus, { label: string; className: string }> = {
+    PENDING: {
+      label: "در انتظار",
+      className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
+    },
+    CONFIRMED: {
+      label: "تأیید شده",
+      className: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+    },
+    DELIVERED: {
+      label: "تحویل داده شده",
+      className: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+    },
+    CANCELLED: {
+      label: "لغو شده",
+      className: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+    },
   };
-  const addItem = () => onChange({ ...data, items: [...items, { icon: "✨", title: "", desc: "" }] });
-  const removeItem = (i: number) => onChange({ ...data, items: items.filter((_, idx) => idx !== i) });
-  return (
-    <div className="space-y-3">
-      <div><label className="text-white/60 text-xs mb-1 block">عنوان بخش</label><input className="input-base w-full" value={String(data.title ?? "")} onChange={e => onChange({ ...data, title: e.target.value })} /></div>
-      <div className="space-y-2">
-        {items.map((item, i) => (
-          <div key={i} className="bg-white/5 rounded-lg p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-white/50 text-xs">ویژگی {i + 1}</span>
-              <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-300"><Trash2 size={13} /></button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div><label className="text-white/50 text-xs mb-1 block">آیکون</label><input className="input-base w-full" value={item.icon} onChange={e => setItem(i, "icon", e.target.value)} /></div>
-              <div className="col-span-2"><label className="text-white/50 text-xs mb-1 block">عنوان</label><input className="input-base w-full" value={item.title} onChange={e => setItem(i, "title", e.target.value)} /></div>
-            </div>
-            <div><label className="text-white/50 text-xs mb-1 block">توضیحات</label><input className="input-base w-full" value={item.desc} onChange={e => setItem(i, "desc", e.target.value)} /></div>
-          </div>
-        ))}
-        <button onClick={addItem} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"><Plus size={14} /> افزودن ویژگی</button>
-      </div>
-    </div>
-  );
-}
-
-function TextImageEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
-  const set = (k: string, v: string) => onChange({ ...data, [k]: v });
-  return (
-    <div className="space-y-3">
-      <div><label className="text-white/60 text-xs mb-1 block">عنوان</label><input className="input-base w-full" value={String(data.title ?? "")} onChange={e => set("title", e.target.value)} /></div>
-      <div><label className="text-white/60 text-xs mb-1 block">متن</label><textarea className="input-base w-full" rows={3} value={String(data.text ?? "")} onChange={e => set("text", e.target.value)} /></div>
-      <div><label className="text-white/60 text-xs mb-1 block">تصویر (URL)</label><input className="input-base w-full" value={String(data.image ?? "")} onChange={e => set("image", e.target.value)} placeholder="https://..." /></div>
-      <div>
-        <label className="text-white/60 text-xs mb-1 block">جهت تصویر</label>
-        <select className="input-base w-full" value={String(data.dir ?? "right")} onChange={e => set("dir", e.target.value)}>
-          <option value="right">تصویر راست</option>
-          <option value="left">تصویر چپ</option>
-        </select>
-      </div>
-    </div>
-  );
-}
-
-function CtaEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
-  const set = (k: string, v: string) => onChange({ ...data, [k]: v });
-  return (
-    <div className="space-y-3">
-      <div><label className="text-white/60 text-xs mb-1 block">عنوان</label><input className="input-base w-full" value={String(data.title ?? "")} onChange={e => set("title", e.target.value)} /></div>
-      <div><label className="text-white/60 text-xs mb-1 block">زیرعنوان</label><input className="input-base w-full" value={String(data.subtitle ?? "")} onChange={e => set("subtitle", e.target.value)} /></div>
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className="text-white/60 text-xs mb-1 block">متن دکمه</label><input className="input-base w-full" value={String(data.btnText ?? "")} onChange={e => set("btnText", e.target.value)} /></div>
-        <div><label className="text-white/60 text-xs mb-1 block">لینک دکمه</label><input className="input-base w-full" value={String(data.btnLink ?? "")} onChange={e => set("btnLink", e.target.value)} /></div>
-      </div>
-      <div className="flex items-center gap-3">
-        <label className="text-white/60 text-xs">رنگ پس‌زمینه</label>
-        <input type="color" value={String(data.bgColor ?? "#6366f1")} onChange={e => set("bgColor", e.target.value)} className="w-10 h-8 rounded cursor-pointer bg-transparent border border-white/20" />
-        <span className="text-white/40 text-xs font-mono">{String(data.bgColor ?? "#6366f1")}</span>
-      </div>
-    </div>
-  );
-}
-
-function FaqEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
-  const items = (data.items as Array<{ q: string; a: string }>) ?? [];
-  const setItem = (i: number, k: string, v: string) => {
-    const next = items.map((it, idx) => idx === i ? { ...it, [k]: v } : it);
-    onChange({ ...data, items: next });
+  const cfg = map[status] ?? {
+    label: status,
+    className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
   };
-  const addItem = () => onChange({ ...data, items: [...items, { q: "", a: "" }] });
-  const removeItem = (i: number) => onChange({ ...data, items: items.filter((_, idx) => idx !== i) });
   return (
-    <div className="space-y-3">
-      <div><label className="text-white/60 text-xs mb-1 block">عنوان بخش</label><input className="input-base w-full" value={String(data.title ?? "")} onChange={e => onChange({ ...data, title: e.target.value })} /></div>
-      <div className="space-y-2">
-        {items.map((item, i) => (
-          <div key={i} className="bg-white/5 rounded-lg p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-white/50 text-xs">سوال {i + 1}</span>
-              <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-300"><Trash2 size={13} /></button>
-            </div>
-            <div><label className="text-white/50 text-xs mb-1 block">سوال</label><input className="input-base w-full" value={item.q} onChange={e => setItem(i, "q", e.target.value)} /></div>
-            <div><label className="text-white/50 text-xs mb-1 block">جواب</label><textarea className="input-base w-full" rows={2} value={item.a} onChange={e => setItem(i, "a", e.target.value)} /></div>
-          </div>
-        ))}
-        <button onClick={addItem} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"><Plus size={14} /> افزودن سوال</button>
-      </div>
-    </div>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
+      {cfg.label}
+    </span>
   );
 }
 
-function HtmlEditor({ data, onChange }: { data: Record<string, unknown>; onChange: (d: Record<string, unknown>) => void }) {
+function paymentStatusBadge(status: PaymentStatus) {
+  const map: Record<PaymentStatus, { label: string; className: string }> = {
+    PAID: {
+      label: "پرداخت شده",
+      className: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+    },
+    UNPAID: {
+      label: "پرداخت نشده",
+      className: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+    },
+    REFUNDED: {
+      label: "استرداد",
+      className: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+    },
+  };
+  const cfg = map[status] ?? {
+    label: status,
+    className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+  };
   return (
-    <div>
-      <label className="text-white/60 text-xs mb-1 block">کد HTML</label>
-      <textarea className="input-base w-full font-mono text-xs" rows={8} value={String(data.code ?? "")} onChange={e => onChange({ ...data, code: e.target.value })} placeholder="<div>...</div>" />
-    </div>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
+      {cfg.label}
+    </span>
   );
 }
 
-function BlockEditor({ block, onChange }: { block: Block; onChange: (d: Record<string, unknown>) => void }) {
-  switch (block.type) {
-    case "hero": return <HeroEditor data={block.data} onChange={onChange} />;
-    case "features": return <FeaturesEditor data={block.data} onChange={onChange} />;
-    case "text_image": return <TextImageEditor data={block.data} onChange={onChange} />;
-    case "cta": return <CtaEditor data={block.data} onChange={onChange} />;
-    case "faq": return <FaqEditor data={block.data} onChange={onChange} />;
-    case "html": return <HtmlEditor data={block.data} onChange={onChange} />;
-  }
+interface GatewayRow {
+  shopId: string;
+  shopName: string;
+  shopSlug: string;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  settlementSheba: string | null;
+  settlementHolder: string | null;
+  settlementBankName: string | null;
+  transactionCount: number;
+  gross: number;
+  platformFee: number;
+  net: number;
 }
 
-export default function LandingPageEditorPage() {
-  const params = useParams();
-  const router = useRouter();
-  const id = params.id as string;
+interface GatewayReport {
+  rows: GatewayRow[];
+  totals: { gross: number; platformFee: number; net: number; transactionCount: number };
+}
 
-  const [page, setPage] = useState<LandingPage | null>(null);
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [isPublished, setIsPublished] = useState(false);
+export default function FinancePage() {
+  const [data, setData] = useState<FinanceData | null>(null);
+  const [gateway, setGateway] = useState<GatewayReport | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [customHtml, setCustomHtml] = useState("");
-  const [customCss, setCustomCss] = useState("");
-  const [customJs, setCustomJs] = useState("");
+  const [tab, setTab] = useState<"orders" | "subscriptions" | "gateway">("orders");
 
-  const load = useCallback(async () => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await adminApi.getLandingPage(id);
-      setPage(data);
-      setBlocks((data.blocks ?? []).map((b: Block) => ({ ...b, id: b.id || genId() })));
-      setTitle(data.title);
-      setSlug(data.slug);
-      setIsPublished(data.isPublished);
-      setCustomHtml(data.customHtml || "");
-      setCustomCss(data.customCss || "");
-      setCustomJs(data.customJs || "");
+      const [result, gwResult] = await Promise.all([adminApi.getFinance(), adminApi.getGatewayReport()]);
+      setData(result);
+      setGateway(gwResult);
     } catch {
-      toast.error("خطا در بارگذاری صفحه");
+      console.error("خطا در دریافت اطلاعات مالی");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const addBlock = (type: BlockType) => {
-    const newBlock: Block = { id: genId(), type, data: defaultData(type) };
-    setBlocks(b => [...b, newBlock]);
-    setExpandedId(newBlock.id);
-  };
-
-  const removeBlock = (bid: string) => {
-    if (!confirm("این بلاک حذف شود؟")) return;
-    setBlocks(b => b.filter(x => x.id !== bid));
-  };
-
-  const moveBlock = (index: number, dir: "up" | "down") => {
-    setBlocks(b => {
-      const next = [...b];
-      const target = dir === "up" ? index - 1 : index + 1;
-      if (target < 0 || target >= next.length) return b;
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-  };
-
-  const updateBlockData = (bid: string, data: Record<string, unknown>) => {
-    setBlocks(b => b.map(x => x.id === bid ? { ...x, data } : x));
-  };
-
-  const save = async () => {
-    try {
-      setSaving(true);
-      await adminApi.updateLandingPage(id, { title, slug, isPublished, blocks, customHtml, customCss, customJs });
-      toast.success("صفحه ذخیره شد");
-    } catch {
-      toast.error("خطا در ذخیره‌سازی");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const typeInfo = (type: BlockType) => BLOCK_TYPES.find(t => t.type === type)!;
-
-  if (loading) return <div className="flex items-center justify-center h-64 text-white/50" dir="rtl">در حال بارگذاری...</div>;
-  if (!page) return <div className="flex items-center justify-center h-64 text-red-400" dir="rtl">صفحه یافت نشد</div>;
+  const stats = [
+    {
+      label: "درآمد کل",
+      value: data ? fmtPrice(data.totalRevenue) : "—",
+      icon: DollarSign,
+      color: "text-green-600 dark:text-green-400",
+      bg: "bg-green-100 dark:bg-green-900/40",
+    },
+    {
+      label: "تعداد سفارشات",
+      value: data ? data.totalOrders.toLocaleString("fa-IR") : "—",
+      icon: ShoppingCart,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-100 dark:bg-blue-900/40",
+    },
+    {
+      label: "اشتراک‌ها",
+      value: data ? (data.subscriptions?.length ?? 0).toLocaleString("fa-IR") : "—",
+      icon: CreditCard,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-100 dark:bg-emerald-900/40",
+    },
+    {
+      label: "کارمزد درگاه ویلینک",
+      value: gateway ? fmtPrice(gateway.totals.platformFee) : "—",
+      icon: Percent,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-100 dark:bg-purple-900/40",
+    },
+  ];
 
   return (
     <div className="p-6" dir="rtl">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push("/modir/landing-pages")} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition text-white">
-          <ArrowRight size={18} />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold text-white">ویرایشگر صفحه لندینگ</h1>
-        </div>
-        <button onClick={save} disabled={saving} className="btn-primary flex items-center gap-2">
-          <Save size={16} />
-          {saving ? "در حال ذخیره..." : "ذخیره"}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">امور مالی</h1>
+        <button onClick={fetchData} className="btn-primary flex items-center gap-2 text-sm">
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          بازخوانی
         </button>
       </div>
 
-      <div className="glass-card p-5 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-1">
-            <label className="text-white/60 text-xs mb-1 block">عنوان صفحه</label>
-            <input className="input-base w-full" value={title} onChange={e => setTitle(e.target.value)} />
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.map((s) => (
+          <div key={s.label} className="glass-card p-5 flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center flex-shrink-0`}>
+              <s.icon size={22} className={s.color} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{s.label}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{s.value}</p>
+            </div>
           </div>
-          <div>
-            <label className="text-white/60 text-xs mb-1 block">اسلاگ</label>
-            <input className="input-base w-full font-mono text-sm" value={slug} onChange={e => setSlug(e.target.value)} />
+        ))}
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-6 w-fit">
+        {(["orders", "subscriptions", "gateway"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === t
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            }`}
+          >
+            {t === "orders" ? "سفارشات" : t === "subscriptions" ? "اشتراک‌ها" : "درگاه ویلینک"}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="glass-card flex items-center justify-center h-48">
+          <RefreshCw size={24} className="animate-spin text-emerald-500" />
+        </div>
+      ) : tab === "orders" ? (
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  {["شماره سفارش", "مشتری", "فروشگاه", "مبلغ", "وضعیت", "پرداخت", "تاریخ"].map((h) => (
+                    <th key={h} className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {(data?.orders ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-12 text-gray-400">
+                      هیچ سفارشی یافت نشد
+                    </td>
+                  </tr>
+                ) : (
+                  (data?.orders ?? []).map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-4 py-3 font-mono text-gray-700 dark:text-gray-300">
+                        #{order.orderNumber}
+                      </td>
+                      <td className="px-4 py-3 text-gray-900 dark:text-white">{order.customerName}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{order.shop.name}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                        {fmtPrice(order.totalPrice)}
+                      </td>
+                      <td className="px-4 py-3">{orderStatusBadge(order.status)}</td>
+                      <td className="px-4 py-3">{paymentStatusBadge(order.paymentStatus)}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        {fmtDate(order.createdAt)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div
-                className={"relative w-11 h-6 rounded-full transition " + (isPublished ? "bg-emerald-500" : "bg-white/20")}
-                onClick={() => setIsPublished(v => !v)}
-              >
-                <div className={"absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all " + (isPublished ? "right-1" : "left-1")} />
+        </div>
+      ) : tab === "subscriptions" ? (
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  {["کاربر", "پلن", "مدت (ماه)", "قیمت", "شروع", "پایان"].map((h) => (
+                    <th key={h} className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {(data?.subscriptions ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-gray-400">
+                      هیچ اشتراکی یافت نشد
+                    </td>
+                  </tr>
+                ) : (
+                  (data?.subscriptions ?? []).map((sub) => (
+                    <tr key={sub.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-4 py-3 text-gray-900 dark:text-white">
+                        {sub.user.email || sub.user.phone}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            sub.plan === "PRO"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                              : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {sub.plan}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{sub.durationMonths}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                        {fmtPrice(sub.price)}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{fmtDate(sub.startsAt)}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{fmtDate(sub.expiresAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="glass-card p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
+                <DollarSign size={22} className="text-green-600 dark:text-green-400" />
               </div>
-              <span className="text-white/70 text-sm">{isPublished ? <span className="text-emerald-400">منتشر شده</span> : "پیش‌نویس"}</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <div className="xl:col-span-2">
-          <div className="glass-card p-4">
-            <h2 className="text-white font-semibold mb-4 text-sm">افزودن بلاک</h2>
-            <div className="grid grid-cols-2 gap-2">
-              {BLOCK_TYPES.map(bt => (
-                <button
-                  key={bt.type}
-                  onClick={() => addBlock(bt.type)}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition text-center group"
-                >
-                  <span className="text-white/60 group-hover:text-white transition">{bt.icon}</span>
-                  <span className="text-white text-xs font-medium">{bt.label}</span>
-                  <span className="text-white/40 text-[10px] leading-tight">{bt.desc}</span>
-                </button>
-              ))}
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">فروش ناخالص</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{gateway ? fmtPrice(gateway.totals.gross) : "—"}</p>
+              </div>
+            </div>
+            <div className="glass-card p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center flex-shrink-0">
+                <Percent size={22} className="text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">کارمزد پلتفرم (۱۰٪)</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{gateway ? fmtPrice(gateway.totals.platformFee) : "—"}</p>
+              </div>
+            </div>
+            <div className="glass-card p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
+                <Landmark size={22} className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">قابل واریز به فروشندگان</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">{gateway ? fmtPrice(gateway.totals.net) : "—"}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="xl:col-span-3 space-y-3">
-          {blocks.length === 0 ? (
-            <div className="glass-card flex flex-col items-center justify-center h-48 text-white/30 gap-3">
-              <Layers size={36} />
-              <p className="text-sm">بلاکی اضافه نشده است</p>
-              <p className="text-xs">از پنل سمت چپ بلاک انتخاب کنید</p>
-            </div>
-          ) : (
-            blocks.map((block, index) => {
-              const info = typeInfo(block.type);
-              const expanded = expandedId === block.id;
-              return (
-                <div key={block.id} className="glass-card overflow-hidden">
-                  <div
-                    className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition"
-                    onClick={() => setExpandedId(expanded ? null : block.id)}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <button onClick={e => { e.stopPropagation(); moveBlock(index, "up"); }} disabled={index === 0}
-                        className="text-white/30 hover:text-white disabled:opacity-20 transition"><ArrowUp size={13} /></button>
-                      <button onClick={e => { e.stopPropagation(); moveBlock(index, "down"); }} disabled={index === blocks.length - 1}
-                        className="text-white/30 hover:text-white disabled:opacity-20 transition"><ArrowDown size={13} /></button>
-                    </div>
-                    <span className="text-white/50">{info.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-white text-sm font-medium">{info.label}</span>
-                      <span className="text-white/30 text-xs mr-2">بلاک {index + 1}</span>
-                    </div>
-                    <button
-                      onClick={e => { e.stopPropagation(); removeBlock(block.id); }}
-                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20 transition"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                    {expanded ? <ChevronUp size={16} className="text-white/40" /> : <ChevronDown size={16} className="text-white/40" />}
-                  </div>
-                  {expanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-white/10">
-                      <BlockEditor block={block} onChange={d => updateBlockData(block.id, d)} />
-                    </div>
+          <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    {["فروشگاه", "مالک", "تراکنش", "ناخالص", "کارمزد", "خالص قابل تسویه", "شبا"].map((h) => (
+                      <th key={h} className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {(gateway?.rows ?? []).length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-12 text-gray-400">
+                        هنوز تراکنش موفقی از درگاه ویلینک ثبت نشده است
+                      </td>
+                    </tr>
+                  ) : (
+                    (gateway?.rows ?? []).map((r) => (
+                      <tr key={r.shopId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="px-4 py-3 text-gray-900 dark:text-white">
+                          {r.shopName}
+                          <span className="block text-xs text-gray-400 font-mono" dir="ltr">{r.shopSlug}</span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{r.ownerEmail || r.ownerPhone || "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.transactionCount.toLocaleString("fa-IR")}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{fmtPrice(r.gross)}</td>
+                        <td className="px-4 py-3 text-purple-600 dark:text-purple-400">{fmtPrice(r.platformFee)}</td>
+                        <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{fmtPrice(r.net)}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs" dir="ltr">
+                          {r.settlementSheba || <span className="text-red-500">ثبت نشده</span>}
+                        </td>
+                      </tr>
+                    ))
                   )}
-                </div>
-              );
-            })
-          )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* کد سفارشی HTML / CSS / JavaScript */}
-      <div className="glass-card p-5 mt-6 space-y-4">
-        <h2 className="text-white font-semibold text-sm">کد سفارشی (HTML / CSS / JavaScript)</h2>
-        <p className="text-white/40 text-xs">این کدها به‌همراه بلاک‌ها در صفحه رندر می‌شوند. برای صفحهٔ کاملاً سفارشی می‌توانید فقط از HTML استفاده کنید.</p>
-        <div>
-          <label className="text-white/60 text-xs mb-1 block">HTML</label>
-          <textarea value={customHtml} onChange={e => setCustomHtml(e.target.value)} dir="ltr" spellCheck={false}
-            className="input-base w-full font-mono text-xs h-40 resize-y" placeholder="<section> ... </section>" />
-        </div>
-        <div>
-          <label className="text-white/60 text-xs mb-1 block">CSS</label>
-          <textarea value={customCss} onChange={e => setCustomCss(e.target.value)} dir="ltr" spellCheck={false}
-            className="input-base w-full font-mono text-xs h-32 resize-y" placeholder=".my-class { color: red; }" />
-        </div>
-        <div>
-          <label className="text-white/60 text-xs mb-1 block">JavaScript</label>
-          <textarea value={customJs} onChange={e => setCustomJs(e.target.value)} dir="ltr" spellCheck={false}
-            className="input-base w-full font-mono text-xs h-32 resize-y" placeholder="console.log('hi')" />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

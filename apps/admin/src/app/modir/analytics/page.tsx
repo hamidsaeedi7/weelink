@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi, fmtPrice } from "@/lib/api";
@@ -84,8 +84,8 @@ export default function AnalyticsPage() {
           label: "سفارشات",
           value: (stats.orders ?? stats.totalOrders ?? 0).toLocaleString("fa-IR"),
           icon: ShoppingCart,
-          color: "text-orange-600 dark:text-orange-400",
-          bg: "bg-orange-100 dark:bg-orange-900/40",
+          color: "text-emerald-600 dark:text-emerald-400",
+          bg: "bg-emerald-100 dark:bg-emerald-900/40",
         },
         {
           label: "درآمد",
@@ -156,7 +156,7 @@ export default function AnalyticsPage() {
       {/* Daily signups bar chart */}
       <div className="glass-card p-5 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <BarChart2 size={18} className="text-orange-500" />
+          <BarChart2 size={18} className="text-emerald-500" />
           <h2 className="font-semibold text-gray-900 dark:text-white">عضوهای روزانه</h2>
         </div>
         {loading ? (
@@ -191,7 +191,7 @@ export default function AnalyticsPage() {
                     fontSize: "12px",
                   }}
                 />
-                <Bar dataKey="عضوها" fill="#f97316" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="عضوها" fill="#10B981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
       {/* Block type breakdown */}
       <div className="glass-card overflow-hidden">
         <div className="flex items-center gap-2 p-5 border-b border-gray-200 dark:border-gray-700">
-          <BarChart2 size={18} className="text-orange-500" />
+          <BarChart2 size={18} className="text-emerald-500" />
           <h2 className="font-semibold text-gray-900 dark:text-white">آمار بلاک‌ها بر اساس نوع</h2>
         </div>
         {loading ? (

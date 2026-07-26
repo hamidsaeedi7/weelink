@@ -2,7 +2,7 @@
 
 interface DataPoint { date: string; count: number }
 
-export function MiniChart({ data, color = "#F97316" }: { data: DataPoint[]; color?: string }) {
+export function MiniChart({ data, color = "#0EA88A" }: { data: DataPoint[]; color?: string }) {
   if (!data || data.length === 0) return null;
 
   const max = Math.max(...data.map((d) => d.count), 1);
@@ -32,7 +32,7 @@ export function MiniChart({ data, color = "#F97316" }: { data: DataPoint[]; colo
   );
 }
 
-export function BarChart({ data, color = "#F97316" }: { data: DataPoint[]; color?: string }) {
+export function BarChart({ data, color = "#0EA88A" }: { data: DataPoint[]; color?: string }) {
   if (!data || data.length === 0) return null;
   const max = Math.max(...data.map((d) => d.count), 1);
   const visible = data.slice(-14);

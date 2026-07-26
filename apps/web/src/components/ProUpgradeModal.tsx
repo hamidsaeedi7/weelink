@@ -37,7 +37,7 @@ export function ProUpgradeModal() {
         {/* Gradient border */}
         <div
           className="absolute -inset-px rounded-3xl"
-          style={{ background: "linear-gradient(135deg, #f9731699, #f9731633)" }}
+          style={{ background: "linear-gradient(135deg, var(--accent)99, var(--accent)33)" }}
         />
         <div className="relative rounded-3xl bg-gray-100 dark:bg-[#0D0D18] p-6 space-y-5">
           <button

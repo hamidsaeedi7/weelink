@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi, fmtPrice, fmtDate } from "@/lib/api";
@@ -154,8 +154,8 @@ export default function FinancePage() {
       label: "اشتراک‌ها",
       value: data ? (data.subscriptions?.length ?? 0).toLocaleString("fa-IR") : "—",
       icon: CreditCard,
-      color: "text-orange-600 dark:text-orange-400",
-      bg: "bg-orange-100 dark:bg-orange-900/40",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-100 dark:bg-emerald-900/40",
     },
     {
       label: "کارمزد درگاه ویلینک",
@@ -210,7 +210,7 @@ export default function FinancePage() {
 
       {loading ? (
         <div className="glass-card flex items-center justify-center h-48">
-          <RefreshCw size={24} className="animate-spin text-orange-500" />
+          <RefreshCw size={24} className="animate-spin text-emerald-500" />
         </div>
       ) : tab === "orders" ? (
         <div className="glass-card overflow-hidden">
@@ -285,7 +285,7 @@ export default function FinancePage() {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             sub.plan === "PRO"
-                              ? "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                               : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                           }`}
                         >

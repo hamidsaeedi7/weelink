@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi } from "@/lib/api";
@@ -42,7 +42,7 @@ function MemoryProgressBar({ percent }: ProgressBarProps) {
   return (
     <div className="relative w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
       <div
-        className="h-full bg-orange-500 rounded-full transition-all duration-500"
+        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
         style={{ width: `${Math.min(100, percent)}%` }}
       />
       <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white mix-blend-difference">
@@ -181,8 +181,8 @@ export default function ServerStatsPage() {
             {/* Memory */}
             <div className="glass-card p-5">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center">
-                  <HardDrive size={20} className="text-orange-600 dark:text-orange-400" />
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                  <HardDrive size={20} className="text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">حافظه RAM</p>
@@ -205,7 +205,7 @@ export default function ServerStatsPage() {
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "کاربران", value: stats?.db.users, icon: Users, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/40" },
-                { label: "فروشگاه‌ها", value: stats?.db.shops, icon: Package, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/40" },
+                { label: "فروشگاه‌ها", value: stats?.db.shops, icon: Package, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/40" },
                 { label: "سفارشات", value: stats?.db.orders, icon: ShoppingCart, color: "text-green-600 dark:text-green-400", bg: "bg-green-100 dark:bg-green-900/40" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { adminApi, timeAgo } from "@/lib/api";
@@ -55,7 +55,7 @@ function priorityBadge(priority: Priority) {
   const map: Record<Priority, { label: string; className: string }> = {
     LOW: { label: "کم", className: "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400" },
     NORMAL: { label: "متوسط", className: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300" },
-    HIGH: { label: "زیاد", className: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" },
+    HIGH: { label: "زیاد", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
     URGENT: { label: "فوری", className: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
   };
   const cfg = map[priority] ?? { label: priority, className: "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400" };
@@ -164,7 +164,7 @@ export default function TicketsPage() {
           <div className="flex-1 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center h-full">
-                <RefreshCw size={24} className="animate-spin text-orange-500" />
+                <RefreshCw size={24} className="animate-spin text-emerald-500" />
               </div>
             ) : tickets.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -179,7 +179,7 @@ export default function TicketsPage() {
                     onClick={() => setSelectedTicket(ticket)}
                     className={`p-4 cursor-pointer transition-colors ${
                       selectedTicket?.id === ticket.id
-                        ? "bg-orange-50 dark:bg-orange-900/20 border-r-2 border-orange-500"
+                        ? "bg-emerald-50 dark:bg-emerald-900/20 border-r-2 border-emerald-500"
                         : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     }`}
                   >
@@ -270,17 +270,17 @@ export default function TicketsPage() {
                     <div
                       className={`max-w-[80%] rounded-2xl p-3 ${
                         reply.isAdmin
-                          ? "bg-orange-500 text-white rounded-tl-sm"
+                          ? "bg-emerald-500 text-white rounded-tl-sm"
                           : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tr-sm"
                       }`}
                     >
                       {reply.isAdmin && (
-                        <p className="text-xs text-orange-100 mb-1 font-medium">ادمین</p>
+                        <p className="text-xs text-emerald-100 mb-1 font-medium">ادمین</p>
                       )}
                       <p className="text-sm leading-relaxed">{reply.message}</p>
                       <p
                         className={`text-xs mt-1 text-left ${
-                          reply.isAdmin ? "text-orange-200" : "text-gray-400 dark:text-gray-500"
+                          reply.isAdmin ? "text-emerald-200" : "text-gray-400 dark:text-gray-500"
                         }`}
                       >
                         {timeAgo(reply.createdAt)}

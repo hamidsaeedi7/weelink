@@ -9,9 +9,10 @@ import { BOTTOM_NAV_ITEMS, allNavItems, type NavItem } from "@/app/dashboard/nav
  * Fixed bottom tab bar for mobile — replaces the full-screen drawer as the
  * *primary* way to reach the four most-used destinations (matches the
  * install-app pattern Iranian users already use daily: Instagram, Digikala).
- * The fifth slot normally opens the existing drawer ("بیشتر"), but on a page
- * outside the four pinned items it surfaces *that page's own* icon/label so
- * the active state still reads as "you are here" instead of a dead label.
+ * The "منو" slot sits in the middle (easiest thumb reach) and normally opens
+ * the existing drawer, but on a page outside the four pinned items it
+ * surfaces *that page's own* icon/label so the active state still reads as
+ * "you are here" instead of a dead label.
  */
 export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
   const pathname = usePathname();
@@ -26,6 +27,22 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
         .sort((a, b) => b.href.length - a.href.length)[0]
     : null;
 
+  const [first, second, third, fourth] = BOTTOM_NAV_ITEMS;
+
+  const MenuButton = (
+    <button
+      onClick={onOpenMore}
+      className="flex-1 flex flex-col items-center justify-center gap-1 py-2"
+    >
+      <Bubble active={Boolean(contextual)}>
+        {contextual ? <contextual.icon className="w-[18px] h-[18px] text-white" /> : <Menu className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />}
+      </Bubble>
+      <span className={`text-[10px] font-medium transition-colors duration-300 ${contextual ? "text-accent-500 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
+        {contextual ? contextual.label : "منو"}
+      </span>
+    </button>
+  );
+
   return (
     <nav
       className="md:hidden fixed bottom-0 inset-x-0 z-30 glass-chrome rounded-t-[28px]
@@ -34,21 +51,11 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
                  flex items-stretch justify-around
                  pb-[env(safe-area-inset-bottom)]"
     >
-      {BOTTOM_NAV_ITEMS.map((item) => (
-        <TabButton key={item.href} href={item.href} icon={item.icon} label={item.label} active={isActive(item)} />
-      ))}
-
-      <button
-        onClick={onOpenMore}
-        className="flex-1 flex flex-col items-center justify-center gap-1 py-2"
-      >
-        <Bubble active={Boolean(contextual)}>
-          {contextual ? <contextual.icon className={`w-[18px] h-[18px] ${contextual ? "text-white" : ""}`} /> : <Menu className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />}
-        </Bubble>
-        <span className={`text-[10px] font-medium transition-colors duration-300 ${contextual ? "text-accent-500 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
-          {contextual ? contextual.label : "بیشتر"}
-        </span>
-      </button>
+      <TabButton href={first.href} icon={first.icon} label={first.label} active={isActive(first)} />
+      <TabButton href={second.href} icon={second.icon} label={second.label} active={isActive(second)} />
+      {MenuButton}
+      <TabButton href={third.href} icon={third.icon} label={third.label} active={isActive(third)} />
+      <TabButton href={fourth.href} icon={fourth.icon} label={fourth.label} active={isActive(fourth)} />
     </nav>
   );
 }

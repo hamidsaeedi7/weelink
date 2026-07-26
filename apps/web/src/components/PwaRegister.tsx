@@ -95,7 +95,7 @@ export function PwaRegister() {
                      rounded-2xl shadow-2xl flex items-center gap-3 p-4"
           role="banner"
         >
-          <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent-500/20 flex items-center justify-center shrink-0">
             <img src="/weeelink.png" alt="ویلینک" className="w-6 h-6 rounded-lg" />
           </div>
 
@@ -107,7 +107,7 @@ export function PwaRegister() {
           <button
             onClick={handleInstall}
             disabled={installing}
-            className="shrink-0 flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600
+            className="shrink-0 flex items-center gap-1.5 bg-accent-500 hover:bg-accent-600
                        disabled:opacity-60 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors"
           >
             {installing ? (
@@ -146,7 +146,7 @@ export function PwaRegister() {
             </div>
             <ol className="space-y-3 text-sm text-gray-300">
               <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center shrink-0">۱</span>
+                <span className="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 text-xs font-bold flex items-center justify-center shrink-0">۱</span>
                 <span className="flex items-center gap-1.5 flex-wrap">
                   در نوار پایین Safari روی دکمه
                   <Share className="w-4 h-4 text-blue-400 inline" />
@@ -154,7 +154,7 @@ export function PwaRegister() {
                 </span>
               </li>
               <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center shrink-0">۲</span>
+                <span className="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 text-xs font-bold flex items-center justify-center shrink-0">۲</span>
                 <span className="flex items-center gap-1.5 flex-wrap">
                   گزینه
                   <PlusSquare className="w-4 h-4 inline" />
@@ -162,7 +162,7 @@ export function PwaRegister() {
                 </span>
               </li>
               <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center shrink-0">۳</span>
+                <span className="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 text-xs font-bold flex items-center justify-center shrink-0">۳</span>
                 <span>روی «Add» بزنید — آیکون ویلینک به صفحه اصلی اضافه می‌شود</span>
               </li>
             </ol>

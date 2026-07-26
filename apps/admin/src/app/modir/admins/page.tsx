@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -25,7 +25,7 @@ interface User {
 function RoleBadge({ role }: { role: string }) {
   if (role === "SUPER_ADMIN")
     return (
-      <span className="inline-flex items-center gap-1 text-xs bg-orange-500/20 text-orange-400 px-2.5 py-1 rounded-full font-medium">
+      <span className="inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-medium">
         <Crown size={11} /> سوپر ادمین
       </span>
     );

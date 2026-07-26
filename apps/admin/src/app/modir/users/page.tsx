@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi, fmtDate, timeAgo } from "@/lib/api";
@@ -36,7 +36,7 @@ function PlanBadge({ plan }: { plan: Plan }) {
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
         plan === "PRO"
-          ? "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
           : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
       }`}
     >
@@ -120,8 +120,8 @@ function UserModal({ user, onClose, onUpdate, onDelete }: UserModalProps) {
           <X size={20} />
         </button>
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center">
-            <User size={24} className="text-orange-600 dark:text-orange-400" />
+          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+            <User size={24} className="text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
             <p className="font-semibold text-gray-900 dark:text-white">
@@ -310,7 +310,7 @@ export default function UsersPage() {
       <div className="glass-card overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <RefreshCw size={24} className="animate-spin text-orange-500" />
+            <RefreshCw size={24} className="animate-spin text-emerald-500" />
           </div>
         ) : (
           <div className="overflow-x-auto">

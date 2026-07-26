@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi, timeAgo } from "@/lib/api";
@@ -20,7 +20,7 @@ function PlanBadge({ plan }: { plan: Plan }) {
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
         plan === "PRO"
-          ? "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
           : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
       }`}
     >
@@ -32,8 +32,8 @@ function PlanBadge({ plan }: { plan: Plan }) {
 function AvatarInitial({ value }: { value: string }) {
   const char = (value || "?")[0].toUpperCase();
   return (
-    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center flex-shrink-0">
-      <span className="text-orange-700 dark:text-orange-300 font-semibold text-sm">{char}</span>
+    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
+      <span className="text-emerald-700 dark:text-emerald-300 font-semibold text-sm">{char}</span>
     </div>
   );
 }
@@ -105,7 +105,7 @@ export default function ActiveUsersPage() {
       <div className="glass-card overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <RefreshCw size={24} className="animate-spin text-orange-500" />
+            <RefreshCw size={24} className="animate-spin text-emerald-500" />
           </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -150,7 +150,7 @@ export default function ActiveUsersPage() {
                       href={`/${user.shop.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
                       title="مشاهده فروشگاه"
                     >
                       <ExternalLink size={16} />

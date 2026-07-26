@@ -261,18 +261,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <SidebarContent {...sidebarProps} />
       </aside>
 
-      {open && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <aside className="absolute right-0 top-0 h-full w-60 glass-chrome backdrop-blur-2xl
-                            border-l border-gray-200 dark:border-white/[0.06]">
-            <button onClick={() => setOpen(false)} className="absolute left-3 top-4 p-1.5 text-gray-400">
-              <X className="w-4 h-4" />
-            </button>
-            <SidebarContent {...sidebarProps} mobile />
-          </aside>
-        </div>
-      )}
+      <div
+        className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ease-out
+                    ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      >
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+        <aside
+          className={`absolute right-0 top-0 h-full w-60 glass-chrome backdrop-blur-2xl
+                      border-l border-gray-200 dark:border-white/[0.06]
+                      transition-transform duration-300 ease-out
+                      ${open ? "translate-x-0" : "translate-x-full"}`}
+        >
+          <button onClick={() => setOpen(false)} className="absolute left-3 top-4 p-1.5 text-gray-400">
+            <X className="w-4 h-4" />
+          </button>
+          <SidebarContent {...sidebarProps} mobile />
+        </aside>
+      </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-14 flex items-center justify-between px-4 sm:px-6

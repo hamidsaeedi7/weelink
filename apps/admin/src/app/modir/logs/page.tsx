@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ interface LogEntry {
 const ACTION_COLORS: Record<string, string> = {
   UPDATE_USER: "bg-blue-500/20 text-blue-400",
   UPDATE_SETTINGS: "bg-purple-500/20 text-purple-400",
-  SET_ROLE_ADMIN: "bg-orange-500/20 text-orange-400",
+  SET_ROLE_ADMIN: "bg-emerald-500/20 text-emerald-400",
   DELETE: "bg-red-500/20 text-red-400",
   DELETE_USER: "bg-red-500/20 text-red-400",
   DELETE_PAGE: "bg-red-500/20 text-red-400",

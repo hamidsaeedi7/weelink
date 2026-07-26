@@ -60,7 +60,7 @@ export default function EditBlogPostPage() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
     </div>
   );
 
@@ -80,7 +80,7 @@ export default function EditBlogPostPage() {
             <Globe className="w-4 h-4" />
             انتشار
             <div className="relative" onClick={() => set("isPublished", !form.isPublished)}>
-              <div className={`w-10 h-5 rounded-full transition-colors ${form.isPublished ? "bg-orange-500" : "bg-gray-300 dark:bg-gray-600"}`} />
+              <div className={`w-10 h-5 rounded-full transition-colors ${form.isPublished ? "bg-emerald-500" : "bg-gray-300 dark:bg-gray-600"}`} />
               <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isPublished ? "translate-x-5" : "translate-x-0.5"}`} />
             </div>
           </label>
@@ -131,7 +131,7 @@ export default function EditBlogPostPage() {
             {form.coverImage && (
               <img src={form.coverImage} alt="" className="w-full aspect-video object-cover rounded-xl" />
             )}
-            <label className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-gray-200 dark:border-white/10 text-sm text-gray-500 cursor-pointer hover:border-orange-500/50 hover:text-orange-500 transition-colors">
+            <label className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-gray-200 dark:border-white/10 text-sm text-gray-500 cursor-pointer hover:border-emerald-500/50 hover:text-emerald-500 transition-colors">
               {coverUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {coverUploading ? "در حال آپلود…" : "آپلود تصویر کاور"}
               <input type="file" accept="image/*" className="hidden"
@@ -149,10 +149,10 @@ export default function EditBlogPostPage() {
               <div className="flex flex-wrap gap-1.5">
                 {form.tags.map((tag: string) => (
                   <span key={tag}
-                    className="flex items-center gap-1 text-xs bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full">
+                    className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">
                     {tag}
                     <button onClick={() => set("tags", form.tags.filter((t: string) => t !== tag))}
-                      className="text-orange-400 hover:text-red-400 ml-0.5">×</button>
+                      className="text-emerald-400 hover:text-red-400 ml-0.5">×</button>
                   </span>
                 ))}
               </div>

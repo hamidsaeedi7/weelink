@@ -36,10 +36,10 @@ export default function PlanCallbackClient() {
         <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center
           ${phase === "success" ? "bg-green-500/20 border border-green-500/30"
             : phase === "error" ? "bg-red-500/20 border border-red-500/30"
-            : "bg-orange-500/10 border border-orange-500/20"}`}>
+            : "bg-accent-500/10 border border-accent-500/20"}`}>
           {phase === "success" && <CheckCircle2 className="w-10 h-10 text-green-400" />}
           {phase === "error" && <XCircle className="w-10 h-10 text-red-400" />}
-          {phase === "verifying" && <Loader2 className="w-10 h-10 text-orange-400 animate-spin" />}
+          {phase === "verifying" && <Loader2 className="w-10 h-10 text-accent-400 animate-spin" />}
         </div>
 
         <div className="space-y-2">
@@ -61,13 +61,13 @@ export default function PlanCallbackClient() {
           <div className="flex flex-col gap-3">
             {phase === "error" && (
               <Link href="/dashboard/plans"
-                className="py-3 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-400 transition-all">
+                className="py-3 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all">
                 تلاش مجدد
               </Link>
             )}
             <Link href="/dashboard/plans"
               className="py-3 rounded-xl border border-white/10 text-gray-400 text-sm font-bold
-                         hover:border-orange-500/30 hover:text-orange-400 transition-all
+                         hover:border-accent-500/30 hover:text-accent-400 transition-all
                          flex items-center justify-center gap-2">
               <ArrowRight className="w-4 h-4" />
               بازگشت به پلن‌ها

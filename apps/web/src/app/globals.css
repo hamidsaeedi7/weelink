@@ -102,12 +102,14 @@
   body {
     background-color: var(--bg-primary);
     background-image:
-      radial-gradient(ellipse 900px 600px at 12% -10%, var(--accent-glow), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 100% 15%, var(--accent-glow), transparent 55%),
-      radial-gradient(circle, rgba(var(--accent-500-rgb) / 0.06) 1px, transparent 1px);
-    background-size: auto, auto, 26px 26px;
-    background-repeat: no-repeat, no-repeat, repeat;
-    background-attachment: fixed, fixed, local;
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 1000px 700px at 8% -12%, var(--accent-glow), transparent 58%),
+      radial-gradient(ellipse 800px 600px at 105% 10%, var(--accent-glow), transparent 52%),
+      radial-gradient(ellipse 700px 550px at 50% 115%, rgba(var(--accent-500-rgb) / 0.14), transparent 55%),
+      radial-gradient(circle, rgba(var(--accent-500-rgb) / 0.08) 1px, transparent 1px);
+    background-size: 160px 160px, auto, auto, auto, 24px 24px;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat, repeat;
+    background-attachment: fixed, fixed, fixed, fixed, local;
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
     -webkit-font-smoothing: antialiased;
@@ -116,11 +118,13 @@
   @media (max-width: 640px) {
     body {
       background-image:
-        radial-gradient(ellipse 500px 400px at 20% -5%, var(--accent-glow), transparent 55%),
-        radial-gradient(circle, rgba(var(--accent-500-rgb) / 0.05) 1px, transparent 1px);
-      background-size: auto, 22px 22px;
-      background-repeat: no-repeat, repeat;
-      background-attachment: scroll, local;
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse 600px 500px at 15% -8%, var(--accent-glow), transparent 55%),
+        radial-gradient(ellipse 500px 450px at 100% 90%, rgba(var(--accent-500-rgb) / 0.16), transparent 55%),
+        radial-gradient(circle, rgba(var(--accent-500-rgb) / 0.07) 1px, transparent 1px);
+      background-size: 140px 140px, auto, auto, 20px 20px;
+      background-repeat: repeat, no-repeat, no-repeat, repeat;
+      background-attachment: fixed, scroll, scroll, local;
     }
   }
 }

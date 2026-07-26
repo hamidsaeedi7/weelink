@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Users, DollarSign, Ticket, TrendingUp, UserPlus, BarChart3, Loader2 } from "lucide-react";
@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "rechar
 
 function StatCard({ label, value, sub, icon: Icon, color = "orange" }: any) {
   const c: Record<string, string> = {
-    orange: "bg-orange-500/10 text-orange-500",
+    orange: "bg-emerald-500/10 text-emerald-500",
     blue:   "bg-blue-500/10 text-blue-400",
     green:  "bg-green-500/10 text-green-400",
     red:    "bg-red-500/10 text-red-400",
@@ -34,7 +34,7 @@ export default function ModirDashboard() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
     </div>
   );
 
@@ -60,17 +60,17 @@ export default function ModirDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="glass-card p-5 lg:col-span-2">
           <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-            <UserPlus className="w-4 h-4 text-orange-400" />
+            <UserPlus className="w-4 h-4 text-emerald-400" />
             ثبت‌نام روزانه (۱۴ روز اخیر)
           </h2>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} barSize={20}>
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "#1f2937", border: "none", borderRadius: 12, color: "#f9fafb", fontSize: 12 }} cursor={{ fill: "rgba(249,115,22,0.05)" }} />
+                <Tooltip contentStyle={{ background: "#1f2937", border: "none", borderRadius: 12, color: "#f9fafb", fontSize: 12 }} cursor={{ fill: "rgba(16,185,129,0.05)" }} />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                   {chartData.map((_: any, i: number) => (
-                    <Cell key={i} fill={i === chartData.length - 1 ? "#f97316" : "#f9731640"} />
+                    <Cell key={i} fill={i === chartData.length - 1 ? "#10B981" : "#10B98140"} />
                   ))}
                 </Bar>
               </BarChart>
@@ -85,7 +85,7 @@ export default function ModirDashboard() {
           </h2>
           <div className="space-y-4">
             {[
-              { label: "فروشگاه‌های فعال", value: data?.shops || 0,      color: "bg-orange-500" },
+              { label: "فروشگاه‌های فعال", value: data?.shops || 0,      color: "bg-emerald-500" },
               { label: "کل سفارشات",       value: data?.orders || 0,     color: "bg-blue-500" },
               { label: "پست‌های وبلاگ",    value: data?.blogPosts || 0,  color: "bg-purple-500" },
               { label: "کاربران PRO",      value: data?.users?.pro || 0, color: "bg-green-500" },
