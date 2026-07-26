@@ -25,7 +25,7 @@ export function Navbar() {
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-4 mt-4">
-        <nav className="max-w-7xl mx-auto glass-card px-5 py-3 flex items-center justify-between">
+        <nav className="max-w-7xl mx-auto glass-chrome px-5 py-3 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <img src="/weeelink.png" alt="ویلینک"
@@ -77,7 +77,7 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {open && (
-          <div className="mt-2 glass-card p-3 space-y-1 lg:hidden">
+          <div className="mt-2 glass-chrome p-3 space-y-1 lg:hidden">
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href}
                 onClick={() => setOpen(false)}

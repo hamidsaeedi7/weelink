@@ -72,8 +72,8 @@ export default async function BlogPostPage({
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600
-                     dark:hover:text-blue-400 transition-colors mb-10 group"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-accent
+                     transition-colors mb-10 group"
         >
           <span className="group-hover:translate-x-1 transition-transform">→</span>
           بازگشت به وبلاگ
@@ -97,8 +97,7 @@ export default async function BlogPostPage({
 
           <div
             className="prose prose-lg dark:prose-invert max-w-none
-                       prose-headings:font-bold prose-a:text-blue-600
-                       dark:prose-a:text-blue-400 leading-relaxed"
+                       prose-headings:font-bold prose-a:text-accent leading-relaxed"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
           />
         </article>
@@ -106,8 +105,8 @@ export default async function BlogPostPage({
         <div className="mt-16 pt-8 border-t border-gray-200 dark:border-white/[0.06]">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600
-                       dark:text-blue-400 hover:underline group"
+            className="inline-flex items-center gap-2 text-sm font-medium text-accent
+                       hover:underline group"
           >
             <span className="group-hover:translate-x-1 transition-transform">→</span>
             مشاهده همه مطالب

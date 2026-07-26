@@ -28,7 +28,7 @@ export function Footer() {
             <div className="flex items-center gap-2.5">
               <img src="/weeelink.png" alt="ویلینک" className="w-8 h-8 rounded-xl" />
               <span className="font-black text-gray-900 dark:text-white text-lg">
-                وی<span className="text-blue-600">لینک</span>
+                وی<span className="text-accent">لینک</span>
               </span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 leading-relaxed max-w-xs">
@@ -38,14 +38,14 @@ export function Footer() {
             <div className="space-y-2.5 pt-1">
               <a href="tel:+989107192646"
                 className="flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-500
-                           hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-fit">
+                           hover:text-accent transition-colors w-fit">
                 <Phone className="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-600" />
                 <span dir="ltr">۰۹۱۰۷۱۹۲۶۴۶</span>
               </a>
               <a href="https://maps.google.com/?q=تهران، پیروزی، خیابان اول نیروی هوایی، کوچه کاظمی، پلاک ۱۱"
                 target="_blank" rel="noopener noreferrer"
                 className="flex items-start gap-2.5 text-sm text-gray-500 dark:text-gray-500
-                           hover:text-blue-600 dark:hover:text-blue-400 transition-colors max-w-xs">
+                           hover:text-accent transition-colors max-w-xs">
                 <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-gray-400 dark:text-gray-600" />
                 <span className="leading-relaxed">تهران، پیروزی، خیابان اول نیروی هوایی، کوچه کاظمی، پلاک ۱۱</span>
               </a>
@@ -60,7 +60,7 @@ export function Footer() {
                 <li key={l.href}>
                   <Link href={l.href}
                     className="text-sm text-gray-500 dark:text-gray-500
-                               hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                               hover:text-accent transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -76,7 +76,7 @@ export function Footer() {
                 <li key={l.href}>
                   <Link href={l.href}
                     className="text-sm text-gray-500 dark:text-gray-500
-                               hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                               hover:text-accent transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -120,7 +120,7 @@ export function Footer() {
           <p className="text-xs text-gray-400 dark:text-gray-600">
             ساخته شده توسط{" "}
             <a href="https://saeedii.com" target="_blank" rel="noopener noreferrer"
-               className="text-blue-600 hover:text-blue-500 transition-colors font-medium">
+               className="text-accent hover:opacity-80 transition-colors font-medium">
               HamiD Saeedi
             </a>
           </p>

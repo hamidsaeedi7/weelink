@@ -22,13 +22,13 @@ export default function AboutPage() {
       <main className="pt-24 pb-16">
         {/* Hero */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 text-center py-16">
-          <div className="inline-flex items-center gap-2 text-xs font-medium bg-orange-500/10 text-orange-500
+          <div className="inline-flex items-center gap-2 text-xs font-medium bg-accent-500/10 text-accent-500
                           px-3 py-1.5 rounded-full mb-6">
             درباره ما
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white leading-tight mb-6">
             ما اینجاییم تا کسب‌وکار<br />
-            <span className="text-orange-500">آنلاین ایرانی</span> رو ساده کنیم
+            <span className="text-accent">آنلاین ایرانی</span> رو ساده کنیم
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed max-w-2xl mx-auto">
             ویلینک در سال ۱۴۰۳ با یک هدف ساده شروع شد: یک ابزار فارسی، ارزان‌قیمت و کامل برای
@@ -64,8 +64,8 @@ export default function AboutPage() {
               <div key={v.title}
                    className="bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06]
                               rounded-2xl p-6 flex gap-4">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
-                  <v.icon className="w-5 h-5 text-orange-500" />
+                <div className="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center shrink-0">
+                  <v.icon className="w-5 h-5 text-accent-500" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white mb-1">{v.title}</h3>
@@ -85,9 +85,9 @@ export default function AboutPage() {
             ثبت‌نام رایگانه. بدون نیاز به کارت اعتباری.
           </p>
           <a href="/register"
-             className="inline-flex items-center gap-2 px-8 py-3 bg-orange-500 hover:bg-orange-400
+             className="inline-flex items-center gap-2 px-8 py-3 bg-accent-500 hover:bg-accent-400
                         text-white font-bold rounded-xl transition-all
-                        shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]">
+                        shadow-[0_0_20px_rgba(var(--accent-500-rgb),0.3)] hover:shadow-[0_0_30px_rgba(var(--accent-500-rgb),0.5)]">
             شروع رایگان ←
           </a>
         </section>

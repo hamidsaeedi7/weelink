@@ -18,9 +18,8 @@ const config: Config = {
           dark: "#EA580C",
           glow: "rgba(249,115,22,0.15)",
         },
-        // Dashboard chrome accent — blue in light mode, orange in dark mode
-        // (same hex the app already used), driven by CSS vars so opacity
-        // modifiers work: bg-accent-500/10, border-accent-600/20, etc.
+        // Dashboard chrome accent — single green-jade hue (Glassmorphism v2),
+        // driven by CSS vars so opacity modifiers work: bg-accent-500/10, etc.
         accent: {
           50: "rgb(var(--accent-50-rgb) / <alpha-value>)",
           100: "rgb(var(--accent-100-rgb) / <alpha-value>)",

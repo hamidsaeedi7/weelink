@@ -503,7 +503,7 @@ export default function ShopSettingsPage() {
           {/* Background Image */}
           <div className="glass-card p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-blue-500" />
+              <ImageIcon className="w-4 h-4 text-accent-500" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">تصویر پس‌زمینه دلخواه</h3>
             </div>
             <p className="text-xs text-gray-500">اگر تصویر دلخواه آپلود کنی، به‌جای قالب آماده نمایش داده می‌شود</p>
@@ -519,7 +519,7 @@ export default function ShopSettingsPage() {
             ) : (
               <label className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed
                                border-gray-200 dark:border-white/10 text-sm text-gray-500
-                               hover:border-blue-500/50 hover:text-blue-500 transition-all cursor-pointer">
+                               hover:border-accent-500/50 hover:text-accent-500 transition-all cursor-pointer">
                 <Upload className="w-4 h-4" />
                 آپلود تصویر پس‌زمینه
                 <input type="file" accept="image/*" className="hidden"
@@ -732,7 +732,7 @@ export default function ShopSettingsPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="glass-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="w-4 h-4 text-blue-500" />
+              <BarChart3 className="w-4 h-4 text-accent-500" />
               <h3 className="font-bold text-gray-900 dark:text-white text-sm">Google Analytics</h3>
               <span className="text-xs bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md">Pro</span>
             </div>

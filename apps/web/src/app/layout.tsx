@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        <meta name="theme-color" content="#F97316" />
+        <meta name="theme-color" content="#0EA88A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="ویلینک" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

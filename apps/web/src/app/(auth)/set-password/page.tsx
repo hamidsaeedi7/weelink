@@ -67,8 +67,8 @@ export default function SetPasswordPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                          bg-orange-500/10 border border-orange-500/20 mb-2">
-            <ShieldCheck className="w-7 h-7 text-orange-500" />
+                          bg-accent-500/10 border border-accent-500/20 mb-2">
+            <ShieldCheck className="w-7 h-7 text-accent-500" />
           </div>
           <h1 className="mt-4 text-2xl font-black text-gray-900 dark:text-white">
             تنظیم رمز عبور

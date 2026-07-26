@@ -174,6 +174,12 @@ export const ticketsApi = {
   close: (id: string) => api.put(`/tickets/${id}/close`),
 };
 
+// ─── Notifications ──────────────────────────────────────────────────────────
+export const notificationsApi = {
+  mine: () => api.get("/notifications/mine"),
+  markRead: (id: string) => api.put(`/notifications/${id}/read`),
+};
+
 // ─── User Account ─────────────────────────────────────────────────────────────
 export const accountApi = {
   getMe: () => api.get("/users/me"),

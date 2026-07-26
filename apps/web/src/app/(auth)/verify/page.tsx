@@ -82,20 +82,20 @@ function VerifyForm() {
                     bg-gray-50 dark:bg-[#0A0A0F] px-4 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96
-                        bg-orange-500/5 rounded-full blur-3xl" />
+                        bg-accent-500/5 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-orange-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-accent-500 flex items-center justify-center">
               <span className="text-white font-black">W</span>
             </div>
           </Link>
           <h1 className="mt-6 text-2xl font-black text-gray-900 dark:text-white">تأیید شماره موبایل</h1>
           <p className="mt-2 text-sm text-gray-500">
             کد ۶ رقمی به{" "}
-            <span className="font-mono text-orange-500 dir-ltr">{phone}</span>
+            <span className="font-mono text-accent-500 dir-ltr">{phone}</span>
             {" "}ارسال شد
           </p>
         </div>
@@ -117,8 +117,8 @@ function VerifyForm() {
                             bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white
                             transition-all outline-none
                             ${d
-                              ? "border-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.2)]"
-                              : "border-gray-200 dark:border-white/10 focus:border-orange-500/50"}`}
+                              ? "border-accent-500 shadow-[0_0_12px_rgba(var(--accent-500-rgb),0.2)]"
+                              : "border-gray-200 dark:border-white/10 focus:border-accent-500/50"}`}
               />
             ))}
           </div>
@@ -140,7 +140,7 @@ function VerifyForm() {
 
           <div className="text-center">
             <button onClick={resend} disabled={resendIn > 0}
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-orange-500
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-accent-500
                          disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               <RefreshCw className="w-3.5 h-3.5" />
               {resendIn > 0 ? `ارسال مجدد (${resendIn}ث)` : "ارسال مجدد کد"}

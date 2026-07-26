@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Check, Star } from "lucide-react";
+import { Check, Star, Minus } from "lucide-react";
 
 const FREE_FEATURES = [
   "صفحه بیو با URL اختصاصی",
@@ -34,6 +34,11 @@ const PLANS = [
   { id: "biannual",  label: "شش‌ماهه",     price: "۸۹۹٬۰۰۰",   period: "۶ ماه",            save: "۲۵٪ تخفیف", popular: false },
   { id: "annual",    label: "سالانه",      price: "۱٬۵۹۹٬۰۰۰", period: "سال",              save: "۳۳٪ تخفیف", popular: true  },
   { id: "lifetime",  label: "مادام‌العمر", price: "۴٬۹۹۹٬۰۰۰", period: "یک بار برای همیشه", save: null,       popular: false },
+];
+
+const COMPARISON_ROWS = [
+  ...FREE_FEATURES.map((label) => ({ label, free: true, pro: true })),
+  ...PRO_FEATURES.slice(1).map((label) => ({ label, free: false, pro: true })),
 ];
 
 export function Pricing() {
@@ -134,6 +139,37 @@ export function Pricing() {
                 {current.id === "lifetime" ? "خرید مادام‌العمر" : "شروع با Pro"}
               </Link>
             </div>
+          </div>
+        </div>
+
+        {/* Comparison table */}
+        <div className="max-w-2xl mx-auto mt-10 glass-card overflow-hidden">
+          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 px-4 pt-4">مقایسه کامل امکانات</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm mt-2">
+              <thead>
+                <tr className="text-xs text-gray-400 border-b border-gray-200 dark:border-white/[0.06]">
+                  <th className="text-right font-medium py-2 px-4">امکان</th>
+                  <th className="text-center font-medium py-2 px-3 w-20">رایگان</th>
+                  <th className="text-center font-medium py-2 px-3 w-20 text-accent">PRO</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON_ROWS.map((row) => (
+                  <tr key={row.label} className="border-b border-gray-100 dark:border-white/[0.03] last:border-0">
+                    <td className="py-2.5 px-4 text-gray-700 dark:text-gray-300">{row.label}</td>
+                    <td className="text-center py-2.5 px-3">
+                      {row.free
+                        ? <Check className="w-4 h-4 text-green-500 inline" />
+                        : <Minus className="w-4 h-4 text-gray-300 dark:text-gray-700 inline" />}
+                    </td>
+                    <td className="text-center py-2.5 px-3">
+                      {row.pro && <Check className="w-4 h-4 text-accent inline" />}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

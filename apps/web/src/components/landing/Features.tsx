@@ -53,8 +53,8 @@ export function Features() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                          bg-blue-600/10 border border-blue-600/20 text-blue-500 text-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm"
+               style={{ background: "var(--accent-glow)", border: "1px solid var(--accent)", color: "var(--accent)" }}>
             <span className="dot-orange" />
             ویژگی‌ها
           </div>
@@ -71,9 +71,9 @@ export function Features() {
           {FEATURES.map((f, i) => (
             <div
               key={i}
-              className="group glass-card p-6 hover:border-orange-500/20
+              className="group glass-card p-6 hover:border-accent-500/20
                          transition-all duration-300 hover:-translate-y-1
-                         hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_rgba(249,115,22,0.05)]"
+                         hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_rgba(var(--accent-500-rgb),0.08)]"
             >
               <div className={`w-11 h-11 rounded-xl ${f.bg} flex items-center justify-center mb-4
                                group-hover:scale-110 transition-transform duration-300`}>

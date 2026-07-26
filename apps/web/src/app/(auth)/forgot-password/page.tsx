@@ -95,8 +95,8 @@ export default function ForgotPasswordPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                          bg-orange-500/10 border border-orange-500/20 mb-2">
-            <KeyRound className="w-7 h-7 text-orange-500" />
+                          bg-accent-500/10 border border-accent-500/20 mb-2">
+            <KeyRound className="w-7 h-7 text-accent-500" />
           </div>
           <h1 className="mt-4 text-2xl font-black text-gray-900 dark:text-white">
             بازیابی رمز عبور
@@ -210,7 +210,7 @@ export default function ForgotPasswordPage() {
 
               <div className="text-center">
                 <button type="button" onClick={sendCode} disabled={resendIn > 0 || loading}
-                  className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-orange-500
+                  className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-accent-500
                              disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                   <RefreshCw className="w-3.5 h-3.5" />
                   {resendIn > 0 ? `ارسال مجدد (${resendIn}ث)` : "ارسال مجدد کد"}

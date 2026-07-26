@@ -18,17 +18,13 @@ const nextConfig = {
     ];
   },
   async headers() {
-    return [
+    const rules = [
       {
         source: "/:slug/opengraph-image",
         headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }],
       },
       {
         source: "/uploads/:path*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-      },
-      {
-        source: "/_next/static/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
@@ -40,6 +36,15 @@ const nextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
       },
     ];
+    // /_next/static chunk filenames are content-hashed only in production builds;
+    // in `next dev` they're stable, so immutable caching here serves stale JS forever.
+    if (process.env.NODE_ENV === "production") {
+      rules.push({
+        source: "/_next/static/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      });
+    }
+    return rules;
   },
 };
 export default nextConfig;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Crown, Loader2, Zap, Star, Infinity, AlertTriangle } from "lucide-react";
+import { Check, Crown, Loader2, Zap, Star, Infinity, AlertTriangle, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { accountApi, paymentsApi } from "@/lib/api";
 import { toPersianNumber } from "@/lib/utils";
@@ -38,6 +38,11 @@ const PRO_FEATURES = [
   "آنالیتیکس پیشرفته",
   "لینک زمان‌بندی‌شده",
   "پشتیبانی اولویت‌دار",
+];
+
+const COMPARISON_ROWS = [
+  ...FREE_FEATURES.map((label) => ({ label, free: true, pro: true })),
+  ...PRO_FEATURES.slice(1).map((label) => ({ label, free: false, pro: true })),
 ];
 
 function fmtPrice(n: number) {
@@ -177,7 +182,7 @@ export default function PlansPage() {
         <div className="relative">
           {/* Gradient border */}
           <div className="absolute -inset-px rounded-2xl"
-               style={{ background: "linear-gradient(135deg, #f9731680, #f9731630)" }} />
+               style={{ background: "linear-gradient(135deg, var(--accent)80, var(--accent)30)" }} />
           <div className="relative rounded-2xl bg-gray-100 dark:bg-[#0D0D18] p-6 space-y-5">
 
             <div className="flex items-start justify-between">
@@ -219,7 +224,7 @@ export default function PlansPage() {
                   onClick={() => setActivePlan(p.id)}
                   className="flex-1 min-w-fit py-1.5 px-2 text-xs rounded-lg transition-all font-medium whitespace-nowrap"
                   style={activePlan === p.id
-                    ? { backgroundColor: "#f97316", color: "white" }
+                    ? { backgroundColor: "var(--accent)", color: "white" }
                     : { color: "var(--text-secondary, #6b7280)" }}>
                   {p.label}
                 </button>
@@ -268,28 +273,34 @@ export default function PlansPage() {
           : `ارتقا به PRO — ${fmtPrice(current.price)}`}
       </button>
 
-      {/* Feature comparison note */}
-      <div className="rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 p-4 space-y-2">
-        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-3">امکانات رایگان vs PRO</p>
-        <div className="grid grid-cols-2 gap-4 text-xs">
-          <div className="space-y-1.5">
-            <p className="font-bold text-gray-700 dark:text-gray-300">رایگان ✓</p>
-            <p className="text-gray-500">لینک‌های نامحدود</p>
-            <p className="text-gray-500">فروشگاه + فایل + دوره</p>
-            <p className="text-gray-500">رزرو وقت</p>
-            <p className="text-gray-500">QR Code</p>
-            <p className="text-gray-500">آمار پایه</p>
-            <p className="text-gray-500">افیلیت + پاسخ خودکار</p>
-          </div>
-          <div className="space-y-1.5">
-            <p className="font-bold text-accent-500">PRO اضافه می‌کند ✦</p>
-            <p className="text-gray-500">لینک کوتاه</p>
-            <p className="text-gray-500">مدیریت مخاطبان</p>
-            <p className="text-gray-500">تقویم محتوا</p>
-            <p className="text-gray-500">آنالیتیکس پیشرفته</p>
-            <p className="text-gray-500">دامنه اختصاصی</p>
-            <p className="text-gray-500">لینک زمان‌بندی</p>
-          </div>
+      {/* Feature comparison table */}
+      <div className="glass-card overflow-hidden">
+        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 px-4 pt-4">مقایسه کامل امکانات</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm mt-2">
+            <thead>
+              <tr className="text-xs text-gray-400 border-b border-gray-200 dark:border-white/[0.06]">
+                <th className="text-right font-medium py-2 px-4">امکان</th>
+                <th className="text-center font-medium py-2 px-3 w-20">رایگان</th>
+                <th className="text-center font-medium py-2 px-3 w-20 text-accent-500">PRO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARISON_ROWS.map((row) => (
+                <tr key={row.label} className="border-b border-gray-100 dark:border-white/[0.03] last:border-0">
+                  <td className="py-2.5 px-4 text-gray-700 dark:text-gray-300">{row.label}</td>
+                  <td className="text-center py-2.5 px-3">
+                    {row.free
+                      ? <Check className="w-4 h-4 text-green-500 inline" />
+                      : <Minus className="w-4 h-4 text-gray-300 dark:text-gray-700 inline" />}
+                  </td>
+                  <td className="text-center py-2.5 px-3">
+                    {row.pro && <Check className="w-4 h-4 text-accent-500 inline" />}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

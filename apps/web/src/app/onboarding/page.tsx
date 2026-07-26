@@ -62,14 +62,14 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center px-4 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px]
-                        bg-orange-500/6 rounded-full blur-3xl" />
+                        bg-accent-500/6 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                          bg-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.35)] mb-5">
+                          bg-accent-500 shadow-[0_0_30px_rgba(var(--accent-500-rgb),0.35)] mb-5">
             <Store className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-black text-white">فروشگاهت رو بساز</h1>
@@ -90,7 +90,7 @@ export default function OnboardingPage() {
                 placeholder="مثلاً: فروشگاه مد تهران"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10
                            text-white placeholder:text-gray-600 focus:outline-none
-                           focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/10 transition-all"
+                           focus:border-accent-500/50 focus:ring-2 focus:ring-accent-500/10 transition-all"
               />
               {errors.name && (
                 <p className="mt-1.5 text-xs text-red-400">{errors.name.message}</p>
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
                   placeholder="myshop"
                   className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10
                              text-white placeholder:text-gray-600 focus:outline-none text-left
-                             focus:border-orange-500/50 transition-all font-mono text-sm"
+                             focus:border-accent-500/50 transition-all font-mono text-sm"
                   dir="ltr"
                 />
                 <div className="absolute left-3">
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
               </div>
               {slug && (
                 <p className="mt-1.5 text-xs text-gray-600 font-mono" dir="ltr">
-                  weeelink.ir/<span className="text-orange-400">{slug}</span>
+                  weeelink.ir/<span className="text-accent-400">{slug}</span>
                 </p>
               )}
               {errors.slug && (
@@ -150,7 +150,7 @@ export default function OnboardingPage() {
                 placeholder="فروش لباس زنانه | تهران | ارسال سراسری"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10
                            text-white placeholder:text-gray-600 focus:outline-none resize-none
-                           focus:border-orange-500/50 transition-all text-sm leading-relaxed"
+                           focus:border-accent-500/50 transition-all text-sm leading-relaxed"
               />
             </div>
 
@@ -158,9 +158,9 @@ export default function OnboardingPage() {
               type="submit"
               disabled={loading || slugStatus === "taken"}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl
-                         bg-orange-500 hover:bg-orange-400 text-white font-bold
+                         bg-accent-500 hover:bg-accent-400 text-white font-bold
                          transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                         shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]">
+                         shadow-[0_0_20px_rgba(var(--accent-500-rgb),0.3)] hover:shadow-[0_0_30px_rgba(var(--accent-500-rgb),0.5)]">
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (

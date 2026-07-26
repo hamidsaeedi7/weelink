@@ -41,53 +41,54 @@
 @layer base {
   :root {
     --bg-primary: #ffffff;
-    --bg-secondary: #f9fafb;
+    --bg-secondary: #F2F2F6;
     --bg-card: #ffffff;
-    --border: #e5e7eb;
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --accent: #2563EB;
-    --accent-glow: rgba(37, 99, 235, 0.2);
-    --accent-500-rgb: 37 99 235;
+    --border: rgba(28, 27, 41, 0.08);
+    --text-primary: #1C1B29;
+    --text-secondary: #67667C;
+    --accent: #0EA88A;
+    --accent-glow: rgba(14, 168, 138, 0.22);
+    --accent-500-rgb: 14 168 138;
   }
 
   .dark {
-    --bg-primary: #0A0A0F;
-    --bg-secondary: #0F0F1A;
-    --bg-card: #111122;
-    --border: rgba(255, 255, 255, 0.06);
-    --text-primary: #F1F5F9;
-    --text-secondary: #94A3B8;
-    --accent: #F97316;
-    --accent-glow: rgba(249, 115, 22, 0.2);
-    --accent-500-rgb: 249 115 22;
+    --bg-primary: #09090C;
+    --bg-secondary: #0F0F13;
+    --bg-card: #121216;
+    --border: rgba(255, 255, 255, 0.08);
+    --text-primary: #EEECF6;
+    --text-secondary: #9A97B3;
+    --accent: #3CE0BE;
+    --accent-glow: rgba(60, 224, 190, 0.22);
+    --accent-500-rgb: 60 224 190;
   }
 
   /* ─── Dashboard accent scale ───────────────────────────────────────────────
-     Light = blue, Dark = the original orange (pixel-identical to before).
+     Single green-jade accent (Glassmorphism v2 concept) — one hue, tonal
+     variation between themes instead of the old light=blue/dark=orange split.
      RGB triplets (no commas) so Tailwind's rgb(var(..) / <alpha-value>) opacity
      modifiers work: bg-accent-500/10, border-accent-500/20, etc. */
   :root {
-    --accent-50-rgb: 239 246 255;
-    --accent-100-rgb: 219 234 254;
-    --accent-200-rgb: 191 219 254;
-    --accent-300-rgb: 147 197 253;
-    --accent-400-rgb: 59 130 246;
-    --accent-600-rgb: 29 78 216;
-    --accent-700-rgb: 30 64 175;
-    --accent-800-rgb: 30 58 138;
-    --accent-900-rgb: 23 37 84;
+    --accent-50-rgb: 230 250 246;
+    --accent-100-rgb: 204 244 235;
+    --accent-200-rgb: 153 232 214;
+    --accent-300-rgb: 102 213 189;
+    --accent-400-rgb: 51 189 161;
+    --accent-600-rgb: 11 138 113;
+    --accent-700-rgb: 9 108 89;
+    --accent-800-rgb: 7 79 65;
+    --accent-900-rgb: 5 51 42;
   }
   .dark {
-    --accent-50-rgb: 255 247 237;
-    --accent-100-rgb: 255 237 213;
-    --accent-200-rgb: 254 215 170;
-    --accent-300-rgb: 253 186 116;
-    --accent-400-rgb: 251 146 60;
-    --accent-600-rgb: 234 88 12;
-    --accent-700-rgb: 194 65 12;
-    --accent-800-rgb: 154 52 18;
-    --accent-900-rgb: 124 45 18;
+    --accent-50-rgb: 8 43 37;
+    --accent-100-rgb: 12 61 52;
+    --accent-200-rgb: 18 92 78;
+    --accent-300-rgb: 27 130 111;
+    --accent-400-rgb: 42 176 150;
+    --accent-600-rgb: 92 232 202;
+    --accent-700-rgb: 140 240 218;
+    --accent-800-rgb: 189 247 233;
+    --accent-900-rgb: 226 252 245;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -107,12 +108,25 @@
 }
 
 @layer components {
-  /* ─── Glass Card ─── */
+  /* ─── Glass Card (v2 — restrained) ───────────────────────────────────────
+     Mostly-opaque, no blur: legibility for data-heavy content (tables,
+     stats, forms) comes first. A thin specular highlight on the top edge
+     + a soft shadow sell "glass" without blurring anything underneath. */
   .glass-card {
-    @apply bg-white/80 dark:bg-white/[0.03] backdrop-blur-xl border border-gray-200/60 dark:border-white/[0.06] rounded-2xl;
+    @apply bg-white/90 dark:bg-white/[0.045] border border-gray-200/60 dark:border-white/[0.08] rounded-2xl;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 1px 2px rgba(20,20,35,.05), 0 1px 1px rgba(20,20,35,.04);
+  }
+  .dark .glass-card {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.4);
   }
 
-  /* ─── Accent Button — blue in light, orange in dark ─── */
+  /* ─── Glass Chrome ─── blur reserved for genuinely floating navigation
+     (sidebar, topbar, command palette, modals) — never for content cards. */
+  .glass-chrome {
+    @apply bg-white/70 dark:bg-white/[0.05] backdrop-blur-xl backdrop-saturate-150 border border-gray-200/60 dark:border-white/[0.08];
+  }
+
+  /* ─── Accent Button ─── */
   .btn-primary {
     @apply relative inline-flex items-center justify-center gap-2 px-6 py-3
            text-white font-semibold rounded-xl
@@ -165,13 +179,13 @@
     @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-24;
   }
 
-  /* ─── Gradient Text — blue in light, orange in dark ─── */
+  /* ─── Gradient Text — jade → teal, one hue family for both themes ─── */
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(to left, #3B82F6, #1D4ED8);
+    background-image: linear-gradient(to left, #14C7A5, #0B8A71);
   }
   .dark .gradient-text {
-    background-image: linear-gradient(to left, #FB923C, #F97316);
+    background-image: linear-gradient(to left, #7FF0D5, #3CE0BE);
   }
 
   /* ─── Accent dot ─── */
@@ -192,13 +206,13 @@
 
   /* ─── Background Dot Pattern ─── */
   .bg-dot-pattern {
-    background-image: radial-gradient(circle, rgba(37,99,235,0.07) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(14,168,138,0.08) 1px, transparent 1px);
     background-size: 28px 28px;
   }
 }
 
 .dark .bg-dot-pattern {
-  background-image: radial-gradient(circle, rgba(249,115,22,0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(60,224,190,0.07) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -214,8 +228,8 @@
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.3); border-radius: 3px; }
-.dark ::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(14,168,138,0.3); border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(60,224,190,0.3); }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ─── Selection ─── */

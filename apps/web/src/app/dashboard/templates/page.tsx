@@ -97,7 +97,7 @@ export default function TemplatesPage() {
                 className="w-full mt-2 py-2 rounded-xl text-sm font-medium transition-all
                            border border-gray-200 dark:border-white/10
                            hover:text-white hover:border-transparent"
-                style={{ background: applying === tpl.id ? "#F97316" : "" }}
+                style={{ background: applying === tpl.id ? "var(--accent)" : "" }}
                 onClick={(e) => { e.stopPropagation(); tpl.id === "blank" ? applyTemplate(tpl) : setPreview(tpl); }}>
                 {applying === tpl.id ? (
                   <span className="flex items-center justify-center gap-2">

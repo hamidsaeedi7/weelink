@@ -50,7 +50,7 @@ export default function ContactPage() {
       <main className="pt-24 pb-16">
         {/* Header */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 text-center py-12">
-          <div className="inline-flex items-center gap-2 text-xs font-medium bg-orange-500/10 text-orange-500
+          <div className="inline-flex items-center gap-2 text-xs font-medium bg-accent-500/10 text-accent-500
                           px-3 py-1.5 rounded-full mb-6">
             تماس با ما
           </div>
@@ -70,22 +70,22 @@ export default function ContactPage() {
               <a key={ch.title} href={ch.link} target="_blank" rel="noopener noreferrer"
                  className="flex items-start gap-4 p-5 bg-white dark:bg-white/[0.03]
                             border border-gray-200 dark:border-white/[0.06] rounded-2xl
-                            hover:border-orange-500/30 transition-all group">
+                            hover:border-accent-500/30 transition-all group">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ch.color}`}>
                   <ch.icon className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="font-bold text-gray-900 dark:text-white text-sm">{ch.title}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{ch.desc}</p>
-                  <p className="text-xs text-orange-500 mt-1.5 font-medium group-hover:underline">
+                  <p className="text-xs text-accent-500 mt-1.5 font-medium group-hover:underline">
                     {ch.label}
                   </p>
                 </div>
               </a>
             ))}
 
-            <div className="p-5 bg-orange-500/5 border border-orange-500/20 rounded-2xl">
-              <p className="text-sm font-bold text-orange-500 mb-1">ساعات پاسخ‌گویی</p>
+            <div className="p-5 bg-accent-500/5 border border-accent-500/20 rounded-2xl">
+              <p className="text-sm font-bold text-accent-500 mb-1">ساعات پاسخ‌گویی</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">شنبه تا پنج‌شنبه: ۹ صبح تا ۱۰ شب</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">جمعه: ۱۰ صبح تا ۶ عصر</p>
             </div>
@@ -103,7 +103,7 @@ export default function ContactPage() {
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">پیام ارسال شد!</h3>
                   <p className="text-sm text-gray-500">تا ۲۴ ساعت پاسخ می‌دیم.</p>
                   <button onClick={() => { setSent(false); setForm({ name: "", email: "", subject: "", message: "" }); }}
-                    className="mt-6 text-sm text-orange-500 hover:text-orange-400 transition-colors">
+                    className="mt-6 text-sm text-accent-500 hover:text-accent-400 transition-colors">
                     ارسال پیام جدید
                   </button>
                 </div>
@@ -120,8 +120,8 @@ export default function ContactPage() {
                         placeholder="نام شما"
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                    border border-gray-200 dark:border-white/10 text-sm
-                                   focus:outline-none focus:border-orange-500/50 focus:ring-2
-                                   focus:ring-orange-500/10 transition-all" />
+                                   focus:outline-none focus:border-accent-500/50 focus:ring-2
+                                   focus:ring-accent-500/10 transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -132,8 +132,8 @@ export default function ContactPage() {
                         type="email" placeholder="email@example.com" dir="ltr"
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                    border border-gray-200 dark:border-white/10 text-sm
-                                   focus:outline-none focus:border-orange-500/50 focus:ring-2
-                                   focus:ring-orange-500/10 transition-all" />
+                                   focus:outline-none focus:border-accent-500/50 focus:ring-2
+                                   focus:ring-accent-500/10 transition-all" />
                     </div>
                   </div>
                   <div>
@@ -145,8 +145,8 @@ export default function ContactPage() {
                       placeholder="موضوع پیام"
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                  border border-gray-200 dark:border-white/10 text-sm
-                                 focus:outline-none focus:border-orange-500/50 focus:ring-2
-                                 focus:ring-orange-500/10 transition-all" />
+                                 focus:outline-none focus:border-accent-500/50 focus:ring-2
+                                 focus:ring-accent-500/10 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -157,8 +157,8 @@ export default function ContactPage() {
                       rows={5} placeholder="پیام خود را بنویسید..."
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5
                                  border border-gray-200 dark:border-white/10 text-sm
-                                 focus:outline-none focus:border-orange-500/50 focus:ring-2
-                                 focus:ring-orange-500/10 transition-all resize-none" />
+                                 focus:outline-none focus:border-accent-500/50 focus:ring-2
+                                 focus:ring-accent-500/10 transition-all resize-none" />
                   </div>
                   {error && (
                     <p className="text-sm text-red-500 bg-red-500/5 border border-red-500/20 px-3 py-2 rounded-lg">
@@ -167,9 +167,9 @@ export default function ContactPage() {
                   )}
                   <button type="submit" disabled={loading}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3
-                               bg-orange-500 hover:bg-orange-400 disabled:opacity-60
+                               bg-accent-500 hover:bg-accent-400 disabled:opacity-60
                                text-white font-bold rounded-xl transition-all
-                               shadow-[0_0_15px_rgba(249,115,22,0.25)]">
+                               shadow-[0_0_15px_rgba(var(--accent-500-rgb),0.25)]">
                     {loading
                       ? <><Loader2 className="w-4 h-4 animate-spin" /> در حال ارسال...</>
                       : <><Send className="w-4 h-4" /> ارسال پیام</>}
