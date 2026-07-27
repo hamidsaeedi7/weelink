@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Download, Loader2, ImagePlus, UploadCloud, X, Type } from "lucide-react";
-import { productsApi, shopsApi, uploadApi } from "@/lib/api";
+import { Download, Loader2, ImagePlus, UploadCloud, X, Type, Crown, AtSign, EyeOff, Zap } from "lucide-react";
+import Link from "next/link";
+import { productsApi, shopsApi, accountApi, uploadApi } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -34,7 +35,14 @@ const TEMPLATES = [
   { key: "clearance", label: "حراج پایان فصل", swatch: "linear-gradient(135deg, #1E293B, #F97316)" },
 ];
 
+const EXPORT_SIZES = [
+  { key: "story", label: "استوری", ratioLabel: "۹:۱۶", aspect: "9/16" },
+  { key: "post", label: "پست مربعی", ratioLabel: "۱:۱", aspect: "1/1" },
+  { key: "portrait", label: "پست عمودی", ratioLabel: "۴:۵", aspect: "4/5" },
+];
+
 const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || "https://api.weeelink.ir";
+const PREFS_KEY_PREFIX = "weelink-story-gen-prefs:";
 
 // satori runs server-side and can't resolve site-relative paths (/uploads/...);
 // every image url handed to the story-image route must be absolute.
@@ -42,10 +50,18 @@ function toAbsolute(url: string) {
   return url.startsWith("http") ? url : `${API_ORIGIN}${url}`;
 }
 
+// Rough heuristic — satori's box is ~880px (scaled) at 2 lines max before it
+// starts crowding the image/price below it. Bigger font = fewer chars fit.
+function estimateMaxTitleChars(titleSize: number) {
+  return Math.max(14, Math.round(2000 / titleSize));
+}
+
 export default function StoryGeneratorPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [isPro, setIsPro] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
 
   const [selectedProductId, setSelectedProductId] = useState<string>("custom");
   const [customTitle, setCustomTitle] = useState("محصول ویژه");
@@ -54,30 +70,68 @@ export default function StoryGeneratorPage() {
   const [discountPercent, setDiscountPercent] = useState<string>("0");
   const [template, setTemplate] = useState("sale");
   const [titleSize, setTitleSize] = useState(56);
+  const [exportSize, setExportSize] = useState("story");
+
+  // Pro-only branding controls
+  const [hideWatermark, setHideWatermark] = useState(false);
+  const [customLogo, setCustomLogo] = useState("");
+  const [socialHandle, setSocialHandle] = useState("");
 
   const [imgUploading, setImgUploading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    Promise.all([productsApi.getAll(), shopsApi.getMine()])
-      .then(([p, s]: any) => {
+    Promise.all([productsApi.getAll(), shopsApi.getMine(), accountApi.getMe()])
+      .then(([p, s, u]: any) => {
         setProducts(Array.isArray(p) ? p : []);
         setShop(s);
+        setIsPro(u?.plan === "PRO");
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  // Remember the last-used look per shop so sellers don't reconfigure every visit.
+  useEffect(() => {
+    if (!shop?.slug || prefsLoaded) return;
+    try {
+      const raw = localStorage.getItem(`${PREFS_KEY_PREFIX}${shop.slug}`);
+      if (raw) {
+        const prefs = JSON.parse(raw);
+        if (prefs.template) setTemplate(prefs.template);
+        if (prefs.titleSize) setTitleSize(prefs.titleSize);
+        if (prefs.exportSize) setExportSize(prefs.exportSize);
+        if (prefs.hideWatermark) setHideWatermark(true);
+        if (prefs.customLogo) setCustomLogo(prefs.customLogo);
+        if (prefs.socialHandle) setSocialHandle(prefs.socialHandle);
+      }
+    } catch { /* ignore corrupt/blocked storage */ }
+    setPrefsLoaded(true);
+  }, [shop?.slug, prefsLoaded]);
+
+  useEffect(() => {
+    if (!shop?.slug || !prefsLoaded) return;
+    const prefs = { template, titleSize, exportSize, hideWatermark, customLogo, socialHandle };
+    try { localStorage.setItem(`${PREFS_KEY_PREFIX}${shop.slug}`, JSON.stringify(prefs)); } catch { /* ignore */ }
+  }, [shop?.slug, prefsLoaded, template, titleSize, exportSize, hideWatermark, customLogo, socialHandle]);
+
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const currentTemplate = TEMPLATES.find((t) => t.key === template) || TEMPLATES[0];
+  const currentSize = EXPORT_SIZES.find((s) => s.key === exportSize) || EXPORT_SIZES[0];
 
   const title = selectedProduct ? selectedProduct.name : customTitle;
   const price = selectedProduct ? selectedProduct.price : customPrice ? Number(customPrice) : null;
   const image = selectedProduct ? selectedProduct.images?.[0] : customImage;
 
+  const maxTitleChars = estimateMaxTitleChars(titleSize);
+  const titleTooLong = title.length > maxTitleChars;
+
   const targetUrl = useMemo(() => {
     const params = new URLSearchParams();
     params.set("template", template);
+    params.set("ratio", exportSize);
     params.set("title", title || "");
     params.set("titleSize", String(titleSize));
     if (price) params.set("price", String(price));
@@ -86,8 +140,11 @@ export default function StoryGeneratorPage() {
     if (shop?.slug) params.set("shopSlug", shop.slug);
     if (shop?.avatarUrl) params.set("shopLogo", toAbsolute(shop.avatarUrl));
     if (image) params.set("image", toAbsolute(image));
+    if (isPro && customLogo) params.set("customLogo", toAbsolute(customLogo));
+    if (isPro && socialHandle.trim()) params.set("socialHandle", socialHandle.trim());
+    if (isPro && hideWatermark) params.set("hideWatermark", "1");
     return `/api/story-image?${params.toString()}`;
-  }, [template, title, price, discountPercent, shop, image, titleSize]);
+  }, [template, exportSize, title, price, discountPercent, shop, image, titleSize, isPro, customLogo, socialHandle, hideWatermark]);
 
   // Debounce so rapid typing doesn't fire a fresh server-side render on every keystroke.
   const [debouncedUrl, setDebouncedUrl] = useState(targetUrl);
@@ -134,10 +191,23 @@ export default function StoryGeneratorPage() {
     }
   };
 
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true);
+    try {
+      const url = await uploadApi.image(file);
+      setCustomLogo(url);
+      toast.success("لوگو آپلود شد");
+    } catch {
+      toast.error("خطا در آپلود لوگو");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
   const download = () => {
     const a = document.createElement("a");
     a.href = debouncedUrl;
-    a.download = `story-${template}.png`;
+    a.download = `${exportSize}-${template}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -186,13 +256,23 @@ export default function StoryGeneratorPage() {
             {selectedProductId === "custom" && (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">عنوان</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400">عنوان</label>
+                    <span className={`text-[11px] tabular-nums ${titleTooLong ? "text-amber-500 font-bold" : "text-gray-400"}`}>
+                      {customTitle.length}/{maxTitleChars}
+                    </span>
+                  </div>
                   <input
                     value={customTitle}
                     onChange={(e) => setCustomTitle(e.target.value)}
-                    className="input-base w-full"
+                    className={`input-base w-full ${titleTooLong ? "!border-amber-500/50 focus:!border-amber-500" : ""}`}
                     placeholder="مثلاً: فروش ویژه پاییزه"
                   />
+                  {titleTooLong && (
+                    <p className="text-[11px] text-amber-500 mt-1.5">
+                      ممکنه این عنوان در تصویر جا نشه — بهتره کوتاه‌ترش کنی یا اندازه فونت رو کم کنی
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">قیمت (تومان، اختیاری)</label>
@@ -267,6 +347,26 @@ export default function StoryGeneratorPage() {
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide pt-4">ظاهر</h2>
 
             <div>
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-3">اندازه خروجی</label>
+              <div className="grid grid-cols-3 gap-2">
+                {EXPORT_SIZES.map((s) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setExportSize(s.key)}
+                    className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
+                      exportSize === s.key
+                        ? "border-accent-500 bg-accent-500/10 text-accent-500"
+                        : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                    }`}
+                  >
+                    {s.label}
+                    <span className="text-[10px] opacity-70 tabular-nums">{s.ratioLabel}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
                 <span className="flex items-center gap-1.5"><Type className="w-3.5 h-3.5" /> اندازه عنوان</span>
                 <span className="tabular-nums text-gray-400">{titleSize}px</span>
@@ -303,12 +403,93 @@ export default function StoryGeneratorPage() {
             </div>
           </section>
 
+          <section className="space-y-4 pt-1 border-t border-gray-100 dark:border-white/5">
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide pt-4 flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5 text-amber-500" /> برندسازی اختصاصی (Pro)
+            </h2>
+
+            {!isPro ? (
+              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/15">
+                <div>
+                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300">لوگوی اختصاصی، آیدی شبکه اجتماعی و حذف واترمارک فقط برای Pro</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">با ارتقا به Pro، استوری‌هات کاملاً برند خودت رو نشون می‌دن</p>
+                </div>
+                <Link href="/dashboard/plans" className="btn-primary py-2 px-4 text-xs shrink-0">
+                  <Zap className="w-3.5 h-3.5" /> ارتقا
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">لوگوی اختصاصی استوری (اختیاری)</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={logoUploading}
+                      className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 transition-all disabled:opacity-60 shrink-0"
+                    >
+                      {logoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                      آپلود لوگو
+                    </button>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])}
+                    />
+                    <p className="text-[11px] text-gray-400 flex-1">
+                      {customLogo ? "لوگوی سفارشی فعاله" : "پیش‌فرض: آواتار فروشگاهت"}
+                    </p>
+                    {customLogo && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomLogo("")}
+                        className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0"
+                        aria-label="حذف لوگوی سفارشی"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
+                    <AtSign className="w-3.5 h-3.5" /> آیدی شبکه اجتماعی (اختیاری)
+                  </label>
+                  <input
+                    value={socialHandle}
+                    onChange={(e) => setSocialHandle(e.target.value)}
+                    className="input-base w-full"
+                    placeholder="@yourshop"
+                    dir="ltr"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1.5">اگه پر بشه، به‌جای لینک weeelink.ir همین آیدی نشون داده می‌شه</p>
+                </div>
+
+                <label className="flex items-center gap-2.5 p-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hideWatermark}
+                    onChange={(e) => setHideWatermark(e.target.checked)}
+                    className="w-4 h-4 accent-accent-500 rounded"
+                  />
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-300">
+                    <EyeOff className="w-3.5 h-3.5" /> حذف واترمارک «ساخته‌شده با ویلینک»
+                  </span>
+                </label>
+              </>
+            )}
+          </section>
+
           <button
             onClick={download}
             disabled={previewLoading}
             className="w-full flex items-center justify-center gap-2 py-3 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4" /> دانلود عکس استوری
+            <Download className="w-4 h-4" /> دانلود عکس
           </button>
         </div>
 
@@ -316,8 +497,8 @@ export default function StoryGeneratorPage() {
         <div className="order-1 lg:order-2 flex justify-center lg:justify-start">
           <div className="sticky top-4">
             <div
-              className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-xl"
-              style={{ width: 280, aspectRatio: "9/16", background: currentTemplate.swatch }}
+              className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-xl transition-all duration-300"
+              style={{ width: currentSize.key === "story" ? 280 : 320, aspectRatio: currentSize.aspect, background: currentTemplate.swatch }}
             >
               {displayedUrl && !previewError && (
                 // eslint-disable-next-line @next/next/no-img-element

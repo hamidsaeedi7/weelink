@@ -8,7 +8,14 @@ import { NextRequest } from "next/server";
 export const runtime = "nodejs";
 
 const WIDTH = 1080;
-const HEIGHT = 1920;
+
+const RATIOS: Record<string, number> = {
+  story: 1920,    // 9:16 — Instagram/Telegram story
+  post: 1080,     // 1:1 — feed post
+  portrait: 1350, // 4:5 — feed portrait
+};
+
+const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 function loadFont(file: string): Buffer | null {
   for (const base of [
@@ -306,18 +313,18 @@ function GiftMotif({ size = 220, box, ribbon }: { size?: number; box: string; ri
   );
 }
 
-function renderMotif(tpl: TemplateConfig) {
+function renderMotif(tpl: TemplateConfig, px: (n: number) => number) {
   const c = tpl.accent;
   switch (tpl.motif) {
-    case "tag": return <TagMotif size={240} color={c} />;
-    case "bolt": return <BoltMotif size={240} color={c} />;
-    case "haftsin": return <HaftsinMotif size={260} />;
-    case "heart": return <HeartMotif size={240} color={c} />;
-    case "pomegranate": return <PomegranateMotif size={240} />;
-    case "sparkle": return <SparkleMotif size={240} color={c} />;
-    case "crescent": return <CrescentMotif size={240} color={c} cut={tpl.motifCutColor || "#111827"} />;
-    case "flower": return <FlowerMotif size={240} petal={c} center={tpl.priceColor} />;
-    case "gift": return <GiftMotif size={240} box={c} ribbon={tpl.badgeText} />;
+    case "tag": return <TagMotif size={px(240)} color={c} />;
+    case "bolt": return <BoltMotif size={px(240)} color={c} />;
+    case "haftsin": return <HaftsinMotif size={px(260)} />;
+    case "heart": return <HeartMotif size={px(240)} color={c} />;
+    case "pomegranate": return <PomegranateMotif size={px(240)} />;
+    case "sparkle": return <SparkleMotif size={px(240)} color={c} />;
+    case "crescent": return <CrescentMotif size={px(240)} color={c} cut={tpl.motifCutColor || "#111827"} />;
+    case "flower": return <FlowerMotif size={px(240)} petal={c} center={tpl.priceColor} />;
+    case "gift": return <GiftMotif size={px(240)} box={c} ribbon={tpl.badgeText} />;
     default: return null;
   }
 }
@@ -352,9 +359,36 @@ export async function GET(req: NextRequest) {
   const titleSizeRaw = sp.get("titleSize");
   const titleSize = titleSizeRaw ? Math.min(72, Math.max(36, Number(titleSizeRaw))) : 56;
 
+  const ratioKey = sp.get("ratio") || "story";
+  const HEIGHT = RATIOS[ratioKey] || RATIOS.story;
+  const scale = HEIGHT / RATIOS.story;
+  const px = (n: number) => Math.round(n * scale);
+  // Fonts never scale up past what the tall story format uses — only shrink for squarer canvases.
+  const fpx = (n: number) => Math.round(n * Math.min(1, scale));
+
   const price = priceRaw ? Number(priceRaw) : null;
   const discountPercent = discountPercentRaw ? Number(discountPercentRaw) : 0;
   const discountedPrice = price && discountPercent > 0 ? Math.round((price * (100 - discountPercent)) / 100) : null;
+
+  // Custom-logo/social-handle/watermark removal are Pro perks. The public shop
+  // endpoint already exposes `ownerPlan` for the free "Made with Weelink" badge
+  // elsewhere — reuse the same signal here instead of trusting the query string.
+  const wantsProFeatures = Boolean(sp.get("hideWatermark") || sp.get("customLogo") || sp.get("socialHandle"));
+  let isPro = false;
+  if (wantsProFeatures && shopSlug) {
+    try {
+      const res = await fetch(`${API_ORIGIN}/api/v1/shops/${shopSlug}`, { next: { revalidate: 300 } });
+      if (res.ok) {
+        const shop = await res.json();
+        isPro = (shop.ownerPlan || shop.data?.ownerPlan) === "PRO";
+      }
+    } catch { /* default to non-Pro on lookup failure */ }
+  }
+
+  const customLogo = isPro ? sp.get("customLogo") : null;
+  const socialHandle = isPro ? sp.get("socialHandle") : null;
+  const hideWatermark = isPro && sp.get("hideWatermark") === "1";
+  const effectiveLogo = customLogo || shopLogo;
 
   return new ImageResponse(
     (
@@ -367,38 +401,42 @@ export async function GET(req: NextRequest) {
           background: tpl.background,
           fontFamily: "Vazirmatn",
           position: "relative",
-          padding: "64px 56px",
+          padding: `${px(64)}px ${px(56)}px`,
           direction: "rtl",
         }}
       >
         {/* Decorative ambiance + occasion motif */}
-        <div style={{ position: "absolute", top: "-120px", left: "-120px", width: "360px", height: "360px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex" }} />
-        <div style={{ position: "absolute", bottom: "160px", right: "-60px", display: "flex", opacity: 0.26 }}>{renderMotif(tpl)}</div>
+        <div style={{ position: "absolute", top: `${-px(120)}px`, left: `${-px(120)}px`, width: `${px(360)}px`, height: `${px(360)}px`, borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex" }} />
+        <div style={{ position: "absolute", bottom: `${px(160)}px`, right: `${-px(60)}px`, display: "flex", opacity: 0.26 }}>{renderMotif(tpl, px)}</div>
 
         {/* Top bar: shop brand */}
-        <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: "16px" }}>
-          {shopLogo && (
-            <div style={{ display: "flex", width: "64px", height: "64px", borderRadius: "20px", overflow: "hidden", border: `2px solid ${tpl.accent}` }}>
-              <img src={shopLogo} width={64} height={64} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+        <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: `${px(16)}px` }}>
+          {effectiveLogo && (
+            <div style={{ display: "flex", width: `${px(64)}px`, height: `${px(64)}px`, borderRadius: `${px(20)}px`, overflow: "hidden", border: `${px(2)}px solid ${tpl.accent}` }}>
+              <img src={effectiveLogo} width={px(64)} height={px(64)} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", direction: "rtl", fontSize: "30px", fontWeight: 700, color: tpl.textOnBg }}>{rtlWords(shopName)}</div>
-            {shopSlug && <div style={{ display: "flex", direction: "ltr", fontSize: "20px", color: tpl.subtleText }}>{`weeelink.ir/${shopSlug}`}</div>}
+            <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(30)}px`, fontWeight: 700, color: tpl.textOnBg }}>{rtlWords(shopName)}</div>
+            {socialHandle ? (
+              <div style={{ display: "flex", direction: "ltr", fontSize: `${fpx(20)}px`, color: tpl.subtleText }}>{socialHandle}</div>
+            ) : (
+              shopSlug && <div style={{ display: "flex", direction: "ltr", fontSize: `${fpx(20)}px`, color: tpl.subtleText }}>{`weeelink.ir/${shopSlug}`}</div>
+            )}
           </div>
         </div>
 
         {/* Occasion badge */}
-        <div style={{ display: "flex", marginTop: "48px" }}>
+        <div style={{ display: "flex", marginTop: `${px(48)}px` }}>
           <div
             style={{
               display: "flex",
               direction: "rtl",
               background: tpl.badgeBg,
               color: tpl.badgeText,
-              fontSize: "34px",
+              fontSize: `${fpx(34)}px`,
               fontWeight: 900,
-              padding: "16px 36px",
+              padding: `${px(16)}px ${px(36)}px`,
               borderRadius: "999px",
             }}
           >
@@ -414,32 +452,32 @@ export async function GET(req: NextRequest) {
             alignItems: "center",
             flex: 1,
             justifyContent: "center",
-            gap: "36px",
+            gap: `${px(36)}px`,
           }}
         >
           {image ? (
             <div
               style={{
                 display: "flex",
-                width: "620px",
-                height: "620px",
-                borderRadius: "40px",
+                width: `${px(620)}px`,
+                height: `${px(620)}px`,
+                borderRadius: `${px(40)}px`,
                 overflow: "hidden",
-                border: `4px solid ${tpl.accent}`,
+                border: `${px(4)}px solid ${tpl.accent}`,
                 background: tpl.cardBg,
               }}
             >
-              <img src={image} width={620} height={620} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+              <img src={image} width={px(620)} height={px(620)} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
             </div>
           ) : (
             <div
               style={{
                 display: "flex",
-                width: "620px",
-                height: "300px",
-                borderRadius: "40px",
+                width: `${px(620)}px`,
+                height: `${px(300)}px`,
+                borderRadius: `${px(40)}px`,
                 background: tpl.cardBg,
-                border: `4px solid ${tpl.accent}`,
+                border: `${px(4)}px solid ${tpl.accent}`,
               }}
             />
           )}
@@ -448,11 +486,11 @@ export async function GET(req: NextRequest) {
             style={{
               display: "flex",
               direction: "rtl",
-              fontSize: `${titleSize}px`,
+              fontSize: `${fpx(titleSize)}px`,
               fontWeight: 900,
               color: tpl.textOnBg,
               textAlign: "center",
-              maxWidth: "880px",
+              maxWidth: `${px(880)}px`,
               lineHeight: 1.3,
             }}
           >
@@ -460,11 +498,11 @@ export async function GET(req: NextRequest) {
           </div>
 
           {price !== null && discountedPrice !== null && (
-            <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: "24px" }}>
-              <div style={{ display: "flex", direction: "rtl", fontSize: "68px", fontWeight: 900, color: tpl.priceColor }}>
+            <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: `${px(24)}px` }}>
+              <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(68)}px`, fontWeight: 900, color: tpl.priceColor }}>
                 {formatToman(discountedPrice)}
               </div>
-              <div style={{ display: "flex", direction: "rtl", fontSize: "34px", color: tpl.subtleText, textDecoration: "line-through" }}>
+              <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(34)}px`, color: tpl.subtleText, textDecoration: "line-through" }}>
                 {formatToman(price)}
               </div>
               <div
@@ -473,9 +511,9 @@ export async function GET(req: NextRequest) {
                   direction: "rtl",
                   background: tpl.badgeBg,
                   color: tpl.badgeText,
-                  fontSize: "28px",
+                  fontSize: `${fpx(28)}px`,
                   fontWeight: 900,
-                  padding: "8px 20px",
+                  padding: `${px(8)}px ${px(20)}px`,
                   borderRadius: "999px",
                 }}
               >
@@ -484,18 +522,20 @@ export async function GET(req: NextRequest) {
             </div>
           )}
           {price !== null && discountedPrice === null && (
-            <div style={{ display: "flex", direction: "rtl", fontSize: "68px", fontWeight: 900, color: tpl.priceColor }}>
+            <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(68)}px`, fontWeight: 900, color: tpl.priceColor }}>
               {formatToman(price)}
             </div>
           )}
         </div>
 
         {/* Bottom CTA */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-          <div style={{ display: "flex", direction: "rtl", fontSize: "32px", fontWeight: 700, color: tpl.textOnBg }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: `${px(12)}px` }}>
+          <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(32)}px`, fontWeight: 700, color: tpl.textOnBg }}>
             {rtlWords("برای خرید به بیو مراجعه کن")}
           </div>
-          <div style={{ display: "flex", direction: "rtl", fontSize: "20px", color: tpl.subtleText }}>{rtlWords("ساخته‌شده با ویلینک")}</div>
+          {!hideWatermark && (
+            <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(20)}px`, color: tpl.subtleText }}>{rtlWords("ساخته‌شده با ویلینک")}</div>
+          )}
         </div>
       </div>
     ),
