@@ -25,6 +25,12 @@ const TEMPLATES = [
   { key: "valentine", label: "ولنتاین", swatch: "linear-gradient(135deg, #BE123C, #F9A8D4)" },
   { key: "yalda", label: "شب یلدا", swatch: "linear-gradient(135deg, #3B0764, #7C2D12)" },
   { key: "newproduct", label: "محصول جدید", swatch: "linear-gradient(135deg, #08090C, #0EA88A)" },
+  { key: "ramadan", label: "ماه رمضان", swatch: "linear-gradient(135deg, #1E1B4B, #7C3AED)" },
+  { key: "eidfitr", label: "عید فطر", swatch: "linear-gradient(135deg, #065F46, #FBBF24)" },
+  { key: "mothersday", label: "روز مادر", swatch: "linear-gradient(135deg, #831843, #F9A8D4)" },
+  { key: "fathersday", label: "روز پدر", swatch: "linear-gradient(135deg, #0F172A, #3B82F6)" },
+  { key: "flashsale", label: "فروش لحظه‌ای", swatch: "linear-gradient(135deg, #7F1D1D, #FACC15)" },
+  { key: "clearance", label: "حراج پایان فصل", swatch: "linear-gradient(135deg, #1E293B, #F97316)" },
 ];
 
 export default function StoryGeneratorPage() {
@@ -63,7 +69,10 @@ export default function StoryGeneratorPage() {
     if (Number(discountPercent) > 0) params.set("discountPercent", discountPercent);
     if (shop?.name) params.set("shopName", shop.name);
     if (shop?.slug) params.set("shopSlug", shop.slug);
-    if (shop?.avatarUrl) params.set("shopLogo", shop.avatarUrl);
+    if (shop?.avatarUrl) {
+      const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "https://api.weeelink.ir";
+      params.set("shopLogo", shop.avatarUrl.startsWith("http") ? shop.avatarUrl : `${apiOrigin}${shop.avatarUrl}`);
+    }
     if (image) params.set("image", image);
     return `/api/story-image?${params.toString()}`;
   }, [template, title, price, discountPercent, shop, image]);
