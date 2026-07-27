@@ -46,6 +46,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
     networks:
       - internal
       - proxy
@@ -141,3 +143,5 @@ volumes:
     name: weelink_prod_postgres
   redis_data:
     name: weelink_prod_redis
+  uploads_data:
+    name: weelink_prod_uploads
