@@ -349,6 +349,8 @@ export async function GET(req: NextRequest) {
   const shopSlug = sp.get("shopSlug") || "";
   const image = sp.get("image");
   const shopLogo = sp.get("shopLogo");
+  const titleSizeRaw = sp.get("titleSize");
+  const titleSize = titleSizeRaw ? Math.min(72, Math.max(36, Number(titleSizeRaw))) : 56;
 
   const price = priceRaw ? Number(priceRaw) : null;
   const discountPercent = discountPercentRaw ? Number(discountPercentRaw) : 0;
@@ -446,7 +448,7 @@ export async function GET(req: NextRequest) {
             style={{
               display: "flex",
               direction: "rtl",
-              fontSize: "56px",
+              fontSize: `${titleSize}px`,
               fontWeight: 900,
               color: tpl.textOnBg,
               textAlign: "center",
