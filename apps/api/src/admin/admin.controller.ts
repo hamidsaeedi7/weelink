@@ -48,6 +48,41 @@ export class AdminController {
   // Finance
   @Get("finance") getFinance(@Query("page") page?: string) { return this.admin.getFinance(parseInt(page ?? "1") || 1); }
   @Get("finance/gateway") getGatewayReport() { return this.admin.getGatewayReport(); }
+  @Post("finance/gateway/:shopId/settle")
+  markShopSettled(@CurrentUser() user: { id: string }, @Param("shopId") shopId: string) {
+    return this.admin.markShopSettled(user.id, shopId);
+  }
+
+  // Shops (moderation)
+  @Get("shops")
+  getShops(@Query("page") page?: string, @Query("search") search?: string) {
+    return this.admin.getShops(parseInt(page ?? "1") || 1, search);
+  }
+  @Put("shops/:id/toggle")
+  toggleShopActive(@CurrentUser() user: { id: string }, @Param("id") id: string) {
+    return this.admin.toggleShopActive(user.id, id);
+  }
+
+  // Digital content moderation
+  @Get("digital-files") getDigitalFiles(@Query("page") page?: string) { return this.admin.getDigitalFiles(parseInt(page ?? "1") || 1); }
+  @Put("digital-files/:id/toggle")
+  toggleDigitalFileActive(@CurrentUser() user: { id: string }, @Param("id") id: string) {
+    return this.admin.toggleDigitalFileActive(user.id, id);
+  }
+  @Get("courses") getCoursesAdmin(@Query("page") page?: string) { return this.admin.getCourses(parseInt(page ?? "1") || 1); }
+  @Put("courses/:id/toggle")
+  toggleCourseActive(@CurrentUser() user: { id: string }, @Param("id") id: string) {
+    return this.admin.toggleCourseActive(user.id, id);
+  }
+
+  // Custom domains
+  @Get("domains") getCustomDomains() { return this.admin.getCustomDomains(); }
+
+  // Affiliate program
+  @Get("affiliate-links") getAffiliateLinks(@Query("page") page?: string) { return this.admin.getAffiliateLinks(parseInt(page ?? "1") || 1); }
+
+  // Flash sales
+  @Get("flash-sales") getFlashSalesAdmin(@Query("page") page?: string) { return this.admin.getFlashSales(parseInt(page ?? "1") || 1); }
 
   // Tickets
   @Get("tickets") getAllTickets(@Query("status") status?: string) { return this.admin.getAllTickets(status); }

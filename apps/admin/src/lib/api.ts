@@ -38,7 +38,22 @@ export const adminApi = {
   // Finance
   getFinance: (page?: number)    => api.get("/admin/finance", { params: { page } }),
   getGatewayReport: ()           => api.get("/admin/finance/gateway"),
+  markShopSettled: (shopId: string) => api.post(`/admin/finance/gateway/${shopId}/settle`),
   createAdmin: (d: { email: string; password: string; role: string }) => api.post("/admin/admins", d),
+  // Shops (moderation)
+  getShops: (page?: number, search?: string) => api.get("/admin/shops", { params: { page, search } }),
+  toggleShopActive: (id: string) => api.put(`/admin/shops/${id}/toggle`),
+  // Digital content moderation
+  getDigitalFilesAdmin: (page?: number) => api.get("/admin/digital-files", { params: { page } }),
+  toggleDigitalFileActive: (id: string) => api.put(`/admin/digital-files/${id}/toggle`),
+  getCoursesAdmin: (page?: number) => api.get("/admin/courses", { params: { page } }),
+  toggleCourseActive: (id: string) => api.put(`/admin/courses/${id}/toggle`),
+  // Custom domains
+  getCustomDomains: () => api.get("/admin/domains"),
+  // Affiliate program
+  getAffiliateLinksAdmin: (page?: number) => api.get("/admin/affiliate-links", { params: { page } }),
+  // Flash sales
+  getFlashSalesAdmin: (page?: number) => api.get("/admin/flash-sales", { params: { page } }),
   // Tickets
   getTickets: (status?: string)  => api.get("/admin/tickets", { params: { status } }),
   replyTicket: (id: string, message: string) => api.post(`/admin/tickets/${id}/reply`, { message }),

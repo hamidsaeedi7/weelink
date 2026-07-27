@@ -1,27 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, DollarSign, Ticket, TrendingUp, UserPlus, BarChart3, Loader2 } from "lucide-react";
+import Link from "next/link";
+import {
+  Users, DollarSign, Ticket, TrendingUp, UserPlus, BarChart3, Loader2,
+  Landmark, Globe, ArrowLeft, Store, FileDown, Handshake, Flame, Megaphone,
+} from "lucide-react";
 import { adminApi, fmtPrice } from "@/lib/api";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-function StatCard({ label, value, sub, icon: Icon, color = "orange" }: any) {
-  const c: Record<string, string> = {
-    orange: "bg-emerald-500/10 text-emerald-500",
-    blue:   "bg-blue-500/10 text-blue-400",
-    green:  "bg-green-500/10 text-green-400",
-    red:    "bg-red-500/10 text-red-400",
-  };
+const STAT_COLORS: Record<string, string> = {
+  emerald: "bg-emerald-500/10 text-emerald-500",
+  blue: "bg-blue-500/10 text-blue-400",
+  green: "bg-green-500/10 text-green-400",
+  red: "bg-red-500/10 text-red-400",
+};
+
+function StatCard({ label, value, sub, icon: Icon, color = "emerald" }: any) {
   return (
-    <div className="glass-card p-5">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${c[color]}`}>
+    <div className="glass-card p-5 hover:border-emerald-500/20 transition-colors">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${STAT_COLORS[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <p className="text-2xl font-black text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-black text-gray-900 dark:text-white tabular-nums">{value}</p>
       <p className="text-sm text-gray-500 mt-0.5">{label}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </div>
   );
+}
+
+const QUICK_LINKS = [
+  { href: "/modir/shops", icon: Store, label: "فروشگاه‌ها" },
+  { href: "/modir/digital-content", icon: FileDown, label: "محتوای دیجیتال" },
+  { href: "/modir/affiliate", icon: Handshake, label: "همکاری در فروش" },
+  { href: "/modir/flash-sales", icon: Flame, label: "فلش‌سیل‌ها" },
+  { href: "/modir/broadcast", icon: Megaphone, label: "پیام همگانی" },
+  { href: "/modir/domains", icon: Globe, label: "دامنه‌های اختصاصی" },
+];
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "شب بخیر";
+  if (h < 12) return "صبح بخیر";
+  if (h < 18) return "ظهر بخیر";
+  return "عصر بخیر";
 }
 
 export default function ModirDashboard() {
@@ -43,15 +65,63 @@ export default function ModirDashboard() {
     count: d.count,
   }));
 
+  const attentionItems = [
+    {
+      href: "/modir/tickets",
+      label: "تیکت باز",
+      value: data?.openTickets || 0,
+      hint: "منتظر پاسخ",
+      show: (data?.openTickets || 0) > 0,
+      color: "text-red-500 bg-red-500/10",
+    },
+    {
+      href: "/modir/finance",
+      label: "تسویه‌نشده",
+      value: fmtPrice(data?.unsettledAmount || 0),
+      hint: "قابل واریز به فروشندگان",
+      show: (data?.unsettledAmount || 0) > 0,
+      color: "text-amber-500 bg-amber-500/10",
+    },
+    {
+      href: "/modir/domains",
+      label: "دامنه در انتظار",
+      value: data?.pendingDomains || 0,
+      hint: "اتصال CDN کامل نشده",
+      show: (data?.pendingDomains || 0) > 0,
+      color: "text-blue-500 bg-blue-500/10",
+    },
+  ].filter((i) => i.show);
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-gray-900 dark:text-white">داشبورد</h1>
-        <p className="text-sm text-gray-500 mt-1">خلاصه وضعیت سیستم</p>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white">{greeting()} 👋</h1>
+        <p className="text-sm text-gray-500 mt-1">خلاصه وضعیت سیستم ویلینک</p>
       </div>
 
+      {attentionItems.length > 0 && (
+        <div className="glass-card p-5">
+          <h2 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">نیازمند توجه</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {attentionItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors group"
+              >
+                <div>
+                  <p className="text-lg font-black text-gray-900 dark:text-white tabular-nums">{item.value}</p>
+                  <p className="text-xs text-gray-500">{item.label} · {item.hint}</p>
+                </div>
+                <ArrowLeft className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-emerald-500 group-hover:-translate-x-0.5 transition-all" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users}      label="کل کاربران"   value={data?.users?.total || 0}    sub={`+${data?.users?.new7d || 0} این هفته`} color="orange" />
+        <StatCard icon={Users}      label="کل کاربران"   value={data?.users?.total || 0}    sub={`+${data?.users?.new7d || 0} این هفته`} color="emerald" />
         <StatCard icon={TrendingUp} label="کاربران PRO"  value={data?.users?.pro || 0}      sub="اشتراک فعال"                             color="blue" />
         <StatCard icon={DollarSign} label="درآمد کل"     value={fmtPrice(data?.revenue||0)} sub={`${data?.orders||0} سفارش`}             color="green" />
         <StatCard icon={Ticket}     label="تیکت باز"     value={data?.openTickets || 0}     sub="منتظر پاسخ"                              color="red" />
@@ -95,10 +165,26 @@ export default function ModirDashboard() {
                   <div className={`w-2 h-2 rounded-full ${item.color}`} />
                   <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
                 </div>
-                <span className="font-bold text-gray-900 dark:text-white">{item.value}</span>
+                <span className="font-bold text-gray-900 dark:text-white tabular-nums">{item.value}</span>
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="glass-card p-5">
+        <h2 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">دسترسی سریع</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {QUICK_LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors text-center"
+            >
+              <l.icon className="w-5 h-5 text-emerald-500" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{l.label}</span>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

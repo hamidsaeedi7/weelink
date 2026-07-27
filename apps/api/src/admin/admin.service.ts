@@ -29,6 +29,7 @@ export class AdminService {
       totalUsers, newUsers7d, proUsers,
       totalShops, totalOrders, totalRevenue,
       openTickets, totalBlogPosts,
+      unsettled, pendingDomains,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { createdAt: { gte: since7 } } }),
@@ -38,6 +39,8 @@ export class AdminService {
       this.prisma.order.aggregate({ _sum: { totalPrice: true }, where: { paymentStatus: "PAID" } }),
       this.prisma.ticket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
       this.prisma.blogPost.count({ where: { isPublished: true } }),
+      this.prisma.gatewayTransaction.aggregate({ _sum: { sellerPayable: true }, where: { status: "PAID", settledAt: null } }),
+      this.prisma.shop.count({ where: { customDomain: { not: null }, cdnStatus: { not: "ACTIVE" } } }),
     ]);
 
     const dailySignups = await this.getDailySignups(since30);
@@ -49,6 +52,8 @@ export class AdminService {
       revenue: Number(totalRevenue._sum.totalPrice || 0),
       openTickets,
       blogPosts: totalBlogPosts,
+      unsettledAmount: Number(unsettled._sum.sellerPayable || 0),
+      pendingDomains,
       dailySignups,
     };
   }
@@ -145,6 +150,141 @@ export class AdminService {
     });
   }
 
+  // ─── Shops (moderation) ─────────────────────────────────────────────────────
+
+  async getShops(page: number = 1, search?: string) {
+    page = Math.max(1, Number(page) || 1);
+    const limit = 20;
+    const where: any = search
+      ? { OR: [{ name: { contains: search, mode: "insensitive" } }, { slug: { contains: search, mode: "insensitive" } }] }
+      : {};
+    const [shops, total] = await Promise.all([
+      this.prisma.shop.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true, slug: true, name: true, isActive: true, createdAt: true, customDomain: true,
+          user: { select: { id: true, email: true, phone: true, plan: true } },
+          _count: { select: { blocks: true, products: true, orders: true } },
+        },
+      }),
+      this.prisma.shop.count({ where }),
+    ]);
+    return { shops, total, page, pages: Math.ceil(total / limit) };
+  }
+
+  async toggleShopActive(adminId: string, id: string) {
+    const shop = await this.prisma.shop.findUnique({ where: { id }, select: { isActive: true } });
+    if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    const updated = await this.prisma.shop.update({ where: { id }, data: { isActive: !shop.isActive } });
+    await this.prisma.adminLog.create({
+      data: { adminId, action: updated.isActive ? "ACTIVATE_SHOP" : "SUSPEND_SHOP", target: id },
+    });
+    return updated;
+  }
+
+  // ─── Digital content moderation (files / courses) ──────────────────────────
+
+  async getDigitalFiles(page: number = 1) {
+    page = Math.max(1, Number(page) || 1);
+    const limit = 20;
+    const [files, total] = await Promise.all([
+      this.prisma.digitalFile.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { shop: { select: { name: true, slug: true } } },
+      }),
+      this.prisma.digitalFile.count(),
+    ]);
+    return { files, total, page, pages: Math.ceil(total / limit) };
+  }
+
+  async toggleDigitalFileActive(adminId: string, id: string) {
+    const file = await this.prisma.digitalFile.findUnique({ where: { id }, select: { isActive: true } });
+    if (!file) throw new NotFoundException("فایل یافت نشد");
+    const updated = await this.prisma.digitalFile.update({ where: { id }, data: { isActive: !file.isActive } });
+    await this.prisma.adminLog.create({
+      data: { adminId, action: updated.isActive ? "ACTIVATE_DIGITAL_FILE" : "DEACTIVATE_DIGITAL_FILE", target: id },
+    });
+    return updated;
+  }
+
+  async getCourses(page: number = 1) {
+    page = Math.max(1, Number(page) || 1);
+    const limit = 20;
+    const [courses, total] = await Promise.all([
+      this.prisma.course.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { shop: { select: { name: true, slug: true } }, _count: { select: { enrollments: true } } },
+      }),
+      this.prisma.course.count(),
+    ]);
+    return { courses, total, page, pages: Math.ceil(total / limit) };
+  }
+
+  async toggleCourseActive(adminId: string, id: string) {
+    const course = await this.prisma.course.findUnique({ where: { id }, select: { isActive: true } });
+    if (!course) throw new NotFoundException("دوره یافت نشد");
+    const updated = await this.prisma.course.update({ where: { id }, data: { isActive: !course.isActive } });
+    await this.prisma.adminLog.create({
+      data: { adminId, action: updated.isActive ? "ACTIVATE_COURSE" : "DEACTIVATE_COURSE", target: id },
+    });
+    return updated;
+  }
+
+  // ─── Custom domains ─────────────────────────────────────────────────────────
+
+  async getCustomDomains() {
+    return this.prisma.shop.findMany({
+      where: { customDomain: { not: null } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, slug: true, name: true, customDomain: true,
+        verificationStatus: true, cdnStatus: true, cdnCname: true, cdnError: true, verifiedAt: true,
+        user: { select: { email: true, phone: true } },
+      },
+    });
+  }
+
+  // ─── Affiliate program oversight ────────────────────────────────────────────
+
+  async getAffiliateLinks(page: number = 1) {
+    page = Math.max(1, Number(page) || 1);
+    const limit = 20;
+    const [links, total] = await Promise.all([
+      this.prisma.affiliateLink.findMany({
+        orderBy: { earnings: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { shop: { select: { name: true, slug: true } } },
+      }),
+      this.prisma.affiliateLink.count(),
+    ]);
+    return { links, total, page, pages: Math.ceil(total / limit) };
+  }
+
+  // ─── Flash sales oversight ──────────────────────────────────────────────────
+
+  async getFlashSales(page: number = 1) {
+    page = Math.max(1, Number(page) || 1);
+    const limit = 20;
+    const [sales, total] = await Promise.all([
+      this.prisma.flashSale.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { shop: { select: { name: true, slug: true } } },
+      }),
+      this.prisma.flashSale.count(),
+    ]);
+    return { sales, total, page, pages: Math.ceil(total / limit) };
+  }
+
   // ─── Finance ──────────────────────────────────────────────────────────────
 
   async getFinance(page: number = 1) {
@@ -178,9 +318,10 @@ export class AdminService {
   // ─── Weelink gateway ledger — per-shop gross/fee/net (10% platform fee) ────
 
   async getGatewayReport() {
+    // Only unsettled transactions — this is what's currently owed to each seller.
     const grouped = await this.prisma.gatewayTransaction.groupBy({
       by: ["shopId"],
-      where: { status: "PAID" },
+      where: { status: "PAID", settledAt: null },
       _sum: { amount: true, platformFee: true, sellerPayable: true },
       _count: { id: true },
     });
@@ -229,6 +370,17 @@ export class AdminService {
     );
 
     return { rows, totals };
+  }
+
+  async markShopSettled(adminId: string, shopId: string) {
+    const result = await this.prisma.gatewayTransaction.updateMany({
+      where: { shopId, status: "PAID", settledAt: null },
+      data: { settledAt: new Date() },
+    });
+    await this.prisma.adminLog.create({
+      data: { adminId, action: "MARK_SETTLED", target: shopId, data: { count: result.count } },
+    });
+    return { success: true, count: result.count };
   }
 
   // ─── Tickets ──────────────────────────────────────────────────────────────

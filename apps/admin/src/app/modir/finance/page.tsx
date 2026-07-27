@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { adminApi, fmtPrice, fmtDate } from "@/lib/api";
-import { DollarSign, ShoppingCart, CreditCard, RefreshCw, Landmark, Percent } from "lucide-react";
+import { DollarSign, ShoppingCart, CreditCard, RefreshCw, Landmark, Percent, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 type OrderStatus = "PENDING" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
 type PaymentStatus = "PAID" | "UNPAID" | "REFUNDED";
@@ -134,6 +135,17 @@ export default function FinancePage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleMarkSettled = async (shopId: string, shopName: string) => {
+    if (!confirm(`تسویه‌حساب فروشگاه "${shopName}" ثبت شود؟ این عملیات فقط وضعیت رو در سیستم علامت می‌زنه — واریز واقعی باید جدا انجام شده باشد.`)) return;
+    try {
+      await adminApi.markShopSettled(shopId);
+      toast.success("تسویه‌حساب ثبت شد");
+      fetchData();
+    } catch {
+      toast.error("خطا در ثبت تسویه‌حساب");
+    }
+  };
 
   const stats = [
     {
@@ -342,7 +354,7 @@ export default function FinancePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                    {["فروشگاه", "مالک", "تراکنش", "ناخالص", "کارمزد", "خالص قابل تسویه", "شبا"].map((h) => (
+                    {["فروشگاه", "مالک", "تراکنش", "ناخالص", "کارمزد", "خالص قابل تسویه", "شبا", "عملیات"].map((h) => (
                       <th key={h} className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
                         {h}
                       </th>
@@ -370,6 +382,15 @@ export default function FinancePage() {
                         <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{fmtPrice(r.net)}</td>
                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs" dir="ltr">
                           {r.settlementSheba || <span className="text-red-500">ثبت نشده</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleMarkSettled(r.shopId, r.shopName)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                            title="ثبت تسویه‌حساب (بعد از واریز دستی)"
+                          >
+                            <CheckCircle2 size={13} /> تسویه شد
+                          </button>
                         </td>
                       </tr>
                     ))

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, DollarSign, Ticket, Settings,
   FileText, Server, BarChart3, Newspaper, Shield, LogOut,
   Menu, X, Sun, Moon, Bell, Tag, UserCheck, Wrench,
-  Globe, Search, Crown, Megaphone,
+  Globe, Search, Crown, Megaphone, Store, FileDown, Handshake, Flame,
 } from "lucide-react";
 import { adminApi } from "@/lib/api";
 
@@ -26,20 +26,30 @@ const NAV_GROUPS = [
     label: "مدیریت",
     items: [
       { href: "/modir/users",      icon: Users,      label: "کاربران" },
+      { href: "/modir/shops",      icon: Store,      label: "فروشگاه‌ها" },
       { href: "/modir/finance",    icon: DollarSign, label: "مالی" },
       { href: "/modir/tickets",    icon: Ticket,     label: "تیکت‌ها" },
       { href: "/modir/tool-stats", icon: Wrench,     label: "آمار ابزارها" },
+      { href: "/modir/domains",    icon: Globe,      label: "دامنه‌های اختصاصی" },
+    ],
+  },
+  {
+    label: "فروش و بازاریابی",
+    items: [
+      { href: "/modir/discounts",     icon: Tag,       label: "کدهای تخفیف" },
+      { href: "/modir/affiliate",     icon: Handshake, label: "همکاری در فروش" },
+      { href: "/modir/flash-sales",   icon: Flame,     label: "فلش‌سیل‌ها" },
+      { href: "/modir/notifications", icon: Bell,      label: "اعلان‌ها" },
+      { href: "/modir/broadcast",     icon: Megaphone, label: "پیام همگانی" },
     ],
   },
   {
     label: "محتوا",
     items: [
-      { href: "/modir/blog",          icon: Newspaper, label: "وبلاگ" },
-      { href: "/modir/content",       icon: FileText,  label: "محتوای صفحات" },
-      { href: "/modir/discounts",     icon: Tag,       label: "کدهای تخفیف" },
-      { href: "/modir/notifications", icon: Bell,      label: "اعلان‌ها" },
-      { href: "/modir/broadcast",     icon: Megaphone, label: "پیام همگانی" },
-      { href: "/modir/landing-pages", icon: Globe,     label: "لندینگ پیج" },
+      { href: "/modir/blog",             icon: Newspaper, label: "وبلاگ" },
+      { href: "/modir/content",          icon: FileText,  label: "محتوای صفحات" },
+      { href: "/modir/digital-content",  icon: FileDown,  label: "محتوای دیجیتال" },
+      { href: "/modir/landing-pages",    icon: Globe,     label: "لندینگ پیج" },
     ],
   },
   {
