@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Download, Loader2, ImagePlus, UploadCloud, X, Type, Crown, AtSign, EyeOff, Zap } from "lucide-react";
+import { Download, Loader2, ImagePlus, UploadCloud, X, Type, Crown, AtSign, EyeOff, Zap, Share2, Images, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { productsApi, shopsApi, accountApi, uploadApi } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
@@ -43,6 +43,16 @@ const EXPORT_SIZES = [
 
 const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || "https://api.weeelink.ir";
 const PREFS_KEY_PREFIX = "weelink-story-gen-prefs:";
+const GALLERY_KEY_PREFIX = "weelink-story-gen-gallery:";
+const MAX_GALLERY = 8;
+
+interface GalleryEntry {
+  id: string;
+  url: string;
+  template: string;
+  ratio: string;
+  title: string;
+}
 
 // satori runs server-side and can't resolve site-relative paths (/uploads/...);
 // every image url handed to the story-image route must be absolute.
@@ -82,6 +92,14 @@ export default function StoryGeneratorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  const [gallery, setGallery] = useState<GalleryEntry[]>([]);
+  const [canShare, setCanShare] = useState(false);
+  const [sharing, setSharing] = useState(false);
+
+  useEffect(() => {
+    setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
+  }, []);
+
   useEffect(() => {
     Promise.all([productsApi.getAll(), shopsApi.getMine(), accountApi.getMe()])
       .then(([p, s, u]: any) => {
@@ -116,6 +134,36 @@ export default function StoryGeneratorPage() {
     const prefs = { template, titleSize, exportSize, hideWatermark, customLogo, socialHandle };
     try { localStorage.setItem(`${PREFS_KEY_PREFIX}${shop.slug}`, JSON.stringify(prefs)); } catch { /* ignore */ }
   }, [shop?.slug, prefsLoaded, template, titleSize, exportSize, hideWatermark, customLogo, socialHandle]);
+
+  // Recently-generated gallery — a lightweight "keep for later" list, saved as
+  // just the recipe URL (satori regenerates the exact same image from it).
+  useEffect(() => {
+    if (!shop?.slug) return;
+    try {
+      const raw = localStorage.getItem(`${GALLERY_KEY_PREFIX}${shop.slug}`);
+      if (raw) setGallery(JSON.parse(raw));
+    } catch { /* ignore corrupt/blocked storage */ }
+  }, [shop?.slug]);
+
+  const addToGallery = (url: string) => {
+    if (!shop?.slug) return;
+    const entry: GalleryEntry = { id: `${Date.now()}`, url, template, ratio: exportSize, title };
+    setGallery((prev) => {
+      const next = [entry, ...prev.filter((g) => g.url !== url)].slice(0, MAX_GALLERY);
+      try { localStorage.setItem(`${GALLERY_KEY_PREFIX}${shop.slug}`, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const removeFromGallery = (id: string) => {
+    setGallery((prev) => {
+      const next = prev.filter((g) => g.id !== id);
+      if (shop?.slug) {
+        try { localStorage.setItem(`${GALLERY_KEY_PREFIX}${shop.slug}`, JSON.stringify(next)); } catch { /* ignore */ }
+      }
+      return next;
+    });
+  };
 
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const currentTemplate = TEMPLATES.find((t) => t.key === template) || TEMPLATES[0];
@@ -211,6 +259,27 @@ export default function StoryGeneratorPage() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    addToGallery(debouncedUrl);
+  };
+
+  const share = async () => {
+    setSharing(true);
+    try {
+      const absoluteUrl = `${window.location.origin}${debouncedUrl}`;
+      const res = await fetch(absoluteUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `${exportSize}-${template}.png`, { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: title || "استوری" });
+      } else {
+        await navigator.share({ title: title || "استوری", url: absoluteUrl });
+      }
+      addToGallery(debouncedUrl);
+    } catch (e: any) {
+      if (e?.name !== "AbortError") toast.error("خطا در اشتراک‌گذاری");
+    } finally {
+      setSharing(false);
+    }
   };
 
   if (loading) {
@@ -484,17 +553,29 @@ export default function StoryGeneratorPage() {
             )}
           </section>
 
-          <button
-            onClick={download}
-            disabled={previewLoading}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <Download className="w-4 h-4" /> دانلود عکس
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={download}
+              disabled={previewLoading}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" /> دانلود عکس
+            </button>
+            {canShare && (
+              <button
+                onClick={share}
+                disabled={previewLoading || sharing}
+                aria-label="اشتراک‌گذاری"
+                className="flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Preview */}
-        <div className="order-1 lg:order-2 flex justify-center lg:justify-start">
+        <div className="order-1 lg:order-2 flex flex-col items-center lg:items-start">
           <div className="sticky top-4">
             <div
               className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-xl transition-all duration-300"
@@ -531,6 +612,37 @@ export default function StoryGeneratorPage() {
             </div>
             <p className="text-[11px] text-gray-400 text-center mt-2">پیش‌نمایش زنده — با هر تغییر خودکار به‌روز می‌شود</p>
           </div>
+
+          {gallery.length > 0 && (
+            <div className="mt-6 max-w-[320px] mx-auto lg:mx-0">
+              <h3 className="text-xs font-bold text-gray-400 mb-2.5 flex items-center gap-1.5">
+                <Images className="w-3.5 h-3.5" /> استوری‌های اخیر
+              </h3>
+              <div className="grid grid-cols-4 gap-2">
+                {gallery.map((g) => (
+                  <div key={g.id} className="relative group rounded-lg overflow-hidden border border-gray-200 dark:border-white/10" style={{ aspectRatio: "9/16" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={g.url} alt={g.title} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeFromGallery(g.id)}
+                      aria-label="حذف از تاریخچه"
+                      className="absolute top-1 left-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                    <a
+                      href={g.url}
+                      download={`${g.ratio}-${g.template}.png`}
+                      aria-label="دانلود دوباره"
+                      className="absolute inset-x-0 bottom-0 py-1 bg-black/55 text-white text-[9px] font-bold text-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                    >
+                      دانلود
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
