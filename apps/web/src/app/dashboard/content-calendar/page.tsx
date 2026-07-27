@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   ChevronRight, ChevronLeft, Plus, X, Bell, Loader2,
-  Send, CheckCircle2, Clock, XCircle,
+  Send, CheckCircle2, Clock, XCircle, MessageCircle,
 } from "lucide-react";
 import {
   toGregorian, jalaliMonthDays, jalaliMonthStart,
@@ -112,6 +112,7 @@ export default function ContentCalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [editPlan, setEditPlan] = useState<ContentPlan | null>(null);
   const [telegramStatus, setTelegramStatus] = useState<{ connected?: boolean; chatId?: string } | null>(null);
+  const [baleStatus, setBaleStatus] = useState<{ connected?: boolean; chatId?: string } | null>(null);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true);
@@ -130,6 +131,9 @@ export default function ContentCalendarPage() {
   useEffect(() => {
     apiFetch(`${API}/telegram/status`)
       .then(setTelegramStatus)
+      .catch(() => {});
+    apiFetch(`${API}/bale/status`)
+      .then(setBaleStatus)
       .catch(() => {});
   }, []);
 
@@ -198,6 +202,11 @@ export default function ContentCalendarPage() {
           <TelegramConnect
             connected={!!telegramStatus?.connected}
             onChanged={() => apiFetch(`${API}/telegram/status`).then(setTelegramStatus).catch(() => {})}
+          />
+          {/* Bale bot */}
+          <BaleConnect
+            connected={!!baleStatus?.connected}
+            onChanged={() => apiFetch(`${API}/bale/status`).then(setBaleStatus).catch(() => {})}
           />
           <button
             onClick={() => { setSelected(today); setEditPlan(null); setShowModal(true); }}
@@ -656,6 +665,91 @@ function TelegramConnect({ connected, onChanged }: { connected: boolean; onChang
             <ol className="text-[11px] text-gray-400 space-y-1.5 leading-relaxed list-decimal pr-4">
               <li>در تلگرام به <span className="text-blue-400">@BotFather</span> پیام دهید و یک ربات بسازید تا <b>توکن</b> بگیرید.</li>
               <li>به ربات <span className="text-blue-400">@userinfobot</span> پیام دهید تا <b>شناسه چت (Chat ID)</b> عددی خود را ببینید.</li>
+              <li>یک‌بار به ربات خودتان <span className="text-white">/start</span> بزنید تا اجازهٔ ارسال پیام بدهید.</li>
+            </ol>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">توکن ربات</label>
+              <input value={botToken} onChange={(e) => setBotToken(e.target.value)} dir="ltr"
+                placeholder="123456:ABC-DEF..." className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-accent-500/50" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">شناسه چت (Chat ID)</label>
+              <input value={chatId} onChange={(e) => setChatId(e.target.value)} dir="ltr"
+                placeholder="123456789" className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-left focus:outline-none focus:border-accent-500/50" />
+            </div>
+            {err && <p className="text-xs text-red-400">{err}</p>}
+            <button onClick={save} disabled={saving}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl disabled:opacity-60">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "ذخیره و اتصال"}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Bale Connect (user's own bot token + chat id) ────────────────────────────
+function BaleConnect({ connected, onChanged }: { connected: boolean; onChanged: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [botToken, setBotToken] = useState("");
+  const [chatId, setChatId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  const save = async () => {
+    setErr("");
+    if (!botToken.trim() || !chatId.trim()) { setErr("توکن ربات و شناسه چت الزامی است"); return; }
+    setSaving(true);
+    try {
+      await apiFetch("/api/v1/content-plans/bale/set-token", {
+        method: "POST",
+        body: JSON.stringify({ botToken: botToken.trim(), chatId: chatId.trim() }),
+      });
+      setOpen(false); setBotToken(""); setChatId("");
+      onChanged();
+    } catch {
+      setErr("ذخیره نشد، دوباره تلاش کنید");
+    }
+    setSaving(false);
+  };
+
+  const disconnect = async () => {
+    try {
+      await apiFetch("/api/v1/content-plans/bale/disconnect", { method: "DELETE" });
+      onChanged();
+    } catch {}
+  };
+
+  return (
+    <>
+      {connected ? (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs bg-[#1BA0C7]/10 text-[#1BA0C7] px-3 py-1.5 rounded-lg">
+            <MessageCircle className="w-3.5 h-3.5" /> ربات متصل
+          </div>
+          <button onClick={disconnect} className="text-xs text-gray-500 hover:text-red-400">قطع اتصال</button>
+        </div>
+      ) : (
+        <button onClick={() => setOpen(true)}
+          className="flex items-center gap-2 text-xs bg-white/5 hover:bg-white/10
+                     border border-white/10 text-gray-400 px-3 py-1.5 rounded-lg transition-all">
+          <MessageCircle className="w-3.5 h-3.5" /> اتصال ربات بله
+        </button>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setOpen(false)}>
+          <div className="bg-[#141418] border border-white/10 rounded-2xl w-full max-w-md p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white">اتصال ربات بله</h3>
+              <button onClick={() => setOpen(false)} className="text-gray-400"><X className="w-4 h-4" /></button>
+            </div>
+            <ol className="text-[11px] text-gray-400 space-y-1.5 leading-relaxed list-decimal pr-4">
+              <li>در بله به <span className="text-[#1BA0C7]">بله‌بات‌ساز</span> پیام دهید و یک ربات بسازید تا <b>توکن</b> بگیرید.</li>
+              <li><b>شناسه چت (Chat ID)</b> عددی خود را از طریق ربات مشابه بله دریافت کنید.</li>
               <li>یک‌بار به ربات خودتان <span className="text-white">/start</span> بزنید تا اجازهٔ ارسال پیام بدهید.</li>
             </ol>
             <div>

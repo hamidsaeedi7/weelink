@@ -2,14 +2,15 @@
 import { ContentPlansService } from './content-plans.service';
 import { ContentSchedulerService } from './scheduler.service';
 import { TelegramService } from './telegram.service';
+import { BaleService } from './bale.service';
 import { ContentPlansController, TelegramWebhookController } from './content-plans.controller';
 import { SmsModule } from '../sms/sms.module';
 import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [SmsModule, EmailModule],
-  providers: [ContentPlansService, ContentSchedulerService, TelegramService],
+  providers: [ContentPlansService, ContentSchedulerService, TelegramService, BaleService],
   controllers: [ContentPlansController, TelegramWebhookController],
-  exports: [TelegramService],
+  exports: [TelegramService, BaleService, ContentSchedulerService],
 })
 export class ContentPlansModule {}

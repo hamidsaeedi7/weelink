@@ -62,6 +62,8 @@ export const adminApi = {
   getNotifications: ()           => api.get("/admin/notifications"),
   sendNotification: (d: any)     => api.post("/admin/notifications", d),
   deleteNotification: (id: string) => api.delete(`/admin/notifications/${id}`),
+  // Broadcast
+  sendBroadcast: (d: { message: string; channel: string; audience: string }) => api.post("/admin/broadcast", d),
   // Coupons
   getCoupons: ()                 => api.get("/admin/coupons"),
   createCoupon: (d: any)         => api.post("/admin/coupons", d),

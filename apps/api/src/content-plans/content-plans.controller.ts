@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ContentPlansService } from './content-plans.service';
 import { TelegramService } from './telegram.service';
+import { BaleService } from './bale.service';
 import { CreateContentPlanDto, UpdateContentPlanDto } from './dto/content-plan.dto';
 
 // ─── Public controller for Telegram webhook (no JWT) ─────────────────────────
@@ -36,6 +37,7 @@ export class ContentPlansController {
   constructor(
     private readonly contentPlansService: ContentPlansService,
     private readonly telegramService: TelegramService,
+    private readonly baleService: BaleService,
   ) {}
 
   // ─── Content Plans CRUD ─────────────────────────────────────────────────
@@ -85,6 +87,31 @@ export class ContentPlansController {
   @Get('telegram/status')
   async telegramStatus(@CurrentUser() user: any) {
     const config = await this.telegramService.getChatId(user.id);
+    return {
+      connected: !!(config?.isActive),
+      username: config?.username ?? null,
+      chatId: config?.isActive ? config.chatId : null,
+    };
+  }
+
+  // ─── Bale Bot ────────────────────────────────────────────────────────────
+
+  /** POST /content-plans/bale/set-token  { botToken, chatId } */
+  @Post('bale/set-token')
+  setBaleToken(@CurrentUser() user: any, @Body() body: { botToken: string; chatId: string }) {
+    return this.baleService.saveToken(user.id, body.botToken, body.chatId);
+  }
+
+  /** DELETE /content-plans/bale/disconnect */
+  @Delete('bale/disconnect')
+  baleDisconnect(@CurrentUser() user: any) {
+    return this.baleService.disconnect(user.id);
+  }
+
+  /** GET /content-plans/bale/status */
+  @Get('bale/status')
+  async baleStatus(@CurrentUser() user: any) {
+    const config = await this.baleService.getChatId(user.id);
     return {
       connected: !!(config?.isActive),
       username: config?.username ?? null,

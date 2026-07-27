@@ -52,6 +52,18 @@ export class SendNotificationDto {
   targetPlan?: string;
 }
 
+export class BroadcastMessageDto {
+  @IsString()
+  @MaxLength(2000)
+  message: string;
+
+  @IsIn(["telegram", "bale", "sms"])
+  channel: string;
+
+  @IsIn(["all", "free", "pro"])
+  audience: string;
+}
+
 export class ChangeAdminCredentialsDto {
   @IsOptional()
   @IsString()

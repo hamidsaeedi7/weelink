@@ -1,12 +1,23 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { SmsService } from "../sms/sms.service";
+import { ContentSchedulerService } from "../content-plans/scheduler.service";
+import { BaleService } from "../content-plans/bale.service";
 import * as bcrypt from "bcrypt";
 import * as os from "os";
-import { UpdateUserDto, CreateGlobalCouponDto, SendNotificationDto, ChangeAdminCredentialsDto } from "./dto/admin.dto";
+import {
+  UpdateUserDto, CreateGlobalCouponDto, SendNotificationDto,
+  ChangeAdminCredentialsDto, BroadcastMessageDto,
+} from "./dto/admin.dto";
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private sms: SmsService,
+    private scheduler: ContentSchedulerService,
+    private bale: BaleService,
+  ) {}
 
   // ─── Dashboard ────────────────────────────────────────────────────────────
 
@@ -348,6 +359,54 @@ export class AdminService {
   async deleteNotification(id: string) {
     await this.prisma.notification.delete({ where: { id } });
     return { message: "اعلان حذف شد" };
+  }
+
+  // ─── Broadcast (Telegram / Bale / SMS) ─────────────────────────────────────
+
+  async broadcastMessage(adminId: string, dto: BroadcastMessageDto) {
+    const planFilter =
+      dto.audience === "free" ? { plan: "FREE" as const } :
+      dto.audience === "pro" ? { plan: "PRO" as const } : {};
+
+    let total = 0;
+    let sent = 0;
+
+    if (dto.channel === "sms") {
+      const users = await this.prisma.user.findMany({ where: planFilter, select: { phone: true } });
+      total = users.length;
+      const targets = users.filter((u): u is { phone: string } => !!u.phone);
+      const results = await Promise.allSettled(targets.map((u) => this.sms.sendSms(u.phone, dto.message)));
+      sent = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
+    } else if (dto.channel === "telegram") {
+      const users = await this.prisma.user.findMany({
+        where: planFilter,
+        select: { telegramConfig: { select: { chatId: true, botToken: true, isActive: true } } },
+      });
+      total = users.length;
+      const connected = users.filter((u) => u.telegramConfig?.isActive);
+      await Promise.allSettled(
+        connected.map((u) => this.scheduler.sendTelegramMessage(u.telegramConfig!.chatId, dto.message, u.telegramConfig!.botToken)),
+      );
+      sent = connected.length;
+    } else if (dto.channel === "bale") {
+      const users = await this.prisma.user.findMany({
+        where: planFilter,
+        select: { baleConfig: { select: { chatId: true, botToken: true, isActive: true } } },
+      });
+      total = users.length;
+      const connected = users.filter((u) => u.baleConfig?.isActive);
+      await Promise.allSettled(
+        connected.map((u) => this.bale.sendBaleMessage(u.baleConfig!.chatId, dto.message, u.baleConfig!.botToken)),
+      );
+      sent = connected.length;
+    }
+
+    const skipped = total - sent;
+    await this.prisma.adminLog.create({
+      data: { adminId, action: "BROADCAST_MESSAGE", data: { channel: dto.channel, audience: dto.audience, total, sent, skipped } },
+    });
+
+    return { total, sent, skipped };
   }
 
   // ─── Coupons (admin-level) ────────────────────────────────────────────────

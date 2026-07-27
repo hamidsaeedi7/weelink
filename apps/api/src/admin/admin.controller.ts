@@ -3,7 +3,10 @@ import {
   Post, Put, Query, UseGuards,
 } from "@nestjs/common";
 import { AdminService } from "./admin.service";
-import { UpdateUserDto, CreateGlobalCouponDto, SendNotificationDto, ChangeAdminCredentialsDto } from "./dto/admin.dto";
+import {
+  UpdateUserDto, CreateGlobalCouponDto, SendNotificationDto,
+  ChangeAdminCredentialsDto, BroadcastMessageDto,
+} from "./dto/admin.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
@@ -98,6 +101,12 @@ export class AdminController {
   @Post("notifications") sendNotification(@Body() data: SendNotificationDto) { return this.admin.sendNotification(data); }
   @Delete("notifications/:id") deleteNotification(@Param("id") id: string) {
     return this.admin.deleteNotification(id);
+  }
+
+  // Broadcast (Telegram / Bale / SMS)
+  @Post("broadcast")
+  broadcastMessage(@CurrentUser() user: { id: string }, @Body() data: BroadcastMessageDto) {
+    return this.admin.broadcastMessage(user.id, data);
   }
 
   // Coupons

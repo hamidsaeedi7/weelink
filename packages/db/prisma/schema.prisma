@@ -101,6 +101,7 @@ model User {
   blogPosts       BlogPost[]
   notifications   Notification[]
   telegramConfig  TelegramConfig?
+  baleConfig      BaleConfig?
   autoReplies     AutoReply[]
   autoReplyBots   AutoReplyBot[]
 
@@ -566,6 +567,18 @@ model TelegramConfig {
   chatId    String
   username  String?
   botToken  String?  // توکن ربات اختصاصی کاربر (ارسال یادآور از طریق ربات خودش)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BaleConfig {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  chatId    String
+  username  String?
+  botToken  String?  // توکن ربات اختصاصی کاربر (ارسال پیام از طریق ربات خودش)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 

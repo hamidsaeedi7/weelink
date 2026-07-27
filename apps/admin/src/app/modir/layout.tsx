@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, DollarSign, Ticket, Settings,
   FileText, Server, BarChart3, Newspaper, Shield, LogOut,
   Menu, X, Sun, Moon, Bell, Tag, UserCheck, Wrench,
-  Globe, Search, Crown,
+  Globe, Search, Crown, Megaphone,
 } from "lucide-react";
 import { adminApi } from "@/lib/api";
 
@@ -38,6 +38,7 @@ const NAV_GROUPS = [
       { href: "/modir/content",       icon: FileText,  label: "محتوای صفحات" },
       { href: "/modir/discounts",     icon: Tag,       label: "کدهای تخفیف" },
       { href: "/modir/notifications", icon: Bell,      label: "اعلان‌ها" },
+      { href: "/modir/broadcast",     icon: Megaphone, label: "پیام همگانی" },
       { href: "/modir/landing-pages", icon: Globe,     label: "لندینگ پیج" },
     ],
   },
