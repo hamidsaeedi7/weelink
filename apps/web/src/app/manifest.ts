@@ -1,4 +1,4 @@
-﻿import { MetadataRoute } from "next";
+import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -16,16 +16,16 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: "rtl",
     prefer_related_applications: false,
     icons: [
-      { src: "/icons/icon-72.png?v=7", sizes: "72x72", type: "image/png" },
-      { src: "/icons/icon-96.png?v=7", sizes: "96x96", type: "image/png" },
-      { src: "/icons/icon-128.png?v=7", sizes: "128x128", type: "image/png" },
-      { src: "/icons/icon-144.png?v=7", sizes: "144x144", type: "image/png" },
-      { src: "/icons/icon-152.png?v=7", sizes: "152x152", type: "image/png" },
-      { src: "/icons/icon-192.png?v=7", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icons/icon-192-maskable.png?v=7", sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: "/icons/icon-384.png?v=7", sizes: "384x384", type: "image/png" },
-      { src: "/icons/icon-512.png?v=7", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icons/icon-512-maskable.png?v=7", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-72.png?v=8", sizes: "72x72", type: "image/png" },
+      { src: "/icons/icon-96.png?v=8", sizes: "96x96", type: "image/png" },
+      { src: "/icons/icon-128.png?v=8", sizes: "128x128", type: "image/png" },
+      { src: "/icons/icon-144.png?v=8", sizes: "144x144", type: "image/png" },
+      { src: "/icons/icon-152.png?v=8", sizes: "152x152", type: "image/png" },
+      { src: "/icons/icon-192.png?v=8", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-192-maskable.png?v=8", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-384.png?v=8", sizes: "384x384", type: "image/png" },
+      { src: "/icons/icon-512.png?v=8", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512-maskable.png?v=8", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     screenshots: [
       {

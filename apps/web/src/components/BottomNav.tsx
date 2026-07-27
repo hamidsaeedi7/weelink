@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import { BOTTOM_NAV_ITEMS, allNavItems, type NavItem } from "@/app/dashboard/nav-data";
 
 /**
@@ -35,7 +35,7 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
       className="flex-1 flex flex-col items-center justify-center gap-1 py-2"
     >
       <Bubble active={Boolean(contextual)}>
-        {contextual ? <contextual.icon className="w-[18px] h-[18px] text-white" /> : <Menu className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />}
+        {contextual ? <contextual.icon className="w-[18px] h-[18px] text-white" /> : <LayoutGrid className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />}
       </Bubble>
       <span className={`text-[10px] font-medium transition-colors duration-300 ${contextual ? "text-accent-500 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
         {contextual ? contextual.label : "منو"}

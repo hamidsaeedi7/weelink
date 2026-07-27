@@ -13,7 +13,7 @@ const LINKS = {
     { href: "/contact", label: "تماس با ما" },
     { href: "/terms", label: "قوانین استفاده" },
     { href: "/privacy", label: "حریم خصوصی" },
-    { href: "/modir/login", label: "پنل مدیریت" },
+    { href: "https://modir.weeelink.ir/modir/login", label: "پنل مدیریت" },
   ],
 };
 
@@ -26,7 +26,7 @@ export function Footer() {
           {/* Col 1 — Brand */}
           <div className="col-span-2 md:col-span-1 space-y-4">
             <div className="flex items-center gap-2.5">
-              <img src="/weeelink.png" alt="ویلینک" className="w-8 h-8 rounded-xl" />
+              <img src="/weeelink.png?v=8" alt="ویلینک" className="w-8 h-8 rounded-xl" />
               <span className="font-black text-gray-900 dark:text-white text-lg">
                 وی<span className="text-accent">لینک</span>
               </span>

@@ -52,7 +52,7 @@ export default function QrCodePage() {
   }, []);
 
   // مرکز QR: لوگوی اختصاصی کاربر (PRO) یا لوگوی ویلینک
-  const logoSrc = isPro && customLogo ? customLogo : "/weeelink.png";
+  const logoSrc = isPro && customLogo ? customLogo : "/weeelink.png?v=8";
 
   const uploadCenterLogo = async (file: File) => {
     setUploadingLogo(true);

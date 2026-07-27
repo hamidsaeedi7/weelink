@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { PwaRegister } from "@/components/PwaRegister";
@@ -11,12 +11,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://weeelink.ir"),
   icons: {
     icon: [
-      { url: "/weeelink.svg", type: "image/svg+xml" },
-      { url: "/icons/icon-32.png?v=6", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon-16.png?v=6", sizes: "16x16", type: "image/png" },
+      { url: "/weeelink.svg?v=8", type: "image/svg+xml" },
+      { url: "/icons/icon-32.png?v=8", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-16.png?v=8", sizes: "16x16", type: "image/png" },
     ],
-    shortcut: "/favicon.ico?v=6",
-    apple: { url: "/apple-touch-icon.png?v=5", sizes: "180x180", type: "image/png" },
+    shortcut: "/favicon.ico?v=8",
+    apple: { url: "/apple-touch-icon.png?v=8", sizes: "180x180", type: "image/png" },
   },
   openGraph: {
     siteName: "ویلینک",
