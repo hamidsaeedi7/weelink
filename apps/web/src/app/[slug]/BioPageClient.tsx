@@ -82,6 +82,17 @@ function FlashCard({ sale, primary }: { sale: any; primary: string }) {
   );
 }
 
+// Bento theme switches the block list from a single stacked column to a
+// 2-col grid; "rich" block types (media, forms, banners) take the full
+// width, simple link-like blocks sit two per row as small tiles.
+const BENTO_WIDE_TYPES = new Set([
+  "FEATURED", "IMAGE", "VIDEO", "MAP", "EMAIL_CAPTURE", "FAQ",
+  "ORDER_FORM", "FLASH_SALE", "TEXT", "DIVIDER", "GROUP",
+]);
+function bentoSpanClass(block: { type: string }) {
+  return BENTO_WIDE_TYPES.has(block.type) ? "col-span-2" : "col-span-1";
+}
+
 interface Shop {
   id: string;
   name: string;
@@ -105,24 +116,33 @@ export function BioPageClient({ shop }: { shop: Shop }) {
   const primary = shop.primaryColor || "#F97316";
   const theme = shop.bioTheme || "modern";
   const isMinimal = theme === "minimal";
-  const isClassic = theme === "classic";
+  const isNeo = theme === "neo";
+  const isClay = theme === "clay";
+  const isBento = theme === "bento";
+  // Neo/clay/bento are flat-surface styles that need a uniform, non-photo
+  // backdrop to read correctly (neo especially — the card fuses into the
+  // page color) so they override the seller's chosen background/photo,
+  // same as minimal already did. Modern/glass keep respecting bg/template.
+  const flatTheme = isMinimal || isNeo || isClay || isBento;
 
   const bg = shop.bgImageUrl;
   const template = !bg ? getBgTemplate(shop.bgTemplate) : undefined;
 
-  // "minimal" and "classic" both deliberately override the seller's chosen
-  // background gradient/photo — minimal goes flat and light, classic goes
-  // flat and dark/solid (no diagonal gradient) — so the 4 themes stay
-  // visually distinct even when modern/glass share the same backdrop.
   const background = isMinimal
     ? "#fafafa"
-    : isClassic
-      ? "#101012"
-      : bg
-        ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-        : template
-          ? bgTemplateBackground(template)
-          : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
+    : isNeo
+      ? "#e6e9ef"
+      : isClay
+        ? "linear-gradient(160deg, #ffd9ec 0%, #d6e4ff 55%, #e2d6ff 100%)"
+        : isBento
+          ? "linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%)"
+          : bg
+            ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
+            : template
+              ? bgTemplateBackground(template)
+              : theme === "glass"
+                ? "linear-gradient(135deg, #4338CA 0%, #7C3AED 35%, #DB2777 70%, #0EA5E9 100%)"
+                : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
 
   return (
     <div
@@ -148,7 +168,7 @@ export function BioPageClient({ shop }: { shop: Shop }) {
             className="relative w-20 h-20 rounded-full overflow-hidden border-2 shadow-xl"
             style={{
               borderColor: `${primary}60`,
-              boxShadow: isMinimal ? "none" : `0 0 25px ${primary}30`,
+              boxShadow: flatTheme ? "none" : `0 0 25px ${primary}30`,
             }}
           >
             {shop.avatarUrl ? (
@@ -179,9 +199,11 @@ export function BioPageClient({ shop }: { shop: Shop }) {
         <StorefrontLinks slug={shop.slug} primary={primary} counts={shop.storefrontCounts || { products: 0, files: 0, courses: 0, services: 0 }} />
 
         {/* Blocks */}
-        <div className="space-y-2.5">
+        <div className={isBento ? "grid grid-cols-2 gap-2.5" : "space-y-2.5"}>
           {shop.blocks.map((block: any) => (
-            <BlockRenderer key={block.id} block={block} primaryColor={primary} />
+            <div key={block.id} className={isBento ? bentoSpanClass(block) : undefined}>
+              <BlockRenderer block={block} primaryColor={primary} />
+            </div>
           ))}
         </div>
 

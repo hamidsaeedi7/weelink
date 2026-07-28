@@ -6,8 +6,10 @@ import { getBgTemplate, bgTemplateBackground } from "@/lib/bg-templates";
 const THEMES = [
   { id: "modern", label: "مدرن" },
   { id: "glass", label: "گلس‌مورفیسم" },
+  { id: "neo", label: "نئومورفیسم" },
+  { id: "clay", label: "کلی‌مورفیسم" },
+  { id: "bento", label: "بنتو گرید" },
   { id: "minimal", label: "مینیمال" },
-  { id: "classic", label: "کلاسیک" },
 ];
 
 // Renders the exact same background-resolution logic as the public bio page
@@ -16,24 +18,33 @@ const THEMES = [
 function MiniPreview({ themeId, shop }: { themeId: string; shop: any }) {
   const primary = shop?.primaryColor || "#F97316";
   const isMinimal = themeId === "minimal";
-  const isClassic = themeId === "classic";
+  const isNeo = themeId === "neo";
+  const isClay = themeId === "clay";
+  const isBento = themeId === "bento";
+  const flatTheme = isMinimal || isNeo || isClay || isBento;
   const bg = shop?.bgImageUrl;
   const template = !bg ? getBgTemplate(shop?.bgTemplate) : undefined;
   const background = isMinimal
     ? "#fafafa"
-    : isClassic
-      ? "#101012"
-      : bg
-        ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-        : template
-          ? bgTemplateBackground(template)
-          : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
+    : isNeo
+      ? "#e6e9ef"
+      : isClay
+        ? "linear-gradient(160deg, #ffd9ec 0%, #d6e4ff 55%, #e2d6ff 100%)"
+        : isBento
+          ? "linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%)"
+          : bg
+            ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
+            : template
+              ? bgTemplateBackground(template)
+              : themeId === "glass"
+                ? "linear-gradient(135deg, #4338CA 0%, #7C3AED 35%, #DB2777 70%, #0EA5E9 100%)"
+                : "linear-gradient(160deg, #0A0A0F 0%, #111122 100%)";
 
   const initial = (shop?.name || "و")[0];
 
   return (
     <div data-bio-theme={themeId} style={{ background }} className="w-full h-full flex flex-col items-center pt-4 px-2.5 gap-1.5 overflow-hidden">
-      <div className="w-8 h-8 rounded-full overflow-hidden border-2 shrink-0" style={{ borderColor: `${primary}80` }}>
+      <div className="w-8 h-8 rounded-full overflow-hidden border-2 shrink-0" style={{ borderColor: `${primary}80`, boxShadow: flatTheme ? "none" : `0 0 8px ${primary}50` }}>
         {shop?.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={shop.avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -44,13 +55,22 @@ function MiniPreview({ themeId, shop }: { themeId: string; shop: any }) {
         )}
       </div>
       <div className="text-[9px] font-black truncate max-w-full" style={{ color: "var(--bio-text)" }}>{shop?.name || "فروشگاه من"}</div>
-      <div className="w-full space-y-1.5 mt-1">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bio-card w-full h-4 flex items-center px-1.5" style={{ borderRadius: "calc(var(--bio-radius) * 0.5)" }}>
-            <div className="w-full h-[3px] rounded-full" style={{ background: "var(--bio-text-secondary)", opacity: 0.5 }} />
-          </div>
-        ))}
-      </div>
+
+      {isBento ? (
+        <div className="w-full grid grid-cols-2 gap-1 mt-1">
+          <div className="bio-card col-span-2 h-4" style={{ borderRadius: "calc(var(--bio-radius) * 0.4)" }} />
+          <div className="bio-card h-4" style={{ borderRadius: "calc(var(--bio-radius) * 0.4)" }} />
+          <div className="bio-card h-4" style={{ borderRadius: "calc(var(--bio-radius) * 0.4)" }} />
+        </div>
+      ) : (
+        <div className="w-full space-y-1.5 mt-1">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bio-card w-full h-4 flex items-center px-1.5" style={{ borderRadius: "calc(var(--bio-radius) * 0.5)" }}>
+              <div className="w-full h-[3px] rounded-full" style={{ background: "var(--bio-text-secondary)", opacity: 0.5 }} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -60,7 +80,7 @@ export function ThemePicker({ shop, value, onSelect }: { shop: any; value: strin
     <div className="glass-card p-4">
       <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-1">قالب صفحه بیو</h2>
       <p className="text-xs text-gray-500 mb-3">ظاهر کلی صفحه عمومی‌ات رو انتخاب کن — پیش‌نمایش زنده با اطلاعات خودت</p>
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-3 gap-2.5">
         {THEMES.map((t) => (
           <button
             key={t.id}

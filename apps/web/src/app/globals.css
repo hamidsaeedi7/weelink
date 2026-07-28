@@ -276,11 +276,12 @@
    read these instead of hardcoding the old dark-glass look, so picking a
    theme actually changes card shape/blur/shadow and text color — including
    flipping to dark text for the light "minimal" theme. */
-/* Values are deliberately pushed far apart (not just subtle opacity steps) —
-   an earlier version only nudged opacity/radius a few percent between modern/
-   glass/classic, which was invisible at a glance; each theme now differs in
-   at least two obviously-perceptible ways (page background, card fill,
-   corner shape, or shadow), matching what "minimal" already did well. */
+/* Six themes, each a genuinely different visual system (not just palette
+   swaps): modern (flat dark), glass (real frosted blur), neo (soft-UI
+   emboss — card fuses into the page color), clay (puffy pastel 3D), bento
+   (light tiled grid — see the grid layout switch in BioPageClient.tsx), and
+   minimal (flat white/thin border). --bio-shadow may hold multiple
+   comma-separated box-shadows (e.g. neo's dual light/dark emboss). */
 [data-bio-theme="modern"] {
   --bio-radius: 16px;
   --bio-blur: 0px;
@@ -293,15 +294,54 @@
   --bio-text-secondary: rgba(255, 255, 255, 0.6);
 }
 [data-bio-theme="glass"] {
-  --bio-radius: 28px;
-  --bio-blur: 28px;
-  --bio-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  --bio-card-bg: rgba(255, 255, 255, 0.20);
-  --bio-card-border: rgba(255, 255, 255, 0.50);
-  --bio-card-hover-bg: rgba(255, 255, 255, 0.28);
-  --bio-card-hover-border: rgba(255, 255, 255, 0.65);
+  --bio-radius: 26px;
+  --bio-blur: 22px;
+  --bio-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  --bio-card-bg: rgba(255, 255, 255, 0.16);
+  --bio-card-border: rgba(255, 255, 255, 0.40);
+  --bio-card-hover-bg: rgba(255, 255, 255, 0.24);
+  --bio-card-hover-border: rgba(255, 255, 255, 0.55);
   --bio-text: #ffffff;
   --bio-text-secondary: rgba(255, 255, 255, 0.78);
+}
+/* Neomorphism: card is the SAME color as the page, sculpted only by a
+   dual light/dark drop-shadow (no border, no color contrast at all). */
+[data-bio-theme="neo"] {
+  --bio-radius: 20px;
+  --bio-blur: 0px;
+  --bio-shadow: 8px 8px 16px rgba(163, 177, 198, 0.55), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  --bio-card-bg: #e6e9ef;
+  --bio-card-border: transparent;
+  --bio-card-hover-bg: #e1e5ec;
+  --bio-card-hover-border: transparent;
+  --bio-text: #3d4451;
+  --bio-text-secondary: #8993a4;
+}
+/* Claymorphism: saturated puffy card — outer soft shadow + inset highlight
+   (top) and inset shade (bottom) fake a rounded 3D clay surface. */
+[data-bio-theme="clay"] {
+  --bio-radius: 30px;
+  --bio-blur: 0px;
+  --bio-shadow: 0 14px 24px rgba(76, 50, 120, 0.22), inset 0 -8px 14px rgba(0, 0, 0, 0.12), inset 0 8px 10px rgba(255, 255, 255, 0.5);
+  --bio-card-bg: #8b80f0;
+  --bio-card-border: transparent;
+  --bio-card-hover-bg: #9890f3;
+  --bio-card-hover-border: transparent;
+  --bio-text: #ffffff;
+  --bio-text-secondary: rgba(255, 255, 255, 0.82);
+}
+/* Bento grid: flat light tiles — the distinguishing trait is the 2-column
+   grid layout switch in BioPageClient.tsx, not the card surface itself. */
+[data-bio-theme="bento"] {
+  --bio-radius: 22px;
+  --bio-blur: 0px;
+  --bio-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+  --bio-card-bg: #ffffff;
+  --bio-card-border: #eef0f3;
+  --bio-card-hover-bg: #f7f8fa;
+  --bio-card-hover-border: #e2e5ea;
+  --bio-text: #14171f;
+  --bio-text-secondary: #6b7280;
 }
 [data-bio-theme="minimal"] {
   --bio-radius: 10px;
@@ -313,17 +353,6 @@
   --bio-card-hover-border: #d1d5db;
   --bio-text: #111827;
   --bio-text-secondary: #6b7280;
-}
-[data-bio-theme="classic"] {
-  --bio-radius: 6px;
-  --bio-blur: 0px;
-  --bio-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  --bio-card-bg: #35353f;
-  --bio-card-border: rgba(255, 255, 255, 0.16);
-  --bio-card-hover-bg: #40404c;
-  --bio-card-hover-border: rgba(255, 255, 255, 0.28);
-  --bio-text: #ffffff;
-  --bio-text-secondary: rgba(255, 255, 255, 0.55);
 }
 
 .bio-card {

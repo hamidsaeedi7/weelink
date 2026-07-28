@@ -57,7 +57,7 @@ export class UpdateShopDto {
   bgTemplate?: string;
 
   @IsOptional()
-  @IsIn(["modern", "glass", "minimal", "classic"])
+  @IsIn(["modern", "glass", "neo", "clay", "bento", "minimal"])
   bioTheme?: string;
 
   @IsOptional()
