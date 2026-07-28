@@ -3,7 +3,7 @@ import {
   Ticket, Settings, Tag, QrCode, Zap,
   Code2, FlaskConical, CalendarDays, FileDown, BookOpen,
   CalendarCheck, Scissors, Users, Handshake, Bot, LayoutTemplate,
-  Store, Flame, Globe, ImagePlus,
+  Store, Flame, Globe, ImagePlus, Wand2,
 } from "lucide-react";
 
 export interface NavItem {
@@ -71,7 +71,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dashboard/short-links", icon: Scissors, label: "لینک کوتاه", pro: true },
       { href: "/dashboard/audience", icon: Users, label: "مخاطبان", pro: true },
       { href: "/dashboard/auto-reply", icon: Bot, label: "پاسخ خودکار", pro: true },
-      { href: "/dashboard/story-generator", icon: ImagePlus, label: "استوری‌ساز" },
+      { href: "/dashboard/story-generator", icon: ImagePlus, label: "استوری‌ساز سریع" },
+      { href: "/dashboard/story-studio", icon: Wand2, label: "استودیو استوری" },
       { href: "/dashboard/content-calendar", icon: CalendarDays, label: "تقویم محتوا", pro: true, advanced: true },
       { href: "/dashboard/ab-testing", icon: FlaskConical, label: "تست A/B", pro: true, advanced: true },
     ],

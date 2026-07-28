@@ -5,6 +5,14 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: { serverComponentsExternalPackages: ["isomorphic-dompurify"] },
+  webpack: (config) => {
+    // Konva ships a node build that requires the native `canvas` package for
+    // server-side rendering. The story studio only ever runs client-side
+    // (dynamic import with ssr:false), but webpack still walks the module
+    // graph and fails to resolve it. Aliasing to false drops that branch.
+    config.resolve.alias = { ...config.resolve.alias, canvas: false };
+    return config;
+  },
   images: { remotePatterns: [{ protocol: "http", hostname: "localhost" }, { protocol: "https", hostname: "**" }] },
   async rewrites() {
     const ADMIN_URL = process.env.ADMIN_URL || "http://localhost:3001";
