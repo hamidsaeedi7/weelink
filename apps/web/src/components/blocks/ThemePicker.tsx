@@ -16,15 +16,18 @@ const THEMES = [
 function MiniPreview({ themeId, shop }: { themeId: string; shop: any }) {
   const primary = shop?.primaryColor || "#F97316";
   const isMinimal = themeId === "minimal";
+  const isClassic = themeId === "classic";
   const bg = shop?.bgImageUrl;
   const template = !bg ? getBgTemplate(shop?.bgTemplate) : undefined;
   const background = isMinimal
     ? "#fafafa"
-    : bg
-      ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-      : template
-        ? bgTemplateBackground(template)
-        : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
+    : isClassic
+      ? "#101012"
+      : bg
+        ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
+        : template
+          ? bgTemplateBackground(template)
+          : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
 
   const initial = (shop?.name || "و")[0];
 

@@ -105,20 +105,24 @@ export function BioPageClient({ shop }: { shop: Shop }) {
   const primary = shop.primaryColor || "#F97316";
   const theme = shop.bioTheme || "modern";
   const isMinimal = theme === "minimal";
+  const isClassic = theme === "classic";
 
   const bg = shop.bgImageUrl;
   const template = !bg ? getBgTemplate(shop.bgTemplate) : undefined;
 
-  // The "minimal" theme is a deliberately flat, light look — it ignores the
-  // seller's chosen background gradient/photo in favor of a plain neutral
-  // page, matching the archetype users expect from a "minimal" bio page.
+  // "minimal" and "classic" both deliberately override the seller's chosen
+  // background gradient/photo — minimal goes flat and light, classic goes
+  // flat and dark/solid (no diagonal gradient) — so the 4 themes stay
+  // visually distinct even when modern/glass share the same backdrop.
   const background = isMinimal
     ? "#fafafa"
-    : bg
-      ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-      : template
-        ? bgTemplateBackground(template)
-        : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
+    : isClassic
+      ? "#101012"
+      : bg
+        ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
+        : template
+          ? bgTemplateBackground(template)
+          : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
 
   return (
     <div
