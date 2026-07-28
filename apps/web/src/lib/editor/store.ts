@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { Background, EditorObject, Page, Project } from "./types";
-import { createStarterProject, uid } from "./presets";
+import { createEmptyPage, createStarterProject, uid } from "./presets";
 
 const HISTORY_LIMIT = 50;
 
@@ -49,6 +49,12 @@ interface EditorState {
   duplicateObjects: (ids: string[]) => void;
   reorder: (id: string, direction: "front" | "back" | "forward" | "backward") => void;
   moveLayer: (fromIndex: number, toIndex: number) => void;
+
+  // pages
+  addPage: () => void;
+  duplicatePage: (id: string) => void;
+  removePage: (id: string) => void;
+  setActivePage: (id: string) => void;
 
   // selection / viewport
   select: (ids: string[]) => void;
@@ -199,6 +205,45 @@ export const useEditor = create<EditorState>((set, get) => {
         page.objects.splice(Math.max(0, Math.min(page.objects.length, toIndex)), 0, obj);
       });
     },
+
+    addPage: () => {
+      get().beginTransaction();
+      const page = createEmptyPage();
+      set((s) => ({
+        doc: touch({ ...s.doc, pages: [...s.doc.pages, page] }),
+        activePageId: page.id,
+        selectedIds: [],
+      }));
+    },
+
+    duplicatePage: (id) => {
+      get().beginTransaction();
+      set((s) => {
+        const i = s.doc.pages.findIndex((p) => p.id === id);
+        if (i === -1) return s;
+        // New ids for the page AND every object on it, or selection and the
+        // Konva node lookup would match two nodes at once.
+        const copy = clone(s.doc.pages[i]);
+        copy.id = uid();
+        copy.objects = copy.objects.map((o) => ({ ...o, id: uid() }));
+        const pages = [...s.doc.pages];
+        pages.splice(i + 1, 0, copy);
+        return { doc: touch({ ...s.doc, pages }), activePageId: copy.id, selectedIds: [] };
+      });
+    },
+
+    removePage: (id) => {
+      // A document with zero pages has no valid render target.
+      if (get().doc.pages.length <= 1) return;
+      get().beginTransaction();
+      set((s) => {
+        const pages = s.doc.pages.filter((p) => p.id !== id);
+        const activePageId = s.activePageId === id ? pages[0].id : s.activePageId;
+        return { doc: touch({ ...s.doc, pages }), activePageId, selectedIds: [] };
+      });
+    },
+
+    setActivePage: (id) => set({ activePageId: id, selectedIds: [] }),
 
     select: (ids) => set({ selectedIds: ids }),
     toggleSelect: (id) =>

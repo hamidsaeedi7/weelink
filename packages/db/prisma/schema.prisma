@@ -164,6 +164,7 @@ model Shop {
   coupons          Coupon[]
   abTests          ABTest[]
   contentPlans     ContentPlan[]
+  storyProjects    StoryProject[]
   digitalFiles     DigitalFile[]
   courses          Course[]
   appointmentSvcs  AppointmentService[]
@@ -538,6 +539,24 @@ model ABTest {
 }
 
 // ─── Content Plan (تقویم محتوایی) ────────────────────────────────────────────
+
+/// پروژه‌های استوری‌ساز. کل سند ویرایشگر به‌صورت JSON در `doc` ذخیره می‌شود
+/// (نسخه‌دار است، پس تغییر ساختار بعدی migration دیتابیس نمی‌خواهد).
+/// `thumbnail` یک dataURL کوچک است تا لیست پروژه‌ها بدون رندر دوبارهٔ بوم
+/// نمایش داده شود.
+model StoryProject {
+  id        String   @id @default(uuid())
+  shopId    String
+  name      String   @default("استوری بدون عنوان")
+  doc       Json
+  thumbnail String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, updatedAt])
+}
 
 model ContentPlan {
   id                 String   @id @default(uuid())

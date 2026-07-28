@@ -158,6 +158,17 @@ export const couponsApi = {
   remove: (id: string) => api.delete(`/coupons/${id}`),
 };
 
+// ─── Story projects (استوری‌ساز) ─────────────────────────────────────────────
+export const storyProjectsApi = {
+  getAll: () => api.get("/story-projects"),
+  getOne: (id: string) => api.get(`/story-projects/${id}`),
+  create: (data: { name?: string; doc: Record<string, any>; thumbnail?: string }) =>
+    api.post("/story-projects", data),
+  update: (id: string, data: { name?: string; doc?: Record<string, any>; thumbnail?: string }) =>
+    api.put(`/story-projects/${id}`, data),
+  remove: (id: string) => api.delete(`/story-projects/${id}`),
+};
+
 // ─── Analytics ───────────────────────────────────────────────────────────────
 export const analyticsApi = {
   getDashboard: (days = 30) => api.get(`/analytics/dashboard?days=${days}`),
