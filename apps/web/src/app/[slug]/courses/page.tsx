@@ -4,11 +4,16 @@ import CoursesClient from "./CoursesClient";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
+// See [slug]/page.tsx — a Next Data Cache entry here is stale-while-
+// revalidate and would serve the previous course list/prices after an edit.
+// force-dynamic also overrides the root layout's revalidate=3600.
+export const dynamic = "force-dynamic";
+
 async function getData(slug: string) {
   try {
     const [coursesRes, shopRes] = await Promise.all([
-      fetch(`${API}/api/v1/shops/${slug}/courses`, { next: { revalidate: 60 } }),
-      fetch(`${API}/api/v1/shops/${slug}`, { next: { revalidate: 60 } }),
+      fetch(`${API}/api/v1/shops/${slug}/courses`, { cache: "no-store" }),
+      fetch(`${API}/api/v1/shops/${slug}`, { cache: "no-store" }),
     ]);
     if (!shopRes.ok) return null;
     return {

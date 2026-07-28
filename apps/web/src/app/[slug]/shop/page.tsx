@@ -4,11 +4,17 @@ import ShopClient from "./ShopClient";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
+// See [slug]/page.tsx — Next's Data Cache is stale-while-revalidate, so a
+// cached entry here would show the seller (and buyers) the PREVIOUS product
+// list and prices after an edit. Caching lives in the API, which invalidates
+// on update. force-dynamic also overrides the root layout's revalidate=3600.
+export const dynamic = "force-dynamic";
+
 async function getShopData(slug: string) {
   try {
     const [shopRes, productsRes] = await Promise.all([
-      fetch(`${API}/api/v1/shops/${slug}`, { next: { revalidate: 60 } }),
-      fetch(`${API}/api/v1/shops/${slug}/products`, { next: { revalidate: 60 } }),
+      fetch(`${API}/api/v1/shops/${slug}`, { cache: "no-store" }),
+      fetch(`${API}/api/v1/shops/${slug}/products`, { cache: "no-store" }),
     ]);
     if (!shopRes.ok) return null;
     return {
