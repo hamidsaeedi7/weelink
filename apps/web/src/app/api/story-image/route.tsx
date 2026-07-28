@@ -35,6 +35,49 @@ const fontRegular = loadFont("Vazirmatn-Regular.ttf");
 const fontBold = loadFont("Vazirmatn-Bold.ttf");
 const fontBlack = loadFont("Vazirmatn-Black.ttf") || fontBold;
 
+// Font picker — all free for every plan. Persian faces render Farsi glyphs
+// directly; English faces are Latin-only, so Vazirmatn is always registered
+// as a fallback in the `font-family` stack (satori honors CSS fallback
+// chains) so Persian text never falls back to tofu when an English face
+// is selected — only the Latin glyphs (numbers, English handles) pick it up.
+type FontKey = "vazir" | "lalezar" | "sahel" | "shabnam" | "poppins" | "montserrat" | "bebasneue" | "playfair" | "oswald";
+
+interface FontDef { label: string; cssName: string; regular: string; bold: string }
+
+const FONT_DEFS: Record<FontKey, FontDef> = {
+  vazir: { label: "وزیر", cssName: "Vazirmatn", regular: "Vazirmatn-Regular.ttf", bold: "Vazirmatn-Bold.ttf" },
+  lalezar: { label: "لاله‌زار", cssName: "Lalezar", regular: "Lalezar-Regular.ttf", bold: "Lalezar-Regular.ttf" },
+  sahel: { label: "ساحل", cssName: "Sahel", regular: "Sahel-Regular.ttf", bold: "Sahel-Bold.ttf" },
+  shabnam: { label: "شبنم", cssName: "Shabnam", regular: "Shabnam-Regular.ttf", bold: "Shabnam-Bold.ttf" },
+  poppins: { label: "Poppins", cssName: "Poppins", regular: "Poppins-Regular.ttf", bold: "Poppins-Bold.ttf" },
+  montserrat: { label: "Montserrat", cssName: "Montserrat", regular: "Montserrat-Regular.ttf", bold: "Montserrat-Bold.ttf" },
+  bebasneue: { label: "Bebas Neue", cssName: "Bebas Neue", regular: "BebasNeue-Regular.ttf", bold: "BebasNeue-Regular.ttf" },
+  playfair: { label: "Playfair Display", cssName: "Playfair Display", regular: "PlayfairDisplay-Regular.ttf", bold: "PlayfairDisplay-Bold.ttf" },
+  oswald: { label: "Oswald", cssName: "Oswald", regular: "Oswald-Regular.ttf", bold: "Oswald-Bold.ttf" },
+};
+
+const fontFileCache = new Map<string, Buffer | null>();
+function loadFontCached(file: string): Buffer | null {
+  if (!fontFileCache.has(file)) fontFileCache.set(file, loadFont(file));
+  return fontFileCache.get(file) ?? null;
+}
+
+function buildFontStack(key: string) {
+  const def = FONT_DEFS[key as FontKey] || FONT_DEFS.vazir;
+  const fonts: { name: string; data: Buffer; weight: 400 | 700 | 900; style: "normal" }[] = [];
+  const reg = loadFontCached(def.regular);
+  const bold = loadFontCached(def.bold);
+  if (reg) fonts.push({ name: def.cssName, data: reg, weight: 400, style: "normal" });
+  if (bold) fonts.push({ name: def.cssName, data: bold, weight: 700, style: "normal" }, { name: def.cssName, data: bold, weight: 900, style: "normal" });
+  // Persian fallback, unless the selected face already is Vazirmatn.
+  if (def.cssName !== "Vazirmatn") {
+    if (fontRegular) fonts.push({ name: "Vazirmatn", data: fontRegular, weight: 400, style: "normal" });
+    if (fontBold) fonts.push({ name: "Vazirmatn", data: fontBold, weight: 700, style: "normal" });
+    if (fontBlack) fonts.push({ name: "Vazirmatn", data: fontBlack, weight: 900, style: "normal" });
+  }
+  return { cssStack: `${def.cssName}, Vazirmatn`, fonts };
+}
+
 type MotifKey = "tag" | "bolt" | "haftsin" | "heart" | "pomegranate" | "sparkle" | "crescent" | "flower" | "gift";
 
 interface TemplateConfig {
@@ -358,22 +401,33 @@ export async function GET(req: NextRequest) {
   const shopLogo = sp.get("shopLogo");
   const titleSizeRaw = sp.get("titleSize");
   const titleSize = titleSizeRaw ? Math.min(72, Math.max(36, Number(titleSizeRaw))) : 56;
+  const fontKey = sp.get("font") || "vazir";
+
+  // Freeform drag positions (percent of canvas), set by the editor's drag
+  // handles. Defaults reproduce the pre-drag centered layout.
+  const clampPct = (v: string | null, fallback: number) => {
+    const n = v ? Number(v) : NaN;
+    return Number.isFinite(n) ? Math.min(96, Math.max(4, n)) : fallback;
+  };
+  const imageX = clampPct(sp.get("imageX"), 50);
+  const imageY = clampPct(sp.get("imageY"), 40);
+  const titleX = clampPct(sp.get("titleX"), 50);
+  const titleY = clampPct(sp.get("titleY"), 66);
 
   const ratioKey = sp.get("ratio") || "story";
-  const HEIGHT = RATIOS[ratioKey] || RATIOS.story;
-  const scale = HEIGHT / RATIOS.story;
-  const px = (n: number) => Math.round(n * scale);
-  // Fonts never scale up past what the tall story format uses — only shrink for squarer canvases.
-  const fpx = (n: number) => Math.round(n * Math.min(1, scale));
 
   const price = priceRaw ? Number(priceRaw) : null;
   const discountPercent = discountPercentRaw ? Number(discountPercentRaw) : 0;
   const discountedPrice = price && discountPercent > 0 ? Math.round((price * (100 - discountPercent)) / 100) : null;
 
-  // Custom-logo/social-handle/watermark removal are Pro perks. The public shop
-  // endpoint already exposes `ownerPlan` for the free "Made with Weelink" badge
-  // elsewhere — reuse the same signal here instead of trusting the query string.
-  const wantsProFeatures = Boolean(sp.get("hideWatermark") || sp.get("customLogo") || sp.get("socialHandle"));
+  // Custom-logo/social-handle/watermark removal/background/HD export are Pro
+  // perks. The public shop endpoint already exposes `ownerPlan` for the free
+  // "Made with Weelink" badge elsewhere — reuse the same signal here instead
+  // of trusting the query string. Checked BEFORE quality/dimensions are
+  // resolved so a crafted `quality=hd` can't bypass the gate.
+  const wantsProFeatures = Boolean(
+    sp.get("hideWatermark") || sp.get("customLogo") || sp.get("socialHandle") || sp.get("bgImage") || sp.get("quality")
+  );
   let isPro = false;
   if (wantsProFeatures && shopSlug) {
     try {
@@ -388,7 +442,18 @@ export async function GET(req: NextRequest) {
   const customLogo = isPro ? sp.get("customLogo") : null;
   const socialHandle = isPro ? sp.get("socialHandle") : null;
   const hideWatermark = isPro && sp.get("hideWatermark") === "1";
+  const bgImage = isPro ? sp.get("bgImage") : null;
   const effectiveLogo = customLogo || shopLogo;
+  const { cssStack: fontStack, fonts: fontList } = buildFontStack(fontKey);
+
+  const qualityScale = isPro && sp.get("quality") === "hd" ? 2 : 1;
+  const HEIGHT = (RATIOS[ratioKey] || RATIOS.story) * qualityScale;
+  const WIDTH_OUT = WIDTH * qualityScale;
+  const scale = HEIGHT / RATIOS.story; // folds in both the ratio's shape AND the quality multiplier
+  const px = (n: number) => Math.round(n * scale);
+  // Fonts never scale up past what the tall story format uses at 1x — only shrink for squarer
+  // canvases, but DO scale up with qualityScale so HD exports stay crisp at the larger pixel size.
+  const fpx = (n: number) => Math.round(n * Math.min(1, scale / qualityScale) * qualityScale);
 
   return new ImageResponse(
     (
@@ -398,16 +463,25 @@ export async function GET(req: NextRequest) {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: tpl.background,
-          fontFamily: "Vazirmatn",
+          ...(bgImage
+            ? { backgroundImage: `url(${bgImage})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : { background: tpl.background }),
+          fontFamily: fontStack,
           position: "relative",
           padding: `${px(64)}px ${px(56)}px`,
           direction: "rtl",
         }}
       >
-        {/* Decorative ambiance + occasion motif */}
-        <div style={{ position: "absolute", top: `${-px(120)}px`, left: `${-px(120)}px`, width: `${px(360)}px`, height: `${px(360)}px`, borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex" }} />
-        <div style={{ position: "absolute", bottom: `${px(160)}px`, right: `${-px(60)}px`, display: "flex", opacity: 0.26 }}>{renderMotif(tpl, px)}</div>
+        {/* Custom Pro background gets a legibility overlay instead of the ambient decor */}
+        {bgImage && (
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", background: "linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.18) 40%, rgba(0,0,0,0.7) 100%)" }} />
+        )}
+        {!bgImage && (
+          <div style={{ position: "absolute", top: `${-px(120)}px`, left: `${-px(120)}px`, width: `${px(360)}px`, height: `${px(360)}px`, borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex" }} />
+        )}
+        {!bgImage && (
+          <div style={{ position: "absolute", bottom: `${px(160)}px`, right: `${-px(60)}px`, display: "flex", opacity: 0.26 }}>{renderMotif(tpl, px)}</div>
+        )}
 
         {/* Top bar: shop brand */}
         <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: `${px(16)}px` }}>
@@ -444,21 +518,16 @@ export async function GET(req: NextRequest) {
           </div>
         </div>
 
-        {/* Center card: product */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            flex: 1,
-            justifyContent: "center",
-            gap: `${px(36)}px`,
-          }}
-        >
+        {/* Center stage: product image + title + price, each freely repositioned by the editor's drag handles (percent of this box, defaults reproduce the old centered layout) */}
+        <div style={{ display: "flex", flex: 1, position: "relative" }}>
           {image ? (
             <div
               style={{
+                position: "absolute",
                 display: "flex",
+                left: `${imageX}%`,
+                top: `${imageY}%`,
+                transform: "translate(-50%, -50%)",
                 width: `${px(620)}px`,
                 height: `${px(620)}px`,
                 borderRadius: `${px(40)}px`,
@@ -470,21 +539,32 @@ export async function GET(req: NextRequest) {
               <img src={image} width={px(620)} height={px(620)} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                width: `${px(620)}px`,
-                height: `${px(300)}px`,
-                borderRadius: `${px(40)}px`,
-                background: tpl.cardBg,
-                border: `${px(4)}px solid ${tpl.accent}`,
-              }}
-            />
+            !bgImage && (
+              <div
+                style={{
+                  position: "absolute",
+                  display: "flex",
+                  left: `${imageX}%`,
+                  top: `${imageY}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: `${px(620)}px`,
+                  height: `${px(300)}px`,
+                  borderRadius: `${px(40)}px`,
+                  background: tpl.cardBg,
+                  border: `${px(4)}px solid ${tpl.accent}`,
+                }}
+              />
+            )
           )}
 
           <div
             style={{
+              position: "absolute",
               display: "flex",
+              left: `${titleX}%`,
+              top: `${titleY}%`,
+              transform: "translate(-50%, -50%)",
+              justifyContent: "center",
               direction: "rtl",
               fontSize: `${fpx(titleSize)}px`,
               fontWeight: 900,
@@ -498,7 +578,18 @@ export async function GET(req: NextRequest) {
           </div>
 
           {price !== null && discountedPrice !== null && (
-            <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: `${px(24)}px` }}>
+            <div
+              style={{
+                position: "absolute",
+                display: "flex",
+                left: `${titleX}%`,
+                top: `${Math.min(94, titleY + 11)}%`,
+                transform: "translate(-50%, -50%)",
+                flexDirection: "row-reverse",
+                alignItems: "center",
+                gap: `${px(24)}px`,
+              }}
+            >
               <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(68)}px`, fontWeight: 900, color: tpl.priceColor }}>
                 {formatToman(discountedPrice)}
               </div>
@@ -522,7 +613,19 @@ export async function GET(req: NextRequest) {
             </div>
           )}
           {price !== null && discountedPrice === null && (
-            <div style={{ display: "flex", direction: "rtl", fontSize: `${fpx(68)}px`, fontWeight: 900, color: tpl.priceColor }}>
+            <div
+              style={{
+                position: "absolute",
+                display: "flex",
+                left: `${titleX}%`,
+                top: `${Math.min(94, titleY + 9)}%`,
+                transform: "translate(-50%, -50%)",
+                direction: "rtl",
+                fontSize: `${fpx(68)}px`,
+                fontWeight: 900,
+                color: tpl.priceColor,
+              }}
+            >
               {formatToman(price)}
             </div>
           )}
@@ -540,13 +643,9 @@ export async function GET(req: NextRequest) {
       </div>
     ),
     {
-      width: WIDTH,
+      width: WIDTH_OUT,
       height: HEIGHT,
-      fonts: [
-        ...(fontRegular ? [{ name: "Vazirmatn", data: fontRegular, weight: 400 as const, style: "normal" as const }] : []),
-        ...(fontBold ? [{ name: "Vazirmatn", data: fontBold, weight: 700 as const, style: "normal" as const }] : []),
-        ...(fontBlack ? [{ name: "Vazirmatn", data: fontBlack, weight: 900 as const, style: "normal" as const }] : []),
-      ],
+      fonts: fontList,
     }
   );
 }
