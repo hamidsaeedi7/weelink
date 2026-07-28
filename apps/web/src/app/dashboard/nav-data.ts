@@ -71,7 +71,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dashboard/short-links", icon: Scissors, label: "لینک کوتاه", pro: true },
       { href: "/dashboard/audience", icon: Users, label: "مخاطبان", pro: true },
       { href: "/dashboard/auto-reply", icon: Bot, label: "پاسخ خودکار", pro: true },
-      { href: "/dashboard/story-generator", icon: ImagePlus, label: "گرافیک استوری" },
+      { href: "/dashboard/story-generator", icon: ImagePlus, label: "استوری‌ساز" },
       { href: "/dashboard/content-calendar", icon: CalendarDays, label: "تقویم محتوا", pro: true, advanced: true },
       { href: "/dashboard/ab-testing", icon: FlaskConical, label: "تست A/B", pro: true, advanced: true },
     ],

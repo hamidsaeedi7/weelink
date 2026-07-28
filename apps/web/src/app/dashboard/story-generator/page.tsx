@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Download, Loader2, ImagePlus, UploadCloud, X, Type, Crown, AtSign, EyeOff, Zap, Share2, Images, Trash2,
-  Lock, Move, RotateCcw, ImageIcon, Sparkles,
+  Lock, Move, RotateCcw, ImageIcon, Sparkles, Palette, Package, AlertTriangle, Check,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,9 +40,9 @@ const TEMPLATES = [
 ];
 
 const EXPORT_SIZES = [
-  { key: "story", label: "استوری", ratioLabel: "۹:۱۶", aspect: "9/16" },
-  { key: "post", label: "پست مربعی", ratioLabel: "۱:۱", aspect: "1/1" },
-  { key: "portrait", label: "پست عمودی", ratioLabel: "۴:۵", aspect: "4/5" },
+  { key: "story", label: "استوری", ratioLabel: "۹:۱۶", aspect: "9/16", height: 1920 },
+  { key: "post", label: "پست مربعی", ratioLabel: "۱:۱", aspect: "1/1", height: 1080 },
+  { key: "portrait", label: "پست عمودی", ratioLabel: "۴:۵", aspect: "4/5", height: 1350 },
 ];
 
 const FONT_OPTIONS = [
@@ -57,6 +57,13 @@ const FONT_OPTIONS = [
   { key: "oswald", label: "Oswald", group: "en" as const },
 ];
 
+const TABS = [
+  { key: "content", label: "محتوا", icon: Type },
+  { key: "design", label: "طراحی", icon: Palette },
+  { key: "brand", label: "برند", icon: Crown },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+
 const DEFAULT_IMAGE_POS = { x: 50, y: 40 };
 const DEFAULT_TITLE_POS = { x: 50, y: 66 };
 
@@ -65,6 +72,28 @@ function ProLockBadge() {
     <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-md tracking-wide">
       <Lock className="w-2.5 h-2.5" /> PRO
     </span>
+  );
+}
+
+// Shared shell for a labelled control, so every field in the panel has the
+// same rhythm instead of each one re-declaring its own label markup.
+function Field({ label, icon: Icon, hint, badge, children }: {
+  label: string;
+  icon?: any;
+  hint?: string;
+  badge?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">
+        {Icon && <Icon className="w-3.5 h-3.5 text-gray-400" />}
+        {label}
+        {badge}
+      </label>
+      {children}
+      {hint && <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">{hint}</p>}
+    </div>
   );
 }
 
@@ -100,6 +129,7 @@ export default function StoryGeneratorPage() {
   const [isPro, setIsPro] = useState(false);
   const [loading, setLoading] = useState(true);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [tab, setTab] = useState<TabKey>("content");
 
   const [selectedProductId, setSelectedProductId] = useState<string>("custom");
   const [customTitle, setCustomTitle] = useState("محصول ویژه");
@@ -213,6 +243,7 @@ export default function StoryGeneratorPage() {
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const currentTemplate = TEMPLATES.find((t) => t.key === template) || TEMPLATES[0];
   const currentSize = EXPORT_SIZES.find((s) => s.key === exportSize) || EXPORT_SIZES[0];
+  const usingProduct = selectedProductId !== "custom";
 
   const title = selectedProduct ? selectedProduct.name : customTitle;
   const price = selectedProduct ? selectedProduct.price : customPrice ? Number(customPrice) : null;
@@ -220,6 +251,13 @@ export default function StoryGeneratorPage() {
 
   const maxTitleChars = estimateMaxTitleChars(titleSize);
   const titleTooLong = title.length > maxTitleChars;
+
+  // Exact pixels the download will produce — sellers posting to Instagram care,
+  // and it makes the HD upgrade concrete rather than an abstract label.
+  const outputDims = useMemo(() => {
+    const scale = isPro && quality === "hd" ? 2 : 1;
+    return `${1080 * scale}×${currentSize.height * scale}`;
+  }, [currentSize.height, quality, isPro]);
 
   const targetUrl = useMemo(() => {
     const params = new URLSearchParams();
@@ -355,6 +393,10 @@ export default function StoryGeneratorPage() {
     setTitlePos(DEFAULT_TITLE_POS);
   };
 
+  const layoutMoved =
+    imagePos.x !== DEFAULT_IMAGE_POS.x || imagePos.y !== DEFAULT_IMAGE_POS.y ||
+    titlePos.x !== DEFAULT_TITLE_POS.x || titlePos.y !== DEFAULT_TITLE_POS.y;
+
   const download = () => {
     const a = document.createElement("a");
     a.href = debouncedUrl;
@@ -395,378 +437,455 @@ export default function StoryGeneratorPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-          <ImagePlus className="w-6 h-6 text-accent-500" />
-          گرافیک استوری خودکار
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          از داده‌های فروشگاهت یک عکس استوری آماده برای اینستاگرام بساز — بدون کنوا، بدون طراحی دستی.
-        </p>
+      {/* Header */}
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+            <span className="w-9 h-9 rounded-2xl bg-accent-500/10 flex items-center justify-center">
+              <ImagePlus className="w-5 h-5 text-accent-500" />
+            </span>
+            استوری‌ساز
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
+            از داده‌های فروشگاهت یک عکس استوری آماده بساز — بدون کنوا، بدون طراحی دستی.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-6">
-        {/* Form */}
-        <div className="glass-card p-5 space-y-6 order-2 lg:order-1">
-          <section className="space-y-4">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">محتوا</h2>
+        {/* ── Controls ── */}
+        <div className="order-2 lg:order-1 space-y-4">
+          {/* Tabs keep each panel short, so on mobile the preview above stays
+              close to whatever is being edited — the whole point of a visual editor. */}
+          <div className="flex gap-1 p-1 rounded-2xl bg-gray-100 dark:bg-white/5">
+            {TABS.map((t) => {
+              const active = tab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  aria-current={active}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    active
+                      ? "bg-white dark:bg-white/10 text-accent-600 dark:text-accent-400 shadow-sm"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                  }`}
+                >
+                  <t.icon className="w-4 h-4" />
+                  {t.label}
+                  {t.key === "brand" && !isPro && <Lock className="w-3 h-3 text-amber-500" />}
+                </button>
+              );
+            })}
+          </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">محصول</label>
-              <select
-                value={selectedProductId}
-                onChange={(e) => setSelectedProductId(e.target.value)}
-                className="input-base w-full"
-              >
-                <option value="custom">متن دلخواه (بدون محصول خاص)</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {selectedProductId === "custom" && (
-              <>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400">عنوان</label>
-                    <span className={`text-[11px] tabular-nums ${titleTooLong ? "text-amber-500 font-bold" : "text-gray-400"}`}>
-                      {customTitle.length}/{maxTitleChars}
-                    </span>
+          <div className="glass-card p-5">
+            {/* ─────────── محتوا ─────────── */}
+            {tab === "content" && (
+              <div className="space-y-5">
+                <Field label="منبع محتوا" icon={Package}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={products.length === 0}
+                      onClick={() => setSelectedProductId(products[0]?.id ?? "custom")}
+                      className={`py-2.5 rounded-xl border-2 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                        usingProduct
+                          ? "border-accent-500 bg-accent-500/10 text-accent-600 dark:text-accent-400"
+                          : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      از محصولاتم
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProductId("custom")}
+                      className={`py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
+                        !usingProduct
+                          ? "border-accent-500 bg-accent-500/10 text-accent-600 dark:text-accent-400"
+                          : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      متن دلخواه
+                    </button>
                   </div>
-                  <input
-                    value={customTitle}
-                    onChange={(e) => setCustomTitle(e.target.value)}
-                    className={`input-base w-full ${titleTooLong ? "!border-amber-500/50 focus:!border-amber-500" : ""}`}
-                    placeholder="مثلاً: فروش ویژه پاییزه"
-                  />
-                  {titleTooLong && (
-                    <p className="text-[11px] text-amber-500 mt-1.5">
-                      ممکنه این عنوان در تصویر جا نشه — بهتره کوتاه‌ترش کنی یا اندازه فونت رو کم کنی
+                  {products.length === 0 && (
+                    <p className="text-[11px] text-gray-400 mt-2">
+                      هنوز محصولی نداری — فعلاً با متن دلخواه بساز.
                     </p>
                   )}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">قیمت (تومان، اختیاری)</label>
+                </Field>
+
+                {usingProduct ? (
+                  <Field label="انتخاب محصول">
+                    <select
+                      value={selectedProductId}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
+                      className="input-base w-full"
+                    >
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                    {selectedProduct && (
+                      <div className="flex items-center gap-3 mt-3 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03]">
+                        {selectedProduct.images?.[0] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={selectedProduct.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-white/10 flex items-center justify-center shrink-0">
+                            <ImageIcon className="w-4 h-4 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{selectedProduct.name}</p>
+                          <p className="text-[11px] text-gray-400">{formatPrice(selectedProduct.price)}</p>
+                        </div>
+                      </div>
+                    )}
+                  </Field>
+                ) : (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">
+                          <Type className="w-3.5 h-3.5 text-gray-400" /> عنوان
+                        </label>
+                        <span className={`text-[11px] tabular-nums ${titleTooLong ? "text-amber-500 font-bold" : "text-gray-400"}`}>
+                          {customTitle.length}/{maxTitleChars}
+                        </span>
+                      </div>
+                      <input
+                        value={customTitle}
+                        onChange={(e) => setCustomTitle(e.target.value)}
+                        className={`input-base w-full ${titleTooLong ? "!border-amber-500/50 focus:!border-amber-500" : ""}`}
+                        placeholder="مثلاً: فروش ویژه پاییزه"
+                      />
+                    </div>
+
+                    <Field label="قیمت (تومان)" hint="اختیاری — خالی بذاری، قیمت نشون داده نمی‌شه">
+                      <input
+                        value={customPrice}
+                        onChange={(e) => setCustomPrice(e.target.value.replace(/\D/g, ""))}
+                        className="input-base w-full"
+                        placeholder="150000"
+                        dir="ltr"
+                      />
+                    </Field>
+
+                    <Field label="عکس محصول" icon={ImageIcon} hint="اختیاری">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={imgUploading}
+                          className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 transition-all disabled:opacity-60 shrink-0"
+                        >
+                          {imgUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                          آپلود
+                        </button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
+                        />
+                        <input
+                          value={customImage}
+                          onChange={(e) => setCustomImage(e.target.value)}
+                          className="input-base w-full"
+                          placeholder="یا آدرس عکس..."
+                          dir="ltr"
+                        />
+                        {customImage && (
+                          <button
+                            type="button"
+                            onClick={() => setCustomImage("")}
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0"
+                            aria-label="حذف عکس"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </Field>
+                  </>
+                )}
+
+                <Field label="درصد تخفیف" hint="اختیاری — عدد بین ۱ تا ۹۹">
                   <input
-                    value={customPrice}
-                    onChange={(e) => setCustomPrice(e.target.value.replace(/\D/g, ""))}
+                    value={discountPercent}
+                    onChange={(e) => setDiscountPercent(e.target.value.replace(/\D/g, "").slice(0, 2))}
                     className="input-base w-full"
-                    placeholder="150000"
+                    placeholder="0"
                     dir="ltr"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">عکس محصول (اختیاری)</label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={imgUploading}
-                      className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 transition-all disabled:opacity-60 shrink-0"
-                    >
-                      {imgUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                      آپلود عکس
-                    </button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
-                    />
-                    <input
-                      value={customImage}
-                      onChange={(e) => setCustomImage(e.target.value)}
-                      className="input-base w-full"
-                      placeholder="یا آدرس عکس را بچسبان..."
-                      dir="ltr"
-                    />
-                    {customImage && (
-                      <button
-                        type="button"
-                        onClick={() => setCustomImage("")}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0"
-                        aria-label="حذف عکس"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+                </Field>
+
+                {/* Applies to product titles too, not just the custom field —
+                    a long product name overflows exactly the same way. */}
+                {titleTooLong && (
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed">
+                      این عنوان ({title.length} حرف) ممکنه در تصویر جا نشه. کوتاه‌ترش کن یا از تب «طراحی» اندازه فونت رو کم کن.
+                    </p>
                   </div>
-                </div>
-              </>
-            )}
-
-            {selectedProduct && (
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                قیمت اصلی: {formatPrice(selectedProduct.price)}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">درصد تخفیف (اختیاری)</label>
-              <input
-                value={discountPercent}
-                onChange={(e) => setDiscountPercent(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                className="input-base w-full"
-                placeholder="0"
-                dir="ltr"
-              />
-            </div>
-          </section>
-
-          <section className="space-y-4 pt-1 border-t border-gray-100 dark:border-white/5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide pt-4">ظاهر</h2>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-3">اندازه خروجی</label>
-              <div className="grid grid-cols-3 gap-2">
-                {EXPORT_SIZES.map((s) => (
-                  <button
-                    key={s.key}
-                    onClick={() => setExportSize(s.key)}
-                    className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
-                      exportSize === s.key
-                        ? "border-accent-500 bg-accent-500/10 text-accent-500"
-                        : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
-                    }`}
-                  >
-                    {s.label}
-                    <span className="text-[10px] opacity-70 tabular-nums">{s.ratioLabel}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">فونت</label>
-              <select value={font} onChange={(e) => setFont(e.target.value)} className="input-base w-full">
-                <optgroup label="فارسی">
-                  {FONT_OPTIONS.filter((f) => f.group === "fa").map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-                </optgroup>
-                <optgroup label="English">
-                  {FONT_OPTIONS.filter((f) => f.group === "en").map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-                </optgroup>
-              </select>
-            </div>
-
-            <div>
-              <label className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
-                <span className="flex items-center gap-1.5"><Type className="w-3.5 h-3.5" /> اندازه عنوان</span>
-                <span className="tabular-nums text-gray-400">{titleSize}px</span>
-              </label>
-              <input
-                type="range"
-                min={36}
-                max={72}
-                step={2}
-                value={titleSize}
-                onChange={(e) => setTitleSize(Number(e.target.value))}
-                className="w-full accent-accent-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-3">مناسبت / قالب</label>
-              <div className="grid grid-cols-3 gap-3">
-                {TEMPLATES.map((t) => (
-                  <button
-                    key={t.key}
-                    onClick={() => setTemplate(t.key)}
-                    className={`rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                      template === t.key ? "border-accent-500 scale-[1.03] shadow-lg shadow-accent-500/10" : "border-transparent hover:border-white/20 hover:scale-[1.02]"
-                    }`}
-                  >
-                    <div style={{ background: t.swatch }} className="h-16 w-full" />
-                    <div className="text-[11px] font-bold py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300">
-                      {t.label}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
-                <ImageIcon className="w-3.5 h-3.5" /> پس‌زمینه اختصاصی (به‌جای قالب) {!isPro && <ProLockBadge />}
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => (isPro ? bgInputRef.current?.click() : router.push("/dashboard/plans"))}
-                  disabled={bgUploading}
-                  className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60 shrink-0 ${
-                    isPro
-                      ? "bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300"
-                      : "bg-gray-100/60 dark:bg-white/[0.03] text-gray-400"
-                  }`}
-                >
-                  {bgUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isPro ? <UploadCloud className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                  آپلود پس‌زمینه
-                </button>
-                <input
-                  ref={bgInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && handleBgUpload(e.target.files[0])}
-                />
-                <p className="text-[11px] text-gray-400 flex-1">
-                  {isPro ? (bgImage ? "پس‌زمینه اختصاصی فعاله" : "پیش‌فرض: قالب انتخابی بالا") : "عکس خودت رو به‌جای قالب‌های آماده بذار"}
-                </p>
-                {isPro && bgImage && (
-                  <button
-                    type="button"
-                    onClick={() => setBgImage("")}
-                    className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0"
-                    aria-label="حذف پس‌زمینه"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
                 )}
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
-                <Sparkles className="w-3.5 h-3.5" /> کیفیت دانلود
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setQuality("normal")}
-                  className={`py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
-                    quality === "normal"
-                      ? "border-accent-500 bg-accent-500/10 text-accent-500"
-                      : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
-                  }`}
-                >
-                  معمولی
-                </button>
-                <button
-                  type="button"
-                  onClick={() => (isPro ? setQuality("hd") : router.push("/dashboard/plans"))}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
-                    quality === "hd" && isPro
-                      ? "border-accent-500 bg-accent-500/10 text-accent-500"
-                      : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
-                  }`}
-                >
-                  HD {!isPro && <ProLockBadge />}
-                </button>
-              </div>
-            </div>
-          </section>
+            {/* ─────────── طراحی ─────────── */}
+            {tab === "design" && (
+              <div className="space-y-5">
+                <Field label="اندازه خروجی">
+                  <div className="grid grid-cols-3 gap-2">
+                    {EXPORT_SIZES.map((s) => (
+                      <button
+                        key={s.key}
+                        onClick={() => setExportSize(s.key)}
+                        className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
+                          exportSize === s.key
+                            ? "border-accent-500 bg-accent-500/10 text-accent-600 dark:text-accent-400"
+                            : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                        }`}
+                      >
+                        {s.label}
+                        <span className="text-[10px] opacity-70 tabular-nums">{s.ratioLabel}</span>
+                      </button>
+                    ))}
+                  </div>
+                </Field>
 
-          <section className="space-y-4 pt-1 border-t border-gray-100 dark:border-white/5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide pt-4 flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-500" /> برندسازی اختصاصی (Pro)
-            </h2>
+                <Field label="مناسبت / قالب">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {TEMPLATES.map((t) => {
+                      const active = template === t.key;
+                      return (
+                        <button
+                          key={t.key}
+                          onClick={() => setTemplate(t.key)}
+                          className={`relative rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                            active
+                              ? "border-accent-500 scale-[1.03] shadow-lg shadow-accent-500/10"
+                              : "border-transparent hover:border-accent-500/40 hover:scale-[1.02]"
+                          }`}
+                          style={{ aspectRatio: "4/5" }}
+                        >
+                          <div style={{ background: t.swatch }} className="absolute inset-0" />
+                          {active && (
+                            <span className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-accent-500 flex items-center justify-center">
+                              <Check className="w-2.5 h-2.5 text-white" />
+                            </span>
+                          )}
+                          <span className="absolute bottom-0 inset-x-0 py-1 bg-black/60 text-[10px] font-bold text-white text-center">
+                            {t.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
 
-            {!isPro ? (
-              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/15">
+                <Field label="فونت">
+                  <select value={font} onChange={(e) => setFont(e.target.value)} className="input-base w-full">
+                    <optgroup label="فارسی">
+                      {FONT_OPTIONS.filter((f) => f.group === "fa").map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
+                    </optgroup>
+                    <optgroup label="English">
+                      {FONT_OPTIONS.filter((f) => f.group === "en").map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
+                    </optgroup>
+                  </select>
+                </Field>
+
                 <div>
-                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300">لوگوی اختصاصی، آیدی شبکه اجتماعی و حذف واترمارک فقط برای Pro</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">با ارتقا به Pro، استوری‌هات کاملاً برند خودت رو نشون می‌دن</p>
+                  <label className="flex items-center justify-between text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">
+                    <span className="flex items-center gap-1.5"><Type className="w-3.5 h-3.5 text-gray-400" /> اندازه عنوان</span>
+                    <span className="tabular-nums text-gray-400">{titleSize}px</span>
+                  </label>
+                  <input
+                    type="range"
+                    min={36}
+                    max={72}
+                    step={2}
+                    value={titleSize}
+                    onChange={(e) => setTitleSize(Number(e.target.value))}
+                    className="w-full accent-accent-500"
+                  />
                 </div>
-                <Link href="/dashboard/plans" className="btn-primary py-2 px-4 text-xs shrink-0">
-                  <Zap className="w-3.5 h-3.5" /> ارتقا
-                </Link>
-              </div>
-            ) : (
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">لوگوی اختصاصی استوری (اختیاری)</label>
+
+                <Field
+                  label="پس‌زمینه اختصاصی"
+                  icon={ImageIcon}
+                  badge={!isPro ? <ProLockBadge /> : undefined}
+                  hint={isPro ? (bgImage ? "پس‌زمینه اختصاصی فعاله" : "پیش‌فرض: قالب انتخابی بالا") : "عکس خودت رو به‌جای قالب‌های آماده بذار"}
+                >
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => logoInputRef.current?.click()}
-                      disabled={logoUploading}
-                      className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 transition-all disabled:opacity-60 shrink-0"
+                      onClick={() => (isPro ? bgInputRef.current?.click() : router.push("/dashboard/plans"))}
+                      disabled={bgUploading}
+                      className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60 shrink-0 ${
+                        isPro
+                          ? "bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300"
+                          : "bg-gray-100/60 dark:bg-white/[0.03] text-gray-400"
+                      }`}
                     >
-                      {logoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                      آپلود لوگو
+                      {bgUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isPro ? <UploadCloud className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                      آپلود پس‌زمینه
                     </button>
                     <input
-                      ref={logoInputRef}
+                      ref={bgInputRef}
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])}
+                      onChange={(e) => e.target.files?.[0] && handleBgUpload(e.target.files[0])}
                     />
-                    <p className="text-[11px] text-gray-400 flex-1">
-                      {customLogo ? "لوگوی سفارشی فعاله" : "پیش‌فرض: آواتار فروشگاهت"}
-                    </p>
-                    {customLogo && (
+                    {isPro && bgImage && (
                       <button
                         type="button"
-                        onClick={() => setCustomLogo("")}
+                        onClick={() => setBgImage("")}
                         className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0"
-                        aria-label="حذف لوگوی سفارشی"
+                        aria-label="حذف پس‌زمینه"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                </div>
+                </Field>
 
-                <div>
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
-                    <AtSign className="w-3.5 h-3.5" /> آیدی شبکه اجتماعی (اختیاری)
-                  </label>
-                  <input
-                    value={socialHandle}
-                    onChange={(e) => setSocialHandle(e.target.value)}
-                    className="input-base w-full"
-                    placeholder="@yourshop"
-                    dir="ltr"
-                  />
-                  <p className="text-[11px] text-gray-400 mt-1.5">اگه پر بشه، به‌جای لینک weeelink.ir همین آیدی نشون داده می‌شه</p>
-                </div>
-
-                <label className="flex items-center gap-2.5 p-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hideWatermark}
-                    onChange={(e) => setHideWatermark(e.target.checked)}
-                    className="w-4 h-4 accent-accent-500 rounded"
-                  />
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-300">
-                    <EyeOff className="w-3.5 h-3.5" /> حذف واترمارک «ساخته‌شده با ویلینک»
-                  </span>
-                </label>
-              </>
+                <Field label="کیفیت دانلود" icon={Sparkles} hint={`خروجی فعلی: ${outputDims} پیکسل`}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuality("normal")}
+                      className={`py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
+                        quality === "normal"
+                          ? "border-accent-500 bg-accent-500/10 text-accent-600 dark:text-accent-400"
+                          : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      معمولی
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => (isPro ? setQuality("hd") : router.push("/dashboard/plans"))}
+                      className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 transition-all text-xs font-bold ${
+                        quality === "hd" && isPro
+                          ? "border-accent-500 bg-accent-500/10 text-accent-600 dark:text-accent-400"
+                          : "border-transparent bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      HD {!isPro && <ProLockBadge />}
+                    </button>
+                  </div>
+                </Field>
+              </div>
             )}
-          </section>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={download}
-              disabled={previewLoading}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4" /> دانلود عکس
-            </button>
-            {canShare && (
-              <button
-                onClick={share}
-                disabled={previewLoading || sharing}
-                aria-label="اشتراک‌گذاری"
-                className="flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-              </button>
+            {/* ─────────── برند ─────────── */}
+            {tab === "brand" && (
+              <div className="space-y-5">
+                {!isPro ? (
+                  <div className="text-center py-6 px-4">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+                      <Crown className="w-7 h-7 text-amber-500" />
+                    </div>
+                    <p className="text-sm font-black text-gray-800 dark:text-gray-100">برندسازی اختصاصی با Pro</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed max-w-xs mx-auto">
+                      لوگوی اختصاصی، آیدی شبکه اجتماعی و حذف واترمارک — تا استوری‌هات کاملاً برند خودت رو نشون بدن.
+                    </p>
+                    <Link href="/dashboard/plans" className="btn-primary py-2.5 px-5 text-xs mt-5 inline-flex">
+                      <Zap className="w-3.5 h-3.5" /> ارتقا به Pro
+                    </Link>
+                  </div>
+                ) : (
+                  <>
+                    <Field
+                      label="لوگوی اختصاصی استوری"
+                      hint={customLogo ? "لوگوی سفارشی فعاله" : "پیش‌فرض: آواتار فروشگاهت"}
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => logoInputRef.current?.click()}
+                          disabled={logoUploading}
+                          className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 transition-all disabled:opacity-60 shrink-0"
+                        >
+                          {logoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                          آپلود لوگو
+                        </button>
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])}
+                        />
+                        {customLogo && (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={customLogo} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                            <button
+                              type="button"
+                              onClick={() => setCustomLogo("")}
+                              className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0"
+                              aria-label="حذف لوگوی سفارشی"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </Field>
+
+                    <Field
+                      label="آیدی شبکه اجتماعی"
+                      icon={AtSign}
+                      hint="اگه پر بشه، به‌جای لینک weeelink.ir همین آیدی نشون داده می‌شه"
+                    >
+                      <input
+                        value={socialHandle}
+                        onChange={(e) => setSocialHandle(e.target.value)}
+                        className="input-base w-full"
+                        placeholder="@yourshop"
+                        dir="ltr"
+                      />
+                    </Field>
+
+                    <label className="flex items-center gap-2.5 p-3.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={hideWatermark}
+                        onChange={(e) => setHideWatermark(e.target.checked)}
+                        className="w-4 h-4 accent-accent-500 rounded"
+                      />
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-300">
+                        <EyeOff className="w-3.5 h-3.5" /> حذف واترمارک «ساخته‌شده با ویلینک»
+                      </span>
+                    </label>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Preview */}
+        {/* ── Preview + actions ── */}
         <div className="order-1 lg:order-2 flex flex-col items-center lg:items-start">
-          <div className="sticky top-4">
+          <div className="lg:sticky lg:top-4 w-full flex flex-col items-center lg:items-stretch">
             <div
               ref={previewBoxRef}
-              className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-xl transition-all duration-300 select-none"
-              style={{ width: currentSize.key === "story" ? 280 : 320, aspectRatio: currentSize.aspect, background: currentTemplate.swatch, touchAction: "none" }}
+              className="relative rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-xl transition-all duration-300 select-none mx-auto"
+              style={{
+                // Height-driven so a 9:16 canvas can never push the controls
+                // off-screen on a phone; width follows from the aspect ratio.
+                height: "min(52vh, 520px)",
+                aspectRatio: currentSize.aspect,
+                background: currentTemplate.swatch,
+                touchAction: "none",
+              }}
             >
               {displayedUrl && !previewError && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -832,20 +951,49 @@ export default function StoryGeneratorPage() {
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-between gap-2 mt-2">
-              <p className="text-[11px] text-gray-400">دستگیره‌ها رو بکش تا عکس و متن رو جابجا کنی</p>
+
+            {/* Canvas meta: dimensions + the drag affordance, stated plainly */}
+            <div className="flex items-center justify-between gap-2 mt-2.5 w-full max-w-[320px] mx-auto lg:max-w-none">
+              <span className="text-[11px] text-gray-400 tabular-nums" dir="ltr">{outputDims}</span>
+              {layoutMoved && (
+                <button
+                  type="button"
+                  onClick={resetLayout}
+                  className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-accent-500 transition-colors shrink-0"
+                >
+                  <RotateCcw className="w-3 h-3" /> بازنشانی چیدمان
+                </button>
+              )}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1.5 w-full max-w-[320px] mx-auto lg:max-w-none">
+              <Move className="w-3 h-3 shrink-0" /> دستگیره‌ها رو بکش تا عکس و متن جابه‌جا بشن
+            </p>
+
+            {/* Primary actions sit WITH the preview, so on mobile they're at the
+                top of the page instead of buried under the whole form. */}
+            <div className="flex items-center gap-2 mt-4 w-full max-w-[320px] mx-auto lg:max-w-none">
               <button
-                type="button"
-                onClick={resetLayout}
-                className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-accent-500 transition-colors shrink-0"
+                onClick={download}
+                disabled={previewLoading}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent-500 hover:bg-accent-400 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <RotateCcw className="w-3 h-3" /> بازنشانی چیدمان
+                <Download className="w-4 h-4" /> دانلود عکس
               </button>
+              {canShare && (
+                <button
+                  onClick={share}
+                  disabled={previewLoading || sharing}
+                  aria-label="اشتراک‌گذاری"
+                  className="flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                </button>
+              )}
             </div>
           </div>
 
           {gallery.length > 0 && (
-            <div className="mt-6 max-w-[320px] mx-auto lg:mx-0">
+            <div className="mt-6 w-full max-w-[320px] mx-auto lg:max-w-none lg:mx-0">
               <h3 className="text-xs font-bold text-gray-400 mb-2.5 flex items-center gap-1.5">
                 <Images className="w-3.5 h-3.5" /> استوری‌های اخیر
               </h3>
