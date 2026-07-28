@@ -59,6 +59,8 @@ export interface TextObject extends BaseObject {
   direction: "rtl" | "ltr";
   lineHeight: number;
   letterSpacing: number;
+  /** Needed for "was 250,000" pricing, where the old price is struck through. */
+  textDecoration?: "line-through" | "underline" | "none";
   stroke?: string;
   strokeWidth?: number;
   shadow?: Shadow;

@@ -93,6 +93,7 @@ function TextNode({ obj, ...rest }: { obj: TextObject } & Record<string, any>) {
       align={obj.align}
       lineHeight={obj.lineHeight}
       letterSpacing={obj.letterSpacing}
+      textDecoration={obj.textDecoration ?? ""}
       stroke={obj.stroke}
       strokeWidth={obj.strokeWidth ?? 0}
       // Canvas 2D runs the real Unicode bidi algorithm, so Persian shapes and

@@ -6,7 +6,7 @@ import type Konva from "konva";
 import {
   Type, ImagePlus, Shapes, Layers, Download, Undo2, Redo2, X,
   Square, Circle, Triangle, Star as StarIcon, Minus, Loader2,
-  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen,
+  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { CANVAS_PRESETS, createImage, createShape, createText } from "@/lib/editor/presets";
@@ -16,6 +16,7 @@ import type { ShapeKind } from "@/lib/editor/types";
 import { exportImages } from "@/lib/editor/export";
 import { ExportPanel, type ExportSettings } from "@/components/editor/panels/ExportPanel";
 import { ProjectsGallery } from "@/components/editor/panels/ProjectsGallery";
+import { ProductStoryWizard } from "@/components/editor/panels/ProductStoryWizard";
 import { PropertiesPanel } from "@/components/editor/panels/PropertiesPanel";
 import { LayersPanel } from "@/components/editor/panels/LayersPanel";
 import { TemplatePicker } from "@/components/editor/panels/TemplatePicker";
@@ -53,7 +54,7 @@ const SHAPES: { kind: ShapeKind; icon: any; label: string }[] = [
   { kind: "line", icon: Minus, label: "خط" },
 ];
 
-type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | null;
+type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | null;
 
 export default function StoryStudioPage() {
   const doc = useEditor((s) => s.doc);
@@ -190,10 +191,11 @@ export default function StoryStudioPage() {
     setUploading(true);
     try {
       const url = await uploadApi.image(file);
-      const absolute = url.startsWith("http")
-        ? url
-        : `${process.env.NEXT_PUBLIC_API_URL || "https://api.weeelink.ir"}${url}`;
-      addObject(createImage(absolute));
+      // Keep the site-relative path. api.weeelink.ir does NOT serve /uploads —
+      // only the web origin does, via the Next rewrite — so rewriting it onto
+      // the API origin produces a broken image. Staying same-origin also keeps
+      // the canvas untainted so export still works.
+      addObject(createImage(url));
       toast.success("تصویر اضافه شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
@@ -323,6 +325,7 @@ export default function StoryStudioPage() {
       <div className="flex-1 flex min-h-0">
         {/* Desktop: left tool rail */}
         <aside className="hidden lg:flex flex-col gap-1 p-2 border-l border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.02] shrink-0">
+          <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} />
           <ToolButton icon={LayoutTemplate} label="قالب" onClick={() => setSheet(sheet === "templates" ? null : "templates")} active={sheet === "templates"} />
           <ToolButton icon={Type} label="متن" onClick={addTextObject} />
           <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
@@ -377,6 +380,7 @@ export default function StoryStudioPage() {
 
       {/* ── Mobile: bottom toolbar ── */}
       <nav className="lg:hidden flex items-center justify-around gap-1 px-2 py-2 border-t border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.03] shrink-0">
+        <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} />
         <ToolButton icon={LayoutTemplate} label="قالب" onClick={() => setSheet("templates")} active={sheet === "templates"} />
         <ToolButton icon={Type} label="متن" onClick={addTextObject} />
         <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
@@ -390,7 +394,7 @@ export default function StoryStudioPage() {
       {sheet && (
         <div
           className={`fixed inset-0 z-30 flex flex-col justify-end ${
-            sheet === "export" || sheet === "projects" ? "" : "lg:hidden"
+            sheet === "export" || sheet === "projects" || sheet === "product" ? "" : "lg:hidden"
           }`}
           role="dialog"
           aria-modal="true"
@@ -404,6 +408,7 @@ export default function StoryStudioPage() {
                   : sheet === "templates" ? "قالب‌های آماده"
                   : sheet === "export" ? "خروجی گرفتن"
                   : sheet === "projects" ? "پروژه‌های من"
+                  : sheet === "product" ? "ساخت سریع استوری محصول"
                   : selectedIds.length ? "تنظیمات عنصر" : "پس‌زمینه"}
               </span>
               <button onClick={() => setSheet(null)} aria-label="بستن" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5">
@@ -415,6 +420,16 @@ export default function StoryStudioPage() {
             {sheet === "properties" && <PropertiesPanel />}
             {sheet === "templates" && <TemplatePicker onApply={applyTemplate} />}
             {sheet === "export" && <ExportPanel busy={exporting} onExport={runExport} />}
+            {sheet === "product" && (
+              <ProductStoryWizard
+                onPick={(project) => {
+                  startNew(project);
+                  setSheet(null);
+                  setTimeout(fitZoomRef.current, 0);
+                  toast.success("استوری ساخته شد — حالا می‌تونی ویرایشش کنی");
+                }}
+              />
+            )}
             {sheet === "projects" && (
               <ProjectsGallery
                 currentProjectId={projectId}
