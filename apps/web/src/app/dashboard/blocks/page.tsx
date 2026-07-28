@@ -22,11 +22,13 @@ import { blocksApi, shopsApi } from "@/lib/api";
 import { SortableBlock } from "@/components/blocks/SortableBlock";
 import { AddBlockModal } from "@/components/blocks/AddBlockModal";
 import { BlockEditPanel } from "@/components/blocks/BlockEditPanel";
+import { ThemePicker } from "@/components/blocks/ThemePicker";
 import { ShareBar } from "@/components/ShareBar";
 import type { BlockType } from "@/components/blocks/block-types";
 
 export default function BlocksPage() {
   const [blocks, setBlocks] = useState<any[]>([]);
+  const [shop, setShop] = useState<any>(null);
   const [slug, setSlug] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -45,6 +47,7 @@ export default function BlocksPage() {
         shopsApi.getMine() as Promise<any>,
       ]);
       setBlocks(blocksData || []);
+      setShop(shopData);
       setSlug(shopData?.slug || "");
     } catch {
       toast.error("خطا در بارگذاری");
@@ -54,6 +57,16 @@ export default function BlocksPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const selectBioTheme = async (id: string) => {
+    setShop((s: any) => ({ ...s, bioTheme: id }));
+    try {
+      await shopsApi.update({ bioTheme: id });
+    } catch {
+      toast.error("خطا در ذخیره قالب");
+      load();
+    }
+  };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -169,6 +182,9 @@ export default function BlocksPage() {
           </button>
         </div>
       </div>
+
+      {/* Bio page theme */}
+      <ThemePicker shop={shop} value={shop?.bioTheme || "modern"} onSelect={selectBioTheme} />
 
       {/* Empty State */}
       {blocks.length === 0 && (

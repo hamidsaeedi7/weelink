@@ -6,6 +6,9 @@ import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap, CalendarCheck } from "lucide-react";
 import { getBgTemplate, bgTemplateBackground } from "@/lib/bg-templates";
 
+const textStyle = { color: "var(--bio-text)" };
+const secondaryStyle = { color: "var(--bio-text-secondary)" };
+
 // نوار فروشگاه: اگر شاپ محصول/فایل/دوره داشته باشد، لینک عمومی‌شان نمایش داده می‌شود
 // (تعداد هر بخش از قبل، سمت سرور، همراه با خود shop واکشی شده — دیگر fetch جدا لازم نیست)
 function StorefrontLinks({ slug, primary, counts }: { slug: string; primary: string; counts: { products: number; files: number; courses: number; services: number } }) {
@@ -21,12 +24,12 @@ function StorefrontLinks({ slug, primary, counts }: { slug: string; primary: str
     <div className="space-y-2.5 mb-3">
       {links.map((l) => (
         <a key={l.href} href={l.href}
-          className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-white/10
-                     hover:bg-white/10 transition-all active:scale-[0.98]"
+          className="bio-card flex items-center gap-3 w-full px-4 py-3.5
+                     transition-all active:scale-[0.98]"
           style={{ borderColor: `${primary}30` }}>
           <l.icon className="w-5 h-5 shrink-0" style={{ color: primary }} />
-          <span className="flex-1 text-sm font-medium text-white">{l.label}</span>
-          <ExternalLink className="w-4 h-4 text-white/30 shrink-0" />
+          <span className="flex-1 text-sm font-medium" style={textStyle}>{l.label}</span>
+          <ExternalLink className="w-4 h-4 shrink-0" style={secondaryStyle} />
         </a>
       ))}
     </div>
@@ -58,22 +61,22 @@ function FlashCard({ sale, primary }: { sale: any; primary: string }) {
     ? Math.round((1 - Number(sale.salePrice) / Number(sale.originalPrice)) * 100) : 0;
   return (
     <div className="w-full px-4 py-3.5 rounded-2xl border text-center space-y-2"
-      style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.05))", borderColor: "rgba(239,68,68,0.3)" }}>
+      style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.05))", borderColor: "rgba(239,68,68,0.3)", borderRadius: "var(--bio-radius)" }}>
       <div className="flex items-center justify-center gap-2">
         <Zap className="w-4 h-4 text-red-400" />
-        <span className="text-sm font-bold text-white">{sale.title}</span>
+        <span className="text-sm font-bold" style={textStyle}>{sale.title}</span>
         {disc > 0 && <span className="px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white">{disc}٪ تخفیف</span>}
       </div>
       {sale.salePrice && (
         <div className="flex items-center justify-center gap-2 text-sm">
-          <span className="text-white/40 line-through">{Number(sale.originalPrice).toLocaleString("fa-IR")}</span>
+          <span className="line-through" style={secondaryStyle}>{Number(sale.originalPrice).toLocaleString("fa-IR")}</span>
           <span className="font-black" style={{ color: primary }}>{Number(sale.salePrice).toLocaleString("fa-IR")} تومان</span>
         </div>
       )}
-      <div className="flex items-center justify-center gap-1.5 text-white/80 text-sm font-mono">
-        <span className="px-2 py-1 rounded-lg bg-white/10 font-black">{pad(h)}</span>:
-        <span className="px-2 py-1 rounded-lg bg-white/10 font-black">{pad(m)}</span>:
-        <span className="px-2 py-1 rounded-lg bg-white/10 font-black">{pad(sec)}</span>
+      <div className="flex items-center justify-center gap-1.5 text-sm font-mono" style={textStyle}>
+        <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(h)}</span>:
+        <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(m)}</span>:
+        <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(sec)}</span>
       </div>
     </div>
   );
@@ -88,6 +91,7 @@ interface Shop {
   bannerUrl?: string;
   bgImageUrl?: string;
   bgTemplate?: string;
+  bioTheme?: string;
   primaryColor?: string;
   fontFamily?: string;
   themeId?: string;
@@ -99,17 +103,26 @@ interface Shop {
 
 export function BioPageClient({ shop }: { shop: Shop }) {
   const primary = shop.primaryColor || "#F97316";
+  const theme = shop.bioTheme || "modern";
+  const isMinimal = theme === "minimal";
+
   const bg = shop.bgImageUrl;
   const template = !bg ? getBgTemplate(shop.bgTemplate) : undefined;
 
-  const background = bg
-    ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-    : template
-      ? bgTemplateBackground(template)
-      : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
+  // The "minimal" theme is a deliberately flat, light look — it ignores the
+  // seller's chosen background gradient/photo in favor of a plain neutral
+  // page, matching the archetype users expect from a "minimal" bio page.
+  const background = isMinimal
+    ? "#fafafa"
+    : bg
+      ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
+      : template
+        ? bgTemplateBackground(template)
+        : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
 
   return (
     <div
+      data-bio-theme={theme}
       className="min-h-screen flex flex-col items-center"
       style={{
         background,
@@ -129,7 +142,10 @@ export function BioPageClient({ shop }: { shop: Shop }) {
           {/* Avatar */}
           <div
             className="relative w-20 h-20 rounded-full overflow-hidden border-2 shadow-xl"
-            style={{ borderColor: `${primary}60`, boxShadow: `0 0 25px ${primary}30` }}
+            style={{
+              borderColor: `${primary}60`,
+              boxShadow: isMinimal ? "none" : `0 0 25px ${primary}30`,
+            }}
           >
             {shop.avatarUrl ? (
               <Image src={shop.avatarUrl} alt={shop.name} fill sizes="80px" className="object-cover" priority />
@@ -144,11 +160,11 @@ export function BioPageClient({ shop }: { shop: Shop }) {
           </div>
 
           {/* Name */}
-          <h1 className="text-xl font-black text-white">{shop.name}</h1>
+          <h1 className="text-xl font-black" style={textStyle}>{shop.name}</h1>
 
           {/* Bio */}
           {shop.bio && (
-            <p className="text-sm text-white/60 text-center max-w-xs leading-relaxed">
+            <p className="text-sm text-center max-w-xs leading-relaxed" style={secondaryStyle}>
               {shop.bio}
             </p>
           )}
@@ -171,12 +187,12 @@ export function BioPageClient({ shop }: { shop: Shop }) {
             href="https://weeelink.ir?ref=badge"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 mt-10 mx-auto w-fit
-                       px-3.5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm
-                       text-xs text-white/50 hover:text-white hover:border-orange-400/40 transition-all"
+            className="bio-card flex items-center justify-center gap-1.5 mt-10 mx-auto w-fit
+                       px-3.5 py-2 text-xs hover:opacity-80 transition-all"
+            style={secondaryStyle}
           >
             <span>ساخته شده با</span>
-            <span className="font-bold text-white/80">ویلینک</span>
+            <span className="font-bold" style={textStyle}>ویلینک</span>
             <ExternalLink className="w-3 h-3" />
           </a>
         )}

@@ -269,3 +269,73 @@
 .social-logo-anim {
   animation: float-in 0.6s ease forwards, float-bob 3s ease-in-out infinite;
 }
+
+/* ─── Bio page themes ───────────────────────────────────────────────────────
+   Set via data-bio-theme on the public bio page's root wrapper. Every block
+   component (BlockRenderer.tsx) and the profile chrome (BioPageClient.tsx)
+   read these instead of hardcoding the old dark-glass look, so picking a
+   theme actually changes card shape/blur/shadow and text color — including
+   flipping to dark text for the light "minimal" theme. */
+[data-bio-theme="modern"] {
+  --bio-radius: 16px;
+  --bio-blur: 0px;
+  --bio-shadow: none;
+  --bio-card-bg: rgba(255, 255, 255, 0.05);
+  --bio-card-border: rgba(255, 255, 255, 0.10);
+  --bio-card-hover-bg: rgba(255, 255, 255, 0.08);
+  --bio-card-hover-border: rgba(255, 255, 255, 0.20);
+  --bio-text: #ffffff;
+  --bio-text-secondary: rgba(255, 255, 255, 0.6);
+  --bio-page-bg-override: none;
+}
+[data-bio-theme="glass"] {
+  --bio-radius: 24px;
+  --bio-blur: 20px;
+  --bio-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  --bio-card-bg: rgba(255, 255, 255, 0.12);
+  --bio-card-border: rgba(255, 255, 255, 0.28);
+  --bio-card-hover-bg: rgba(255, 255, 255, 0.18);
+  --bio-card-hover-border: rgba(255, 255, 255, 0.40);
+  --bio-text: #ffffff;
+  --bio-text-secondary: rgba(255, 255, 255, 0.72);
+  --bio-page-bg-override: none;
+}
+[data-bio-theme="minimal"] {
+  --bio-radius: 10px;
+  --bio-blur: 0px;
+  --bio-shadow: none;
+  --bio-card-bg: #ffffff;
+  --bio-card-border: #e5e7eb;
+  --bio-card-hover-bg: #f3f4f6;
+  --bio-card-hover-border: #d1d5db;
+  --bio-text: #111827;
+  --bio-text-secondary: #6b7280;
+  --bio-page-bg-override: #fafafa;
+}
+[data-bio-theme="classic"] {
+  --bio-radius: 10px;
+  --bio-blur: 0px;
+  --bio-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --bio-card-bg: rgba(24, 24, 29, 0.94);
+  --bio-card-border: rgba(255, 255, 255, 0.06);
+  --bio-card-hover-bg: rgba(36, 36, 42, 0.96);
+  --bio-card-hover-border: rgba(255, 255, 255, 0.12);
+  --bio-text: #ffffff;
+  --bio-text-secondary: rgba(255, 255, 255, 0.55);
+  --bio-page-bg-override: none;
+}
+
+.bio-card {
+  background: var(--bio-card-bg);
+  border: 1px solid var(--bio-card-border);
+  border-radius: var(--bio-radius);
+  box-shadow: var(--bio-shadow);
+  backdrop-filter: blur(var(--bio-blur));
+  -webkit-backdrop-filter: blur(var(--bio-blur));
+  color: var(--bio-text);
+}
+.bio-card:hover {
+  background: var(--bio-card-hover-bg);
+  border-color: var(--bio-card-hover-border);
+}
+.bio-text-secondary { color: var(--bio-text-secondary); }

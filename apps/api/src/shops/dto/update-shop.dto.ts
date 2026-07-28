@@ -1,4 +1,4 @@
-import { IsString, MaxLength, IsOptional, Matches, IsBoolean, IsHexColor } from "class-validator";
+import { IsString, MaxLength, IsOptional, Matches, IsBoolean, IsHexColor, IsIn } from "class-validator";
 
 export class UpdateShopDto {
   @IsOptional()
@@ -55,6 +55,10 @@ export class UpdateShopDto {
   @IsOptional()
   @IsString()
   bgTemplate?: string;
+
+  @IsOptional()
+  @IsIn(["modern", "glass", "minimal", "classic"])
+  bioTheme?: string;
 
   @IsOptional()
   @IsString()
