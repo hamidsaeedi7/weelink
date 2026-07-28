@@ -6,13 +6,16 @@ import type Konva from "konva";
 import {
   Type, ImagePlus, Shapes, Layers, Download, Undo2, Redo2, X,
   Square, Circle, Triangle, Star as StarIcon, Minus, Loader2,
-  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate,
+  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { CANVAS_PRESETS, createImage, createShape, createText } from "@/lib/editor/presets";
 import { projectFromTemplate, type StoryTemplate } from "@/lib/editor/templates";
 import { useAutosave, type SaveStatus } from "@/lib/editor/useAutosave";
 import type { ShapeKind } from "@/lib/editor/types";
+import { exportImages } from "@/lib/editor/export";
+import { ExportPanel, type ExportSettings } from "@/components/editor/panels/ExportPanel";
+import { ProjectsGallery } from "@/components/editor/panels/ProjectsGallery";
 import { PropertiesPanel } from "@/components/editor/panels/PropertiesPanel";
 import { LayersPanel } from "@/components/editor/panels/LayersPanel";
 import { TemplatePicker } from "@/components/editor/panels/TemplatePicker";
@@ -50,7 +53,7 @@ const SHAPES: { kind: ShapeKind; icon: any; label: string }[] = [
   { kind: "line", icon: Minus, label: "خط" },
 ];
 
-type MobileSheet = "properties" | "layers" | "shapes" | "templates" | null;
+type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | null;
 
 export default function StoryStudioPage() {
   const doc = useEditor((s) => s.doc);
@@ -88,7 +91,10 @@ export default function StoryStudioPage() {
     }
   }, [doc.canvas.width, zoom]);
 
-  const { status: saveStatus, saveNow, startNew, recovered } = useAutosave({ getThumbnail });
+  const { projectId, status: saveStatus, saveNow, openProject, startNew, recovered } = useAutosave({ getThumbnail });
+  const setActivePage = useEditor((s) => s.setActivePage);
+  // Export must repaint the stage without editing chrome before capturing.
+  const [exportMode, setExportMode] = useState<{ transparent: boolean } | null>(null);
 
   // fitZoom is defined below; a ref lets callers above it stay in source
   // order without a forward-reference error.
@@ -196,25 +202,32 @@ export default function StoryStudioPage() {
     }
   };
 
-  const exportPng = async (scale = 1) => {
+  const runExport = async (settings: ExportSettings) => {
     const stage = stageRef.current;
     if (!stage) return;
     setExporting(true);
+    // Hide safe-zone bands / transformer (and optionally the background)
+    // BEFORE capturing, then let React paint once.
+    setExportMode({ transparent: settings.transparent });
     try {
-      // The stage is displayed at `zoom`, so 1/zoom brings it back to the
-      // true 1080×1920 design resolution regardless of screen size.
-      const url = stage.toDataURL({ pixelRatio: scale / zoom, mimeType: "image/png" });
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${doc.name || "story"}-${doc.canvas.width}x${doc.canvas.height}${scale > 1 ? "@2x" : ""}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      toast.success("تصویر دانلود شد");
+      await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+      const pages = settings.allPages
+        ? doc.pages
+        : [doc.pages.find((p) => p.id === activePageId) ?? doc.pages[0]];
+      await exportImages(
+        { stage, zoom, project: doc, setActivePage, activePageId },
+        settings.format,
+        settings.scale,
+        pages,
+        doc.name,
+      );
+      toast.success("خروجی آماده شد");
+      setSheet(null);
     } catch {
       // Almost always a tainted canvas from a cross-origin image.
       toast.error("خطا در خروجی گرفتن — ممکنه یکی از تصاویر از دامنه‌ی دیگری باشه");
     } finally {
+      setExportMode(null);
       setExporting(false);
     }
   };
@@ -288,12 +301,21 @@ export default function StoryStudioPage() {
         </div>
 
         <button
-          onClick={() => exportPng(1)}
+          onClick={() => setSheet("projects")}
+          aria-label="پروژه‌ها"
+          title="پروژه‌های من"
+          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"
+        >
+          <FolderOpen className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={() => setSheet("export")}
           disabled={exporting}
           className="flex items-center gap-1.5 px-3 py-2 bg-accent-500 hover:bg-accent-400 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-60"
         >
           {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          <span className="hidden sm:inline">دانلود</span>
+          <span className="hidden sm:inline">خروجی</span>
         </button>
       </header>
 
@@ -329,7 +351,11 @@ export default function StoryStudioPage() {
         <div className="flex-1 min-w-0 flex flex-col">
           <div ref={viewportRef} className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-gray-100 dark:bg-black/40 relative">
             <div className="shadow-2xl rounded-lg overflow-hidden" style={{ lineHeight: 0 }}>
-              <EditorCanvas stageRef={stageRef} />
+              <EditorCanvas
+                stageRef={stageRef}
+                exporting={!!exportMode}
+                transparentBg={!!exportMode?.transparent}
+              />
             </div>
           </div>
           {/* Page navigator sits under the canvas on both breakpoints */}
@@ -359,16 +385,25 @@ export default function StoryStudioPage() {
         <ToolButton icon={Layers} label="لایه‌ها" onClick={() => setSheet("layers")} active={sheet === "layers"} />
       </nav>
 
-      {/* ── Mobile: bottom sheet ── */}
+      {/* ── Sheet ── Mobile always; on desktop only for panels that have no
+           dedicated rail slot (export, projects), so they work at both sizes. */}
       {sheet && (
-        <div className="lg:hidden fixed inset-0 z-30 flex flex-col justify-end" role="dialog" aria-modal="true">
+        <div
+          className={`fixed inset-0 z-30 flex flex-col justify-end ${
+            sheet === "export" || sheet === "projects" ? "" : "lg:hidden"
+          }`}
+          role="dialog"
+          aria-modal="true"
+        >
           <button className="absolute inset-0 bg-black/40" aria-label="بستن" onClick={() => setSheet(null)} />
-          <div className="relative max-h-[70vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#141419] p-4 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="relative max-h-[75vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#141419] p-4 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-200 lg:mx-auto lg:mb-auto lg:mt-[8vh] lg:max-w-2xl lg:rounded-3xl">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-black text-gray-900 dark:text-white">
                 {sheet === "layers" ? "لایه‌ها"
                   : sheet === "shapes" ? "افزودن شکل"
                   : sheet === "templates" ? "قالب‌های آماده"
+                  : sheet === "export" ? "خروجی گرفتن"
+                  : sheet === "projects" ? "پروژه‌های من"
                   : selectedIds.length ? "تنظیمات عنصر" : "پس‌زمینه"}
               </span>
               <button onClick={() => setSheet(null)} aria-label="بستن" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5">
@@ -379,6 +414,23 @@ export default function StoryStudioPage() {
             {sheet === "layers" && <LayersPanel />}
             {sheet === "properties" && <PropertiesPanel />}
             {sheet === "templates" && <TemplatePicker onApply={applyTemplate} />}
+            {sheet === "export" && <ExportPanel busy={exporting} onExport={runExport} />}
+            {sheet === "projects" && (
+              <ProjectsGallery
+                currentProjectId={projectId}
+                onOpen={(d, id) => {
+                  openProject(d, id);
+                  setSheet(null);
+                  setTimeout(fitZoomRef.current, 0);
+                  toast.success("پروژه باز شد");
+                }}
+                onNew={(d) => {
+                  startNew(d);
+                  setSheet(null);
+                  setTimeout(fitZoomRef.current, 0);
+                }}
+              />
+            )}
             {sheet === "shapes" && (
               <div className="grid grid-cols-5 gap-2">
                 {SHAPES.map((s) => (

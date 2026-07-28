@@ -125,9 +125,18 @@ export interface EditorCanvasHandle { stage: Konva.Stage | null; }
 export function EditorCanvas({
   stageRef,
   showSafeZone = true,
+  exporting = false,
+  transparentBg = false,
 }: {
   stageRef?: React.MutableRefObject<Konva.Stage | null>;
   showSafeZone?: boolean;
+  /**
+   * Editing chrome (safe-zone bands, selection transformer) lives in the same
+   * Konva layer as the artwork, so stage.toDataURL() bakes it into the file.
+   * The export flow flips this on for the duration of the capture.
+   */
+  exporting?: boolean;
+  transparentBg?: boolean;
 }) {
   const doc = useEditor((s) => s.doc);
   const activePageId = useEditor((s) => s.activePageId);
@@ -212,8 +221,10 @@ export function EditorCanvas({
       style={{ touchAction: "none" }}
     >
       <Layer ref={layerRef}>
-        {/* Background */}
-        <Rect x={0} y={0} width={CW} height={CH} {...backgroundProps(page.background, CW, CH)} listening={false} />
+        {/* Background — omitted entirely for a transparent PNG export */}
+        {!(exporting && transparentBg) && (
+          <Rect x={0} y={0} width={CW} height={CH} {...backgroundProps(page.background, CW, CH)} listening={false} />
+        )}
 
         {/* Objects, painted in array order = layer order (last on top) */}
         {objects.map((obj) => {
@@ -262,7 +273,7 @@ export function EditorCanvas({
         })}
 
         {/* Safe zone — where Instagram's own UI will cover the design */}
-        {showSafeZone && (
+        {showSafeZone && !exporting && (
           <Group listening={false}>
             <Rect x={0} y={0} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
             <Rect x={0} y={CH - SAFE_INSET_Y} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
@@ -272,7 +283,7 @@ export function EditorCanvas({
         )}
 
         {/* Snap guides */}
-        {guides.map((g, i) =>
+        {!exporting && guides.map((g, i) =>
           g.axis === "x" ? (
             <Line key={`gx${i}`} points={[g.pos, 0, g.pos, CH]} stroke="#14C7A5" strokeWidth={2} listening={false} />
           ) : (
@@ -282,6 +293,7 @@ export function EditorCanvas({
 
         <Transformer
           ref={trRef}
+          visible={!exporting}
           rotateEnabled
           keepRatio={false}
           anchorSize={14}
