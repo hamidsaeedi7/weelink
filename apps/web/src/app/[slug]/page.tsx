@@ -6,11 +6,22 @@ interface Props {
   params: { slug: string };
 }
 
+// The bio page must reflect the seller's settings (theme, blocks, colors)
+// the instant they change them. A Next Data Cache entry here is
+// stale-while-revalidate, so the seller would keep seeing the PREVIOUS
+// config after every edit — which read as "changing the theme does
+// nothing". Caching belongs to the API, which Redis-caches findBySlug and
+// invalidates that entry on every shop update; a second cache layer here
+// has no invalidation hook and only serves staleness.
+// force-dynamic also overrides the root layout's `revalidate = 3600`,
+// which would otherwise cascade onto this route.
+export const dynamic = "force-dynamic";
+
 async function getShop(slug: string) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1/shops/${slug}`,
-      { next: { revalidate: 60 } },
+      { cache: "no-store" },
     );
     if (!res.ok) return null;
     const json = await res.json();
