@@ -61,6 +61,10 @@ export class UpdateShopDto {
   bioTheme?: string;
 
   @IsOptional()
+  @IsIn(["light", "dark"])
+  bioMode?: string;
+
+  @IsOptional()
   @IsString()
   gaId?: string;
 

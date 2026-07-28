@@ -4,10 +4,13 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap, CalendarCheck } from "lucide-react";
-import { getBgTemplate, bgTemplateBackground } from "@/lib/bg-templates";
+import { resolveBioBackground, isAtmospheric } from "@/lib/bio-theme";
 
 const textStyle = { color: "var(--bio-text)" };
 const secondaryStyle = { color: "var(--bio-text-secondary)" };
+// Follows the seller's bio mode, not the visitor's site theme — see the same
+// constant in BlockRenderer.tsx.
+const chipStyle = { background: "var(--bio-card-hover-bg)" };
 
 // نوار فروشگاه: اگر شاپ محصول/فایل/دوره داشته باشد، لینک عمومی‌شان نمایش داده می‌شود
 // (تعداد هر بخش از قبل، سمت سرور، همراه با خود shop واکشی شده — دیگر fetch جدا لازم نیست)
@@ -74,9 +77,9 @@ function FlashCard({ sale, primary }: { sale: any; primary: string }) {
         </div>
       )}
       <div className="flex items-center justify-center gap-1.5 text-sm font-mono" style={textStyle}>
-        <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(h)}</span>:
-        <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(m)}</span>:
-        <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(sec)}</span>
+        <span className="px-2 py-1 rounded-lg font-black" style={chipStyle}>{pad(h)}</span>:
+        <span className="px-2 py-1 rounded-lg font-black" style={chipStyle}>{pad(m)}</span>:
+        <span className="px-2 py-1 rounded-lg font-black" style={chipStyle}>{pad(sec)}</span>
       </div>
     </div>
   );
@@ -103,6 +106,7 @@ interface Shop {
   bgImageUrl?: string;
   bgTemplate?: string;
   bioTheme?: string;
+  bioMode?: string;
   primaryColor?: string;
   fontFamily?: string;
   themeId?: string;
@@ -115,38 +119,14 @@ interface Shop {
 export function BioPageClient({ shop }: { shop: Shop }) {
   const primary = shop.primaryColor || "#F97316";
   const theme = shop.bioTheme || "modern";
-  const isMinimal = theme === "minimal";
-  const isNeo = theme === "neo";
-  const isClay = theme === "clay";
+  const mode = shop.bioMode || "dark";
   const isBento = theme === "bento";
-  // Neo/clay/bento are flat-surface styles that need a uniform, non-photo
-  // backdrop to read correctly (neo especially — the card fuses into the
-  // page color) so they override the seller's chosen background/photo,
-  // same as minimal already did. Modern/glass keep respecting bg/template.
-  const flatTheme = isMinimal || isNeo || isClay || isBento;
-
-  const bg = shop.bgImageUrl;
-  const template = !bg ? getBgTemplate(shop.bgTemplate) : undefined;
-
-  const background = isMinimal
-    ? "#fafafa"
-    : isNeo
-      ? "#e6e9ef"
-      : isClay
-        ? "linear-gradient(160deg, #ffd9ec 0%, #d6e4ff 55%, #e2d6ff 100%)"
-        : isBento
-          ? "linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%)"
-          : bg
-            ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${bg}) center/cover no-repeat`
-            : template
-              ? bgTemplateBackground(template)
-              : theme === "glass"
-                ? "linear-gradient(135deg, #4338CA 0%, #7C3AED 35%, #DB2777 70%, #0EA5E9 100%)"
-                : `linear-gradient(160deg, #0A0A0F 0%, #111122 100%)`;
+  const background = resolveBioBackground(shop, theme);
 
   return (
     <div
       data-bio-theme={theme}
+      data-bio-mode={mode}
       className="min-h-screen flex flex-col items-center"
       style={{
         background,
@@ -168,7 +148,7 @@ export function BioPageClient({ shop }: { shop: Shop }) {
             className="relative w-20 h-20 rounded-full overflow-hidden border-2 shadow-xl"
             style={{
               borderColor: `${primary}60`,
-              boxShadow: flatTheme ? "none" : `0 0 25px ${primary}30`,
+              boxShadow: isAtmospheric(theme) ? `0 0 25px ${primary}30` : "none",
             }}
           >
             {shop.avatarUrl ? (

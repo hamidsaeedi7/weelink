@@ -24,6 +24,10 @@ interface Props {
 const textStyle = { color: "var(--bio-text)" };
 const secondaryStyle = { color: "var(--bio-text-secondary)" };
 const radiusStyle = { borderRadius: "var(--bio-radius)" };
+// Inset surfaces (countdown chips, inputs) must follow the seller's chosen
+// bio mode. Tailwind's `dark:` variant would follow the VISITOR's site theme
+// instead, so a light bio page opened in a dark browser theme got dark chips.
+const chipStyle = { background: "var(--bio-card-hover-bg)" };
 
 export function BlockRenderer({ block, primaryColor = "#F97316" }: Props) {
   const handleClick = () => {
@@ -252,8 +256,8 @@ function EmailCaptureBlock({ block }: { block: Block }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={block.data?.placeholder || "ایمیل شما"}
-            style={{ ...textStyle, borderRadius: "calc(var(--bio-radius) * 0.7)" }}
-            className="flex-1 px-3 py-2 bg-black/5 dark:bg-white/5 border border-current/10
+            style={{ ...textStyle, ...chipStyle, borderRadius: "calc(var(--bio-radius) * 0.7)" }}
+            className="flex-1 px-3 py-2 border border-current/10
                        text-sm placeholder:opacity-40 focus:outline-none
                        focus:border-orange-500/50 text-left"
             dir="ltr"
@@ -435,11 +439,11 @@ function FlashSaleBlock({ block, color }: { block: Block; color: string }) {
       </div>
       {endDate && (
         <div className="flex items-center justify-center gap-2 text-sm font-mono" style={textStyle}>
-          <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(timeLeft.h)}</span>
+          <span className="px-2 py-1 rounded-lg font-black" style={chipStyle}>{pad(timeLeft.h)}</span>
           <span style={secondaryStyle}>:</span>
-          <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(timeLeft.m)}</span>
+          <span className="px-2 py-1 rounded-lg font-black" style={chipStyle}>{pad(timeLeft.m)}</span>
           <span style={secondaryStyle}>:</span>
-          <span className="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 font-black">{pad(timeLeft.s)}</span>
+          <span className="px-2 py-1 rounded-lg font-black" style={chipStyle}>{pad(timeLeft.s)}</span>
         </div>
       )}
       {block.data?.description && (

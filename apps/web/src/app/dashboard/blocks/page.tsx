@@ -68,6 +68,16 @@ export default function BlocksPage() {
     }
   };
 
+  const selectBioMode = async (id: string) => {
+    setShop((s: any) => ({ ...s, bioMode: id }));
+    try {
+      await shopsApi.update({ bioMode: id });
+    } catch {
+      toast.error("خطا در ذخیره حالت رنگ");
+      load();
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -184,7 +194,13 @@ export default function BlocksPage() {
       </div>
 
       {/* Bio page theme */}
-      <ThemePicker shop={shop} value={shop?.bioTheme || "modern"} onSelect={selectBioTheme} />
+      <ThemePicker
+        shop={shop}
+        value={shop?.bioTheme || "modern"}
+        mode={shop?.bioMode || "dark"}
+        onSelect={selectBioTheme}
+        onSelectMode={selectBioMode}
+      />
 
       {/* Empty State */}
       {blocks.length === 0 && (
