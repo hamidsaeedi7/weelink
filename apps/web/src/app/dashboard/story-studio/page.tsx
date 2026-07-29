@@ -6,7 +6,7 @@ import type Konva from "konva";
 import {
   Type, ImagePlus, Shapes, Layers, Download, Undo2, Redo2, X,
   Square, Circle, Triangle, Star as StarIcon, Minus, Loader2,
-  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2, Sticker, BadgeCheck, Clapperboard,
+  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2, Sticker, BadgeCheck, Clapperboard, Keyboard, Home,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { CANVAS_PRESETS, createImage, createShape, createText } from "@/lib/editor/presets";
@@ -20,6 +20,9 @@ import { ProductStoryWizard } from "@/components/editor/panels/ProductStoryWizar
 import { ElementsPicker } from "@/components/editor/panels/ElementsPicker";
 import { BrandKitPanel } from "@/components/editor/panels/BrandKitPanel";
 import { AnimationPanel, type VideoExportSettings } from "@/components/editor/panels/AnimationPanel";
+import { StartScreen, type StartChoice } from "@/components/editor/panels/StartScreen";
+import { ShortcutsPanel } from "@/components/editor/panels/ShortcutsPanel";
+import { createProject } from "@/lib/editor/presets";
 import { pageDuration } from "@/lib/editor/animation";
 import { detectVideoSupport, downloadBlob, recordCanvas } from "@/lib/editor/video";
 import { setBrandColors } from "@/components/editor/ui";
@@ -30,6 +33,8 @@ import { PageStrip } from "@/components/editor/panels/PageStrip";
 import { PanelSection, ToolButton } from "@/components/editor/ui";
 import { uploadApi } from "@/lib/api";
 import { toast } from "sonner";
+
+const SEEN_KEY = "weelink-story-studio-onboarded";
 
 const SAVE_LABEL: Record<SaveStatus, string> = {
   idle: "",
@@ -60,7 +65,7 @@ const SHAPES: { kind: ShapeKind; icon: any; label: string }[] = [
   { kind: "line", icon: Minus, label: "خط" },
 ];
 
-type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | "elements" | "brand" | "animate" | null;
+type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | "elements" | "brand" | "animate" | "shortcuts" | null;
 
 export default function StoryStudioPage() {
   const doc = useEditor((s) => s.doc);
@@ -110,6 +115,19 @@ export default function StoryStudioPage() {
   const [recording, setRecording] = useState(false);
   const [recordProgress, setRecordProgress] = useState(0);
   const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Shown once, on the very first visit — after that the editor opens
+  // straight into whatever the seller was last working on.
+  const [showStart, setShowStart] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(SEEN_KEY)) setShowStart(true);
+    } catch { /* blocked storage just means we skip onboarding */ }
+  }, []);
+  const dismissStart = useCallback(() => {
+    setShowStart(false);
+    try { localStorage.setItem(SEEN_KEY, "1"); } catch { /* ignore */ }
+  }, []);
   const playStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // fitZoom is defined below; a ref lets callers above it stay in source
@@ -282,6 +300,11 @@ export default function StoryStudioPage() {
           if (o) patchObject(id, { x: o.x + dx, y: o.y + dy });
         }
       }
+      if (e.key === "?" || (meta && e.key === "/")) {
+        e.preventDefault();
+        setSheet((cur) => (cur === "shortcuts" ? null : "shortcuts"));
+        return;
+      }
       if (meta && e.key.toLowerCase() === "s") {
         e.preventDefault();
         void saveNow();
@@ -412,6 +435,24 @@ export default function StoryStudioPage() {
         </div>
 
         <button
+          onClick={() => setSheet("shortcuts")}
+          aria-label="میان‌برهای صفحه‌کلید"
+          title="میان‌برها (؟)"
+          className="hidden lg:block p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"
+        >
+          <Keyboard className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={() => setShowStart(true)}
+          aria-label="شروع تازه"
+          title="شروع تازه"
+          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"
+        >
+          <Home className="w-4 h-4" />
+        </button>
+
+        <button
           onClick={() => setSheet("projects")}
           aria-label="پروژه‌ها"
           title="پروژه‌های من"
@@ -516,12 +557,32 @@ export default function StoryStudioPage() {
         <ToolButton icon={Layers} label="لایه‌ها" onClick={() => setSheet("layers")} active={sheet === "layers"} />
       </nav>
 
+      {showStart && (
+        <StartScreen
+          onChoose={(choice: StartChoice) => {
+            dismissStart();
+            if (choice === "blank") {
+              startNew(createProject("story"));
+              setTimeout(fitZoomRef.current, 0);
+            } else {
+              setSheet(choice === "product" ? "product" : "templates");
+            }
+          }}
+          onOpenProject={(d, id) => {
+            dismissStart();
+            openProject(d, id);
+            setTimeout(fitZoomRef.current, 0);
+          }}
+          onDismiss={dismissStart}
+        />
+      )}
+
       {/* ── Sheet ── Mobile always; on desktop only for panels that have no
            dedicated rail slot (export, projects), so they work at both sizes. */}
       {sheet && (
         <div
           className={`fixed inset-0 z-30 flex flex-col justify-end ${
-            ["export", "projects", "product", "elements", "brand", "animate"].includes(sheet) ? "" : "lg:hidden"
+            ["export", "projects", "product", "elements", "brand", "animate", "shortcuts"].includes(sheet) ? "" : "lg:hidden"
           }`}
           role="dialog"
           aria-modal="true"
@@ -539,6 +600,7 @@ export default function StoryStudioPage() {
                   : sheet === "elements" ? "عناصر آماده"
                   : sheet === "brand" ? "هویت برند"
                   : sheet === "animate" ? "انیمیشن و ویدیو"
+                  : sheet === "shortcuts" ? "میان‌برهای صفحه‌کلید"
                   : selectedIds.length ? "تنظیمات عنصر" : "پس‌زمینه"}
               </span>
               <button onClick={() => setSheet(null)} aria-label="بستن" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5">
@@ -553,6 +615,7 @@ export default function StoryStudioPage() {
             {sheet === "elements" && (
               <ElementsPicker onAdd={(objs) => { addObjects(objs); setSheet(null); }} />
             )}
+            {sheet === "shortcuts" && <ShortcutsPanel />}
             {sheet === "animate" && (
               <AnimationPanel
                 onPreview={previewPlay}
