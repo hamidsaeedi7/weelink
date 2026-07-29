@@ -3,10 +3,11 @@
 import {
   AlignCenter, AlignLeft, AlignRight, MousePointerSquareDashed,
   Trash2, Copy, Lock, Unlock, Eye, EyeOff, BringToFront, SendToBack,
+  FlipHorizontal, FlipVertical, RotateCw,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { EDITOR_FONTS } from "@/lib/editor/presets";
-import { isImage, isShape, isText, type Background } from "@/lib/editor/types";
+import { DEFAULT_CROP, NEUTRAL_FILTERS, isImage, isShape, isText, type Background } from "@/lib/editor/types";
 import { ColorField, EmptyHint, LabeledSlider, PanelSection, SegmentedControl, ToolButton } from "../ui";
 
 /**
@@ -159,6 +160,77 @@ export function PropertiesPanel() {
         </>
       )}
 
+      {isText(obj) && (
+        <PanelSection title="افکت متن">
+          {/* Gradient replaces the flat fill entirely, so it is a mode, not an extra. */}
+          <SegmentedControl
+            value={obj.fillGradient ? "gradient" : "solid"}
+            options={[{ value: "solid", label: "رنگ ساده" }, { value: "gradient", label: "گرادیان" }]}
+            onChange={(v) => {
+              commit();
+              patch(v === "gradient" ? { fillGradient: { from: obj.fill, to: "#14C7A5", angle: 90 } } : { fillGradient: undefined });
+            }}
+          />
+          {obj.fillGradient && (
+            <>
+              <ColorField label="گرادیان از" value={obj.fillGradient.from} onCommit={commit} onChange={(c) => patch({ fillGradient: { ...obj.fillGradient!, from: c } })} />
+              <ColorField label="گرادیان تا" value={obj.fillGradient.to} onCommit={commit} onChange={(c) => patch({ fillGradient: { ...obj.fillGradient!, to: c } })} />
+              <LabeledSlider label="زاویه" suffix="°" min={0} max={360} value={obj.fillGradient.angle} onCommit={commit} onChange={(v) => patch({ fillGradient: { ...obj.fillGradient!, angle: v } })} />
+            </>
+          )}
+
+          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!obj.stroke}
+              onChange={(e) => { commit(); patch(e.target.checked ? { stroke: "#000000", strokeWidth: 6 } : { stroke: undefined, strokeWidth: 0 }); }}
+              className="w-4 h-4 accent-accent-500 rounded"
+            />
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">خط دور متن</span>
+          </label>
+          {obj.stroke && (
+            <>
+              <ColorField label="رنگ خط دور" value={obj.stroke} onCommit={commit} onChange={(c) => patch({ stroke: c })} />
+              <LabeledSlider label="ضخامت خط" suffix="px" min={1} max={24} value={obj.strokeWidth ?? 6} onCommit={commit} onChange={(v) => patch({ strokeWidth: v })} />
+            </>
+          )}
+
+          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!obj.shadow}
+              onChange={(e) => { commit(); patch(e.target.checked ? { shadow: { color: "#000000", blur: 20, offsetX: 0, offsetY: 8, opacity: 0.5 } } : { shadow: undefined }); }}
+              className="w-4 h-4 accent-accent-500 rounded"
+            />
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">سایه</span>
+          </label>
+          {obj.shadow && (
+            <>
+              <ColorField label="رنگ سایه" value={obj.shadow.color} onCommit={commit} onChange={(c) => patch({ shadow: { ...obj.shadow!, color: c } })} />
+              <LabeledSlider label="محو سایه" min={0} max={80} value={obj.shadow.blur} onCommit={commit} onChange={(v) => patch({ shadow: { ...obj.shadow!, blur: v } })} />
+              <LabeledSlider label="فاصله عمودی" min={-40} max={40} value={obj.shadow.offsetY} onCommit={commit} onChange={(v) => patch({ shadow: { ...obj.shadow!, offsetY: v } })} />
+            </>
+          )}
+
+          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!obj.backgroundFill}
+              onChange={(e) => { commit(); patch(e.target.checked ? { backgroundFill: "#14C7A5", backgroundPadding: 20, backgroundRadius: 16 } : { backgroundFill: undefined }); }}
+              className="w-4 h-4 accent-accent-500 rounded"
+            />
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">هایلایت پشت متن</span>
+          </label>
+          {obj.backgroundFill && (
+            <>
+              <ColorField label="رنگ هایلایت" value={obj.backgroundFill} onCommit={commit} onChange={(c) => patch({ backgroundFill: c })} />
+              <LabeledSlider label="فاصله داخلی" min={0} max={60} value={obj.backgroundPadding ?? 20} onCommit={commit} onChange={(v) => patch({ backgroundPadding: v })} />
+              <LabeledSlider label="گردی گوشه" min={0} max={60} value={obj.backgroundRadius ?? 16} onCommit={commit} onChange={(v) => patch({ backgroundRadius: v })} />
+            </>
+          )}
+        </PanelSection>
+      )}
+
       {isShape(obj) && (
         <PanelSection title="شکل">
           <ColorField label="رنگ" value={obj.fill} onCommit={commit} onChange={(c) => patch({ fill: c })} />
@@ -168,11 +240,104 @@ export function PropertiesPanel() {
         </PanelSection>
       )}
 
-      {isImage(obj) && (
-        <PanelSection title="تصویر">
-          <LabeledSlider label="گردی گوشه" suffix="px" min={0} max={300} value={obj.cornerRadius} onCommit={commit} onChange={(v) => patch({ cornerRadius: v })} />
-        </PanelSection>
-      )}
+      {isImage(obj) && (() => {
+        const f = obj.filters ?? NEUTRAL_FILTERS;
+        const crop = obj.crop ?? DEFAULT_CROP;
+        const setF = (p: Partial<typeof f>) => patch({ filters: { ...f, ...p } });
+        const setCrop = (p: Partial<typeof crop>) => patch({ crop: { ...crop, ...p } });
+        const filtersTouched =
+          f.brightness !== 0 || f.contrast !== 0 || f.saturation !== 0 || f.blur !== 0 || f.grayscale || f.sepia;
+
+        return (
+          <>
+            <PanelSection title="برش تصویر">
+              <div className="grid grid-cols-5 gap-1">
+                {(["original", "1:1", "4:5", "9:16", "16:9"] as const).map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => { commit(); setCrop({ aspect: a }); }}
+                    className={`py-2 rounded-lg text-[10px] font-bold transition-all ${
+                      crop.aspect === a
+                        ? "bg-accent-500 text-white"
+                        : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                    }`}
+                  >
+                    {a === "original" ? "اصلی" : a}
+                  </button>
+                ))}
+              </div>
+              <LabeledSlider label="بزرگ‌نمایی" min={1} max={3} step={0.05} value={crop.zoom} onCommit={commit} onChange={(v) => setCrop({ zoom: v })} />
+              {crop.zoom > 1 || crop.aspect !== "original" ? (
+                <>
+                  <LabeledSlider label="جابه‌جایی افقی" min={-1} max={1} step={0.05} value={crop.offsetX} onCommit={commit} onChange={(v) => setCrop({ offsetX: v })} />
+                  <LabeledSlider label="جابه‌جایی عمودی" min={-1} max={1} step={0.05} value={crop.offsetY} onCommit={commit} onChange={(v) => setCrop({ offsetY: v })} />
+                </>
+              ) : null}
+              <div className="flex items-center gap-1">
+                <ToolButton icon={FlipHorizontal} title="آینه افقی" active={!!obj.flipX} onClick={() => { commit(); patch({ flipX: !obj.flipX }); }} />
+                <ToolButton icon={FlipVertical} title="آینه عمودی" active={!!obj.flipY} onClick={() => { commit(); patch({ flipY: !obj.flipY }); }} />
+                <ToolButton icon={RotateCw} title="چرخش ۹۰ درجه" onClick={() => { commit(); patch({ rotation: (obj.rotation + 90) % 360 }); }} />
+              </div>
+            </PanelSection>
+
+            <PanelSection
+              title="فیلترها"
+              action={
+                filtersTouched ? (
+                  <button
+                    onClick={() => { commit(); patch({ filters: { ...NEUTRAL_FILTERS } }); }}
+                    className="text-[10px] text-gray-400 hover:text-accent-500 transition-colors"
+                  >
+                    بازنشانی
+                  </button>
+                ) : undefined
+              }
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { commit(); setF({ grayscale: !f.grayscale }); }}
+                  className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                    f.grayscale ? "bg-accent-500 text-white" : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400"
+                  }`}
+                >
+                  سیاه‌وسفید
+                </button>
+                <button
+                  onClick={() => { commit(); setF({ sepia: !f.sepia }); }}
+                  className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                    f.sepia ? "bg-accent-500 text-white" : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400"
+                  }`}
+                >
+                  سپیا
+                </button>
+              </div>
+              <LabeledSlider label="روشنایی" min={-1} max={1} step={0.05} value={f.brightness} onCommit={commit} onChange={(v) => setF({ brightness: v })} />
+              <LabeledSlider label="کنتراست" min={-100} max={100} value={f.contrast} onCommit={commit} onChange={(v) => setF({ contrast: v })} />
+              <LabeledSlider label="اشباع رنگ" min={-2} max={5} step={0.1} value={f.saturation} onCommit={commit} onChange={(v) => setF({ saturation: v })} />
+              <LabeledSlider label="محو (بلور)" suffix="px" min={0} max={40} value={f.blur} onCommit={commit} onChange={(v) => setF({ blur: v })} />
+            </PanelSection>
+
+            <PanelSection title="ظاهر تصویر">
+              <LabeledSlider label="گردی گوشه" suffix="px" min={0} max={300} value={obj.cornerRadius} onCommit={commit} onChange={(v) => patch({ cornerRadius: v })} />
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!obj.stroke}
+                  onChange={(e) => { commit(); patch(e.target.checked ? { stroke: "#FFFFFF", strokeWidth: 8 } : { stroke: undefined, strokeWidth: 0 }); }}
+                  className="w-4 h-4 accent-accent-500 rounded"
+                />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">کادر دور تصویر</span>
+              </label>
+              {obj.stroke && (
+                <>
+                  <ColorField label="رنگ کادر" value={obj.stroke} onCommit={commit} onChange={(c) => patch({ stroke: c })} />
+                  <LabeledSlider label="ضخامت کادر" suffix="px" min={1} max={40} value={obj.strokeWidth ?? 8} onCommit={commit} onChange={(v) => patch({ strokeWidth: v })} />
+                </>
+              )}
+            </PanelSection>
+          </>
+        );
+      })()}
 
       <PanelSection title="چیدمان">
         <LabeledSlider label="شفافیت" suffix="%" min={0} max={100} value={Math.round(obj.opacity * 100)} onCommit={commit} onChange={(v) => patch({ opacity: v / 100 })} />

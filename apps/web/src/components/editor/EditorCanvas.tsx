@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Stage, Layer, Rect, Ellipse, RegularPolygon, Star, Line, Text as KText, Image as KImage, Transformer, Group } from "react-konva";
-import type Konva from "konva";
+// Value import, not type-only: Konva.Filters is needed at runtime.
+import Konva from "konva";
 import { useEditor } from "@/lib/editor/store";
 import { ensureFont } from "@/lib/editor/presets";
-import type { Background, EditorObject, ImageObject, ShapeObject, TextObject } from "@/lib/editor/types";
+import type { Background, EditorObject, ImageCrop, ImageObject, ShapeObject, TextObject } from "@/lib/editor/types";
 
 /** Distance (canvas px) within which an edge snaps to a guide. */
 const SNAP_TOLERANCE = 12;
@@ -16,11 +17,48 @@ const SAFE_INSET_Y = 250;
 interface Guide { axis: "x" | "y"; pos: number; }
 
 // ─── Image node ──────────────────────────────────────────────────────────────
+
+const ASPECT_RATIO: Record<string, number | null> = {
+  original: null, "1:1": 1, "4:5": 4 / 5, "9:16": 9 / 16, "16:9": 16 / 9,
+};
+
+/**
+ * Converts crop intent (ratio + zoom + pan) into the source-pixel rect Konva
+ * wants. Kept here rather than in the store because it depends on the loaded
+ * image's natural size, which only exists at render time.
+ */
+function cropRect(img: HTMLImageElement, crop?: ImageCrop) {
+  if (!crop || (crop.aspect === "original" && crop.zoom === 1)) return undefined;
+  const nw = img.naturalWidth;
+  const nh = img.naturalHeight;
+  const target = ASPECT_RATIO[crop.aspect];
+
+  // Largest rect of the requested ratio that fits inside the source.
+  let w = nw;
+  let h = nh;
+  if (target) {
+    if (nw / nh > target) w = nh * target;
+    else h = nw / target;
+  }
+  const zoom = Math.max(1, crop.zoom);
+  w /= zoom;
+  h /= zoom;
+
+  // Pan is expressed as -1..1 of the leftover space, so it can never escape
+  // the source bounds no matter how the sliders are dragged.
+  const maxX = nw - w;
+  const maxY = nh - h;
+  const x = maxX / 2 + (crop.offsetX * maxX) / 2;
+  const y = maxY / 2 + (crop.offsetY * maxY) / 2;
+  return { x: Math.max(0, Math.min(maxX, x)), y: Math.max(0, Math.min(maxY, y)), width: w, height: h };
+}
+
 // Konva needs a real HTMLImageElement, so each image object loads its own and
 // re-renders once ready. crossOrigin is required or exporting the stage taints
 // the canvas and toDataURL throws.
 function ImageNode({ obj, ...rest }: { obj: ImageObject } & Record<string, any>) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
+  const nodeRef = useRef<Konva.Image | null>(null);
 
   useEffect(() => {
     if (!obj.src) return;
@@ -32,16 +70,64 @@ function ImageNode({ obj, ...rest }: { obj: ImageObject } & Record<string, any>)
     return () => image.removeEventListener("load", onLoad);
   }, [obj.src]);
 
+  const f = obj.filters;
+  const activeFilters = useMemo(() => {
+    if (!f) return [];
+    const list: any[] = [];
+    if (f.brightness) list.push(Konva.Filters.Brighten);
+    if (f.contrast) list.push(Konva.Filters.Contrast);
+    if (f.saturation) list.push(Konva.Filters.HSL);
+    if (f.blur) list.push(Konva.Filters.Blur);
+    if (f.grayscale) list.push(Konva.Filters.Grayscale);
+    if (f.sepia) list.push(Konva.Filters.Sepia);
+    return list;
+  }, [f]);
+
+  // Konva filters only run against a cached bitmap, and the cache must be
+  // rebuilt whenever the node's size, crop or filter set changes — otherwise
+  // the filter silently applies to a stale raster.
+  useEffect(() => {
+    const node = nodeRef.current;
+    if (!node || !img) return;
+    if (activeFilters.length) node.cache();
+    else node.clearCache();
+    node.getLayer()?.batchDraw();
+  }, [img, activeFilters, obj.width, obj.height, obj.crop, obj.cornerRadius, f?.blur, f?.brightness, f?.contrast, f?.saturation]);
+
   if (!img) {
     return <Rect {...rest} width={obj.width} height={obj.height} fill="rgba(255,255,255,0.08)" cornerRadius={obj.cornerRadius} />;
   }
+
+  // Flipping is a negative scale about the origin, so the position has to be
+  // shifted by the full width/height to keep the visual box where it was.
+  const flipX = !!obj.flipX;
+  const flipY = !!obj.flipY;
+
   return (
     <KImage
       {...rest}
+      ref={nodeRef}
       image={img}
       width={obj.width}
       height={obj.height}
       cornerRadius={obj.cornerRadius}
+      crop={cropRect(img, obj.crop)}
+      stroke={obj.stroke}
+      strokeWidth={obj.strokeWidth ?? 0}
+      x={rest.x + (flipX ? obj.width : 0)}
+      y={rest.y + (flipY ? obj.height : 0)}
+      scaleX={flipX ? -1 : 1}
+      scaleY={flipY ? -1 : 1}
+      filters={activeFilters}
+      brightness={f?.brightness ?? 0}
+      contrast={f?.contrast ?? 0}
+      saturation={f?.saturation ?? 0}
+      blurRadius={f?.blur ?? 0}
+      shadowColor={obj.shadow?.color}
+      shadowBlur={obj.shadow?.blur}
+      shadowOffsetX={obj.shadow?.offsetX}
+      shadowOffsetY={obj.shadow?.offsetY}
+      shadowOpacity={obj.shadow?.opacity}
     />
   );
 }
@@ -81,7 +167,40 @@ function TextNode({ obj, ...rest }: { obj: TextObject } & Record<string, any>) {
     return () => { alive = false; };
   }, [obj.fontFamily, obj.fontWeight]);
 
+  const g = obj.fillGradient;
+  const gradientProps = g
+    ? (() => {
+        const rad = ((g.angle - 90) * Math.PI) / 180;
+        const w = obj.width;
+        const h = obj.height;
+        return {
+          fillPriority: "linear-gradient",
+          fillLinearGradientStartPoint: { x: w / 2 - (Math.cos(rad) * w) / 2, y: h / 2 - (Math.sin(rad) * h) / 2 },
+          fillLinearGradientEndPoint: { x: w / 2 + (Math.cos(rad) * w) / 2, y: h / 2 + (Math.sin(rad) * h) / 2 },
+          fillLinearGradientColorStops: [0, g.from, 1, g.to],
+        };
+      })()
+    : {};
+
+  // Highlight sits behind the glyphs, so it must be its own node painted
+  // first — Konva.Text has no background fill of its own.
+  const highlight = obj.backgroundFill ? (
+    <Rect
+      x={rest.x - (obj.backgroundPadding ?? 16)}
+      y={rest.y - (obj.backgroundPadding ?? 16) / 2}
+      width={obj.width + (obj.backgroundPadding ?? 16) * 2}
+      height={obj.height + (obj.backgroundPadding ?? 16)}
+      rotation={rest.rotation}
+      opacity={rest.opacity}
+      fill={obj.backgroundFill}
+      cornerRadius={obj.backgroundRadius ?? 12}
+      listening={false}
+    />
+  ) : null;
+
   return (
+    <>
+    {highlight}
     <KText
       {...rest}
       text={obj.text}
@@ -104,7 +223,9 @@ function TextNode({ obj, ...rest }: { obj: TextObject } & Record<string, any>) {
       shadowOffsetX={obj.shadow?.offsetX}
       shadowOffsetY={obj.shadow?.offsetY}
       shadowOpacity={obj.shadow?.opacity}
+      {...gradientProps}
     />
+    </>
   );
 }
 
@@ -253,16 +374,23 @@ export function EditorCanvas({
             onTransformEnd: (e: any) => {
               const node = e.target as Konva.Node;
               // Konva reports resize as a scale; fold it back into width/height
-              // so the model never carries a scale factor.
-              const sx = node.scaleX();
-              const sy = node.scaleY();
-              node.scaleX(1);
-              node.scaleY(1);
+              // so the model never carries a scale factor. abs() because a
+              // flipped image legitimately renders at scale -1 and must not
+              // produce a negative width.
+              const flippedX = !!(obj as ImageObject).flipX;
+              const flippedY = !!(obj as ImageObject).flipY;
+              const sx = Math.abs(node.scaleX());
+              const sy = Math.abs(node.scaleY());
+              node.scaleX(flippedX ? -1 : 1);
+              node.scaleY(flippedY ? -1 : 1);
+              const width = Math.max(20, Math.round(obj.width * sx));
+              const height = Math.max(20, Math.round(obj.height * sy));
               patchObject(obj.id, {
-                x: Math.round(node.x()),
-                y: Math.round(node.y()),
-                width: Math.max(20, Math.round(obj.width * sx)),
-                height: Math.max(20, Math.round(obj.height * sy)),
+                // Undo the flip offset applied at render time.
+                x: Math.round(node.x() - (flippedX ? width : 0)),
+                y: Math.round(node.y() - (flippedY ? height : 0)),
+                width,
+                height,
                 rotation: Math.round(node.rotation()),
               } as Partial<EditorObject>);
             },

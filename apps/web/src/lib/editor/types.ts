@@ -61,6 +61,8 @@ export interface TextObject extends BaseObject {
   letterSpacing: number;
   /** Needed for "was 250,000" pricing, where the old price is struck through. */
   textDecoration?: "line-through" | "underline" | "none";
+  /** When set, overrides `fill` with a linear gradient across the text box. */
+  fillGradient?: { from: string; to: string; angle: number };
   stroke?: string;
   strokeWidth?: number;
   shadow?: Shadow;
@@ -70,11 +72,52 @@ export interface TextObject extends BaseObject {
   backgroundRadius?: number;
 }
 
+/** Konva's built-in filter ranges. Neutral values mean "no filter applied". */
+export interface ImageFilters {
+  /** -1..1, 0 = unchanged */
+  brightness: number;
+  /** -100..100, 0 = unchanged */
+  contrast: number;
+  /** -2..5, 0 = unchanged */
+  saturation: number;
+  /** 0..40 px */
+  blur: number;
+  grayscale: boolean;
+  sepia: boolean;
+}
+
+export const NEUTRAL_FILTERS: ImageFilters = {
+  brightness: 0, contrast: 0, saturation: 0, blur: 0, grayscale: false, sepia: false,
+};
+
+export type CropAspect = "original" | "1:1" | "4:5" | "9:16" | "16:9";
+
+/**
+ * Crop is stored as intent (ratio + zoom + pan), not as pixel rects, so it
+ * stays correct if the same design is later reused with a different image.
+ */
+export interface ImageCrop {
+  aspect: CropAspect;
+  /** 1 = fit, >1 zooms into the source */
+  zoom: number;
+  /** -1..1, pan within the source once zoomed */
+  offsetX: number;
+  offsetY: number;
+}
+
+export const DEFAULT_CROP: ImageCrop = { aspect: "original", zoom: 1, offsetX: 0, offsetY: 0 };
+
 export interface ImageObject extends BaseObject {
   type: "image";
   src: string;
   cornerRadius: number;
   shadow?: Shadow;
+  filters?: ImageFilters;
+  crop?: ImageCrop;
+  flipX?: boolean;
+  flipY?: boolean;
+  stroke?: string;
+  strokeWidth?: number;
 }
 
 export interface ShapeObject extends BaseObject {
