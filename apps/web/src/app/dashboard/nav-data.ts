@@ -14,6 +14,10 @@ export interface NavItem {
   pro?: boolean;
   /** Hidden until the shop has graduated past the bare-minimum setup (see isGraduated). */
   advanced?: boolean;
+  /** Still under construction — shown in the nav as a disabled preview
+   *  ("به‌زودی") instead of a working link, and left out of search/command
+   *  palette results entirely since there's nothing to navigate to yet. */
+  comingSoon?: boolean;
 }
 
 export interface NavGroup {
@@ -71,7 +75,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dashboard/short-links", icon: Scissors, label: "لینک کوتاه", pro: true },
       { href: "/dashboard/audience", icon: Users, label: "مخاطبان", pro: true },
       { href: "/dashboard/auto-reply", icon: Bot, label: "پاسخ خودکار", pro: true },
-      { href: "/dashboard/story-studio", icon: ImagePlus, label: "استوری‌ساز" },
+      { href: "/dashboard/story-studio", icon: ImagePlus, label: "استوری‌ساز", comingSoon: true },
       { href: "/dashboard/content-calendar", icon: CalendarDays, label: "تقویم محتوا", pro: true, advanced: true },
       { href: "/dashboard/ab-testing", icon: FlaskConical, label: "تست A/B", pro: true, advanced: true },
     ],
@@ -92,9 +96,10 @@ export const BOTTOM_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/analytics", icon: BarChart3, label: "آمار", pro: true },
 ];
 
-/** Flat list of every destination, for the command palette's search index. */
+/** Flat list of every destination, for the command palette's search index.
+ *  comingSoon items are excluded — there's nowhere for a search hit to go. */
 export function allNavItems(): NavItem[] {
-  return [HOME_ITEM, ...NAV_GROUPS.flatMap((g) => g.items), ...ACCOUNT_ITEMS];
+  return [HOME_ITEM, ...NAV_GROUPS.flatMap((g) => g.items), ...ACCOUNT_ITEMS].filter((i) => !i.comingSoon);
 }
 
 /**

@@ -30,6 +30,19 @@ interface SidebarContentProps {
 }
 
 function NavLink({ item, active, onClick, isNew }: { item: NavItem; active: boolean; onClick: () => void; isNew: boolean }) {
+  if (item.comingSoon) {
+    return (
+      <div
+        aria-disabled="true"
+        title="این بخش هنوز آماده نیست"
+        className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60"
+      >
+        <item.icon className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">{item.label}</span>
+        <span className="mr-auto text-[9px] bg-gray-400/15 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-md shrink-0">به‌زودی</span>
+      </div>
+    );
+  }
   return (
     <Link href={item.href} onClick={onClick}
       className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all duration-150
