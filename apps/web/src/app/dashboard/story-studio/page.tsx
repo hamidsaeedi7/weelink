@@ -6,7 +6,7 @@ import type Konva from "konva";
 import {
   Type, ImagePlus, Shapes, Layers, Download, Undo2, Redo2, X,
   Square, Circle, Triangle, Star as StarIcon, Minus, Loader2,
-  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2, Sticker, BadgeCheck,
+  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2, Sticker, BadgeCheck, Clapperboard,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { CANVAS_PRESETS, createImage, createShape, createText } from "@/lib/editor/presets";
@@ -19,6 +19,9 @@ import { ProjectsGallery } from "@/components/editor/panels/ProjectsGallery";
 import { ProductStoryWizard } from "@/components/editor/panels/ProductStoryWizard";
 import { ElementsPicker } from "@/components/editor/panels/ElementsPicker";
 import { BrandKitPanel } from "@/components/editor/panels/BrandKitPanel";
+import { AnimationPanel, type VideoExportSettings } from "@/components/editor/panels/AnimationPanel";
+import { pageDuration } from "@/lib/editor/animation";
+import { detectVideoSupport, downloadBlob, recordCanvas } from "@/lib/editor/video";
 import { setBrandColors } from "@/components/editor/ui";
 import { PropertiesPanel } from "@/components/editor/panels/PropertiesPanel";
 import { LayersPanel } from "@/components/editor/panels/LayersPanel";
@@ -57,7 +60,7 @@ const SHAPES: { kind: ShapeKind; icon: any; label: string }[] = [
   { kind: "line", icon: Minus, label: "خط" },
 ];
 
-type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | "elements" | "brand" | null;
+type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | "elements" | "brand" | "animate" | null;
 
 export default function StoryStudioPage() {
   const doc = useEditor((s) => s.doc);
@@ -102,6 +105,13 @@ export default function StoryStudioPage() {
   // Export must repaint the stage without editing chrome before capturing.
   const [exportMode, setExportMode] = useState<{ transparent: boolean } | null>(null);
 
+  // Playback: null = editing. A number is "seconds into the current page".
+  const [playbackTime, setPlaybackTime] = useState<number | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [recordProgress, setRecordProgress] = useState(0);
+  const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // fitZoom is defined below; a ref lets callers above it stay in source
   // order without a forward-reference error.
   const fitZoomRef = useRef<() => void>(() => {});
@@ -109,6 +119,100 @@ export default function StoryStudioPage() {
   useEffect(() => {
     if (recovered) toast.success("نسخهٔ ذخیره‌نشده بازیابی شد");
   }, [recovered]);
+
+  /**
+   * Runs the current page's animations once, then returns to editing.
+   *
+   * Driven by setTimeout rather than requestAnimationFrame on purpose:
+   * browsers FREEZE rAF in a hidden/backgrounded tab, which would leave
+   * playback stuck part-way and the canvas stranded blank (objects before
+   * their delay are not drawn). A timer keeps running, and the hard stop
+   * below guarantees the editor always comes back even if ticks are starved.
+   */
+  const stopPlayback = useCallback(() => {
+    if (playTimerRef.current) clearTimeout(playTimerRef.current);
+    if (playStopRef.current) clearTimeout(playStopRef.current);
+    playTimerRef.current = null;
+    playStopRef.current = null;
+    setPlaybackTime(null);
+  }, []);
+
+  const previewPlay = () => {
+    stopPlayback();
+    const page = doc.pages.find((p) => p.id === activePageId) ?? doc.pages[0];
+    const totalMs = pageDuration(page) * 1000;
+    const started = performance.now();
+
+    const tick = () => {
+      const elapsed = performance.now() - started;
+      if (elapsed >= totalMs) { stopPlayback(); return; }
+      setPlaybackTime(elapsed / 1000);
+      playTimerRef.current = setTimeout(tick, 33);
+    };
+    setPlaybackTime(0);
+    playTimerRef.current = setTimeout(tick, 33);
+    // Belt and braces: end playback even if the tick loop is throttled.
+    playStopRef.current = setTimeout(stopPlayback, totalMs + 1500);
+  };
+
+  // Escape always exits playback.
+  useEffect(() => {
+    if (playbackTime == null) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") stopPlayback(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playbackTime, stopPlayback]);
+
+  useEffect(() => stopPlayback, [stopPlayback]);
+
+  const exportVideo = async (settings: VideoExportSettings) => {
+    const stage = stageRef.current;
+    const support = detectVideoSupport();
+    if (!stage || !support.supported || !support.mimeType) return;
+
+    // Konva renders into a real <canvas>; captureStream needs that element.
+    const canvas = stage.toCanvas() as HTMLCanvasElement;
+    const liveCanvas = (stage.container().querySelector("canvas") as HTMLCanvasElement) ?? canvas;
+
+    const pages = settings.allPages ? doc.pages : [doc.pages.find((p) => p.id === activePageId) ?? doc.pages[0]];
+    const originalPage = activePageId;
+    const perPage = pages.map((p) => pageDuration(p));
+    const totalSec = perPage.reduce((a, b) => a + b, 0);
+
+    setRecording(true);
+    setRecordProgress(0);
+    try {
+      const blob = await recordCanvas({
+        canvas: liveCanvas,
+        fps: settings.fps,
+        durationMs: totalSec * 1000,
+        mimeType: support.mimeType,
+        onProgress: setRecordProgress,
+        onFrame: (elapsed) => {
+          // Map absolute elapsed time onto the right page + local offset.
+          let remaining = elapsed;
+          for (let i = 0; i < pages.length; i++) {
+            if (remaining < perPage[i] || i === pages.length - 1) {
+              if (pages[i].id !== useEditor.getState().activePageId) setActivePage(pages[i].id);
+              setPlaybackTime(Math.min(remaining, perPage[i]));
+              return;
+            }
+            remaining -= perPage[i];
+          }
+        },
+      });
+      downloadBlob(blob, `${(doc.name || "story").replace(/[\/:*?"<>|]+/g, "-")}.${support.extension}`);
+      toast.success("ویدیو آماده شد");
+    } catch {
+      toast.error("خطا در ضبط ویدیو");
+    } finally {
+      setPlaybackTime(null);
+      setActivePage(originalPage);
+      setRecording(false);
+      setRecordProgress(0);
+      setSheet(null);
+    }
+  };
 
   const applyTemplate = (tpl: StoryTemplate) => {
     startNew(projectFromTemplate(tpl));
@@ -336,7 +440,9 @@ export default function StoryStudioPage() {
           <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
           <ToolButton icon={Shapes} label="شکل" onClick={() => setSheet(sheet === "shapes" ? null : "shapes")} active={sheet === "shapes"} />
           <ToolButton icon={Sticker} label="عناصر" onClick={() => setSheet("elements")} active={sheet === "elements"} />
+        <ToolButton icon={Clapperboard} label="انیمیشن" onClick={() => setSheet("animate")} active={sheet === "animate"} />
           <ToolButton icon={BadgeCheck} label="برند" onClick={() => setSheet("brand")} active={sheet === "brand"} />
+          <ToolButton icon={Clapperboard} label="انیمیشن" onClick={() => setSheet("animate")} active={sheet === "animate"} />
         </aside>
 
         {/* Desktop templates flyout */}
@@ -358,16 +464,29 @@ export default function StoryStudioPage() {
         )}
 
         {/* Canvas viewport */}
-        <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex-1 min-w-0 flex flex-col relative">
           <div ref={viewportRef} className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-gray-100 dark:bg-black/40 relative">
             <div className="shadow-2xl rounded-lg overflow-hidden" style={{ lineHeight: 0 }}>
               <EditorCanvas
                 stageRef={stageRef}
                 exporting={!!exportMode}
                 transparentBg={!!exportMode?.transparent}
+                playbackTime={playbackTime}
               />
             </div>
           </div>
+          {playbackTime != null && !recording && (
+            <button
+              onClick={stopPlayback}
+              className="absolute inset-0 z-10 flex items-end justify-center pb-6 bg-transparent"
+              aria-label="توقف پیش‌نمایش"
+            >
+              <span className="px-4 py-2 rounded-full bg-black/70 text-white text-xs font-bold">
+                توقف پیش‌نمایش
+              </span>
+            </button>
+          )}
+
           {/* Page navigator sits under the canvas on both breakpoints */}
           <div className="border-t border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.02] shrink-0">
             <PageStrip />
@@ -402,7 +521,7 @@ export default function StoryStudioPage() {
       {sheet && (
         <div
           className={`fixed inset-0 z-30 flex flex-col justify-end ${
-            ["export", "projects", "product", "elements", "brand"].includes(sheet) ? "" : "lg:hidden"
+            ["export", "projects", "product", "elements", "brand", "animate"].includes(sheet) ? "" : "lg:hidden"
           }`}
           role="dialog"
           aria-modal="true"
@@ -419,6 +538,7 @@ export default function StoryStudioPage() {
                   : sheet === "product" ? "ساخت سریع استوری محصول"
                   : sheet === "elements" ? "عناصر آماده"
                   : sheet === "brand" ? "هویت برند"
+                  : sheet === "animate" ? "انیمیشن و ویدیو"
                   : selectedIds.length ? "تنظیمات عنصر" : "پس‌زمینه"}
               </span>
               <button onClick={() => setSheet(null)} aria-label="بستن" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5">
@@ -432,6 +552,14 @@ export default function StoryStudioPage() {
             {sheet === "export" && <ExportPanel busy={exporting} onExport={runExport} />}
             {sheet === "elements" && (
               <ElementsPicker onAdd={(objs) => { addObjects(objs); setSheet(null); }} />
+            )}
+            {sheet === "animate" && (
+              <AnimationPanel
+                onPreview={previewPlay}
+                onExportVideo={exportVideo}
+                recording={recording}
+                progress={recordProgress}
+              />
             )}
             {sheet === "brand" && (
               <BrandKitPanel

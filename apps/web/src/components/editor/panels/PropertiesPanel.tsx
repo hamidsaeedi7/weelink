@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { EDITOR_FONTS } from "@/lib/editor/presets";
-import { DEFAULT_CROP, NEUTRAL_FILTERS, isImage, isShape, isText, type Background } from "@/lib/editor/types";
+import { DEFAULT_ANIMATION, DEFAULT_CROP, NEUTRAL_FILTERS, isImage, isShape, isText, type Background } from "@/lib/editor/types";
+import { ANIMATION_OPTIONS, EASING_OPTIONS } from "@/lib/editor/animation";
 import { ColorField, EmptyHint, LabeledSlider, PanelSection, SegmentedControl, ToolButton } from "../ui";
 
 /**
@@ -338,6 +339,41 @@ export function PropertiesPanel() {
           </>
         );
       })()}
+
+      <PanelSection title="انیمیشن ورود">
+        {(() => {
+          const anim = obj.animation ?? DEFAULT_ANIMATION;
+          const setAnim = (p: Partial<typeof anim>) => patch({ animation: { ...anim, ...p } });
+          return (
+            <>
+              <select
+                value={anim.type}
+                onChange={(e) => { commit(); setAnim({ type: e.target.value as any }); }}
+                className="input-base w-full"
+              >
+                {ANIMATION_OPTIONS.map((o) => (
+                  <option key={o.key} value={o.key}>{o.label}</option>
+                ))}
+              </select>
+              {anim.type !== "none" && (
+                <>
+                  <LabeledSlider label="مدت" suffix="ث" min={0.2} max={3} step={0.1} value={anim.duration} onCommit={commit} onChange={(v) => setAnim({ duration: v })} />
+                  <LabeledSlider label="تأخیر" suffix="ث" min={0} max={5} step={0.1} value={anim.delay} onCommit={commit} onChange={(v) => setAnim({ delay: v })} />
+                  <select
+                    value={anim.easing}
+                    onChange={(e) => { commit(); setAnim({ easing: e.target.value as any }); }}
+                    className="input-base w-full"
+                  >
+                    {EASING_OPTIONS.map((o) => (
+                      <option key={o.key} value={o.key}>{o.label}</option>
+                    ))}
+                  </select>
+                </>
+              )}
+            </>
+          );
+        })()}
+      </PanelSection>
 
       <PanelSection title="چیدمان">
         <LabeledSlider label="شفافیت" suffix="%" min={0} max={100} value={Math.round(obj.opacity * 100)} onCommit={commit} onChange={(v) => patch({ opacity: v / 100 })} />

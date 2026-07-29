@@ -59,6 +59,7 @@ interface EditorState {
   duplicatePage: (id: string) => void;
   removePage: (id: string) => void;
   setActivePage: (id: string) => void;
+  setPageDuration: (id: string, seconds: number) => void;
 
   // selection / viewport
   select: (ids: string[]) => void;
@@ -264,6 +265,14 @@ export const useEditor = create<EditorState>((set, get) => {
     },
 
     setActivePage: (id) => set({ activePageId: id, selectedIds: [] }),
+
+    setPageDuration: (id, seconds) =>
+      set((s) => ({
+        doc: touch({
+          ...s.doc,
+          pages: s.doc.pages.map((p) => (p.id === id ? { ...p, duration: seconds } : p)),
+        }),
+      })),
 
     select: (ids) => set({ selectedIds: ids }),
     toggleSelect: (id) =>

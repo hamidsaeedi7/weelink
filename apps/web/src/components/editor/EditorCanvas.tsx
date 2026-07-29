@@ -6,6 +6,7 @@ import { Stage, Layer, Rect, Ellipse, RegularPolygon, Star, Line, Text as KText,
 import Konva from "konva";
 import { useEditor } from "@/lib/editor/store";
 import { ensureFont } from "@/lib/editor/presets";
+import { animationStateAt } from "@/lib/editor/animation";
 import type { Background, EditorObject, ImageCrop, ImageObject, ShapeObject, TextObject } from "@/lib/editor/types";
 
 /** Distance (canvas px) within which an edge snaps to a guide. */
@@ -56,7 +57,7 @@ function cropRect(img: HTMLImageElement, crop?: ImageCrop) {
 // Konva needs a real HTMLImageElement, so each image object loads its own and
 // re-renders once ready. crossOrigin is required or exporting the stage taints
 // the canvas and toDataURL throws.
-function ImageNode({ obj, ...rest }: { obj: ImageObject } & Record<string, any>) {
+function ImageNode({ obj, playing, ...rest }: { obj: ImageObject; playing?: boolean } & Record<string, any>) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const nodeRef = useRef<Konva.Image | null>(null);
 
@@ -98,10 +99,21 @@ function ImageNode({ obj, ...rest }: { obj: ImageObject } & Record<string, any>)
     return <Rect {...rest} width={obj.width} height={obj.height} fill="rgba(255,255,255,0.08)" cornerRadius={obj.cornerRadius} />;
   }
 
-  // Flipping is a negative scale about the origin, so the position has to be
-  // shifted by the full width/height to keep the visual box where it was.
+  // Flipping is a negative scale about the origin, so in EDIT mode the
+  // position has to be shifted by the full width/height to keep the visual
+  // box where it was. During playback the transform origin is already the
+  // object's centre, where a negative scale mirrors in place — so there the
+  // flip only multiplies into the animation's scale.
   const flipX = !!obj.flipX;
   const flipY = !!obj.flipY;
+  const flipTransform = playing
+    ? { scaleX: (rest.scaleX ?? 1) * (flipX ? -1 : 1), scaleY: (rest.scaleY ?? 1) * (flipY ? -1 : 1) }
+    : {
+        x: rest.x + (flipX ? obj.width : 0),
+        y: rest.y + (flipY ? obj.height : 0),
+        scaleX: flipX ? -1 : 1,
+        scaleY: flipY ? -1 : 1,
+      };
 
   return (
     <KImage
@@ -114,10 +126,7 @@ function ImageNode({ obj, ...rest }: { obj: ImageObject } & Record<string, any>)
       crop={cropRect(img, obj.crop)}
       stroke={obj.stroke}
       strokeWidth={obj.strokeWidth ?? 0}
-      x={rest.x + (flipX ? obj.width : 0)}
-      y={rest.y + (flipY ? obj.height : 0)}
-      scaleX={flipX ? -1 : 1}
-      scaleY={flipY ? -1 : 1}
+      {...flipTransform}
       filters={activeFilters}
       brightness={f?.brightness ?? 0}
       contrast={f?.contrast ?? 0}
@@ -249,9 +258,13 @@ export function EditorCanvas({
   showSafeZone = true,
   exporting = false,
   transparentBg = false,
+  playbackTime = null,
 }: {
   stageRef?: React.MutableRefObject<Konva.Stage | null>;
   showSafeZone?: boolean;
+  /** Seconds into the current page. Non-null puts the canvas in playback
+   *  mode: animations apply, and nothing is interactive. */
+  playbackTime?: number | null;
   /**
    * Editing chrome (safe-zone bands, selection transformer) lives in the same
    * Konva layer as the artwork, so stage.toDataURL() bakes it into the file.
@@ -351,6 +364,32 @@ export function EditorCanvas({
         {/* Objects, painted in array order = layer order (last on top) */}
         {objects.map((obj) => {
           if (!obj.visible) return null;
+
+          // ── Playback ──
+          // Animation scale/rotate must pivot on the object's centre, which
+          // needs offset + a shifted position. That transform is wrong for
+          // editing (the transformer and drag maths assume a top-left
+          // origin), so it is applied only while playing.
+          if (playbackTime != null) {
+            const a = animationStateAt(obj.animation, playbackTime);
+            if (a.opacity <= 0.001) return null;
+            const playProps = {
+              id: obj.id,
+              x: obj.x + obj.width / 2 + a.dx,
+              y: obj.y + obj.height / 2 + a.dy,
+              offsetX: obj.width / 2,
+              offsetY: obj.height / 2,
+              rotation: obj.rotation + a.rotate,
+              opacity: obj.opacity * a.opacity,
+              scaleX: a.scale,
+              scaleY: a.scale,
+              listening: false,
+            };
+            if (obj.type === "text") return <TextNode key={obj.id} obj={obj} {...playProps} />;
+            if (obj.type === "image") return <ImageNode key={obj.id} obj={obj} playing {...playProps} />;
+            return <ShapeNode key={obj.id} obj={obj} {...playProps} />;
+          }
+
           const shared = {
             id: obj.id,
             x: obj.x,
@@ -402,7 +441,7 @@ export function EditorCanvas({
         })}
 
         {/* Safe zone — where Instagram's own UI will cover the design */}
-        {showSafeZone && !exporting && (
+        {showSafeZone && !exporting && playbackTime == null && (
           <Group listening={false}>
             <Rect x={0} y={0} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
             <Rect x={0} y={CH - SAFE_INSET_Y} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
@@ -422,7 +461,7 @@ export function EditorCanvas({
 
         <Transformer
           ref={trRef}
-          visible={!exporting}
+          visible={!exporting && playbackTime == null}
           rotateEnabled
           keepRatio={false}
           anchorSize={14}

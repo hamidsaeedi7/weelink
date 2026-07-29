@@ -27,11 +27,32 @@ export interface Shadow {
   opacity: number;
 }
 
+export type AnimationType =
+  | "none" | "fade" | "slideUp" | "slideDown" | "slideRight" | "slideLeft"
+  | "zoomIn" | "zoomOut" | "pop" | "rotateIn";
+
+export type Easing = "linear" | "easeOut" | "easeInOut" | "back";
+
+export interface ObjectAnimation {
+  type: AnimationType;
+  /** seconds */
+  duration: number;
+  /** seconds before this object starts */
+  delay: number;
+  easing: Easing;
+}
+
+export const DEFAULT_ANIMATION: ObjectAnimation = {
+  type: "none", duration: 0.6, delay: 0, easing: "easeOut",
+};
+
 interface BaseObject {
   id: string;
   type: ObjectType;
   /** Shown in the layers panel; user-renameable. */
   name: string;
+  /** Entrance animation. Absent means the object simply appears. */
+  animation?: ObjectAnimation;
   x: number;
   y: number;
   width: number;
@@ -141,7 +162,11 @@ export interface Page {
   id: string;
   background: Background;
   objects: EditorObject[];
+  /** Seconds this page is held during playback/video export. */
+  duration?: number;
 }
+
+export const DEFAULT_PAGE_DURATION = 5;
 
 export interface CanvasSize {
   width: number;
