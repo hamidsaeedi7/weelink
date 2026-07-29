@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, Download, Loader2 } from "lucide-react";
+import { AlertTriangle, Crown, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useEditor } from "@/lib/editor/store";
 import {
   EXPORT_FORMATS, collectWarnings, collectImageWarnings,
@@ -16,12 +17,17 @@ export interface ExportSettings {
   transparent: boolean;
 }
 
+/** Multi-page bundles (ZIP/PDF across pages) are Pro; free stays one page. */
+const PRO_ONLY_FORMATS = new Set<ExportFormat>(["pdf"]);
+
 export function ExportPanel({
   busy,
   onExport,
+  isPro,
 }: {
   busy: boolean;
   onExport: (settings: ExportSettings) => void;
+  isPro: boolean;
 }) {
   const doc = useEditor((s) => s.doc);
   const [format, setFormat] = useState<ExportFormat>("png");
@@ -30,7 +36,7 @@ export function ExportPanel({
   const [transparent, setTransparent] = useState(false);
   const [warnings, setWarnings] = useState<ExportWarning[]>([]);
 
-  const multiPage = doc.pages.length > 1;
+  const multiPage = doc.pages.length > 1 && isPro;
   // JPEG has no alpha channel at all, so offering it there would be a lie.
   const canTransparent = format === "png" || format === "webp";
 
@@ -53,19 +59,30 @@ export function ExportPanel({
       <div>
         <span className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1.5">فرمت</span>
         <div className="grid grid-cols-4 gap-1.5">
-          {EXPORT_FORMATS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFormat(f.key)}
-              className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                format === f.key
-                  ? "bg-accent-500 text-white"
-                  : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {EXPORT_FORMATS.map((f) => {
+            const locked = PRO_ONLY_FORMATS.has(f.key) && !isPro;
+            return (
+              <button
+                key={f.key}
+                onClick={() => {
+                  if (locked) { toast.error("خروجی PDF فقط برای پلن Pro است"); return; }
+                  setFormat(f.key);
+                }}
+                className={`relative py-2 rounded-lg text-xs font-bold transition-all ${
+                  format === f.key
+                    ? "bg-accent-500 text-white"
+                    : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                }`}
+              >
+                {locked && (
+                  <span className="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-accent-500 flex items-center justify-center">
+                    <Crown className="w-2 h-2 text-white" />
+                  </span>
+                )}
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -80,6 +97,12 @@ export function ExportPanel({
           onChange={(v) => setScale(Number(v))}
         />
       </div>
+
+      {doc.pages.length > 1 && !isPro && (
+        <p className="text-[11px] text-gray-400 leading-relaxed">
+          فقط صفحهٔ فعلی خروجی گرفته می‌شود — خروجی همهٔ صفحه‌ها فقط در پلن Pro در دسترس است.
+        </p>
+      )}
 
       {multiPage && (
         <div>

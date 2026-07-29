@@ -259,6 +259,7 @@ export function EditorCanvas({
   exporting = false,
   transparentBg = false,
   playbackTime = null,
+  watermark = false,
 }: {
   stageRef?: React.MutableRefObject<Konva.Stage | null>;
   showSafeZone?: boolean;
@@ -272,6 +273,8 @@ export function EditorCanvas({
    */
   exporting?: boolean;
   transparentBg?: boolean;
+  /** Free-plan export mark — only drawn while `exporting` is also true. */
+  watermark?: boolean;
 }) {
   const doc = useEditor((s) => s.doc);
   const activePageId = useEditor((s) => s.activePageId);
@@ -447,6 +450,18 @@ export function EditorCanvas({
             <Rect x={0} y={CH - SAFE_INSET_Y} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
             <Line points={[0, SAFE_INSET_Y, CW, SAFE_INSET_Y]} stroke="rgba(255,0,80,0.35)" strokeWidth={2} dash={[12, 12]} />
             <Line points={[0, CH - SAFE_INSET_Y, CW, CH - SAFE_INSET_Y]} stroke="rgba(255,0,80,0.35)" strokeWidth={2} dash={[12, 12]} />
+          </Group>
+        )}
+
+        {/* Free-plan export watermark — baked into the file, not just an overlay. */}
+        {exporting && watermark && (
+          <Group listening={false} x={CW / 2} y={CH - 130}>
+            <Rect x={-190} y={-32} width={380} height={64} cornerRadius={32} fill="rgba(0,0,0,0.45)" />
+            <KText
+              text="ساخته شده با ویلینک"
+              x={-190} y={-16} width={380}
+              align="center" fontSize={30} fontFamily="Vazirmatn" fill="#FFFFFF" fontStyle="bold"
+            />
           </Group>
         )}
 

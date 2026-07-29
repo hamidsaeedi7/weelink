@@ -6,6 +6,7 @@ import { brandKitApi, uploadApi } from "@/lib/api";
 import { EDITOR_FONTS, createImage, createText } from "@/lib/editor/presets";
 import type { EditorObject } from "@/lib/editor/types";
 import { toast } from "sonner";
+import { ProLock } from "../ui";
 
 export interface BrandKit {
   logoUrl: string | null;
@@ -23,10 +24,12 @@ export function BrandKitPanel({
   onAdd,
   onApplyFont,
   onKitLoaded,
+  isPro,
 }: {
   onAdd: (objects: EditorObject[]) => void;
   onApplyFont: (fontFamily: string) => void;
   onKitLoaded?: (kit: BrandKit) => void;
+  isPro: boolean;
 }) {
   const [kit, setKit] = useState<BrandKit | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,13 +37,16 @@ export function BrandKitPanel({
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    if (!isPro) { setLoading(false); return; }
     brandKitApi
       .get()
       .then((k: any) => { setKit(k); onKitLoaded?.(k); })
       .catch(() => toast.error("خطا در دریافت هویت برند"))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isPro]);
+
+  if (!isPro) return <ProLock feature="هویت برند" />;
 
   const set = (p: Partial<BrandKit>) => setKit((k) => (k ? { ...k, ...p } : k));
 

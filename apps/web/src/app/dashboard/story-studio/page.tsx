@@ -31,7 +31,7 @@ import { LayersPanel } from "@/components/editor/panels/LayersPanel";
 import { TemplatePicker } from "@/components/editor/panels/TemplatePicker";
 import { PageStrip } from "@/components/editor/panels/PageStrip";
 import { PanelSection, ToolButton } from "@/components/editor/ui";
-import { uploadApi } from "@/lib/api";
+import { accountApi, uploadApi } from "@/lib/api";
 import { toast } from "sonner";
 
 const SEEN_KEY = "weelink-story-studio-onboarded";
@@ -92,6 +92,11 @@ export default function StoryStudioPage() {
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [sheet, setSheet] = useState<MobileSheet>(null);
+  const [isPro, setIsPro] = useState(false);
+
+  useEffect(() => {
+    (accountApi.getMe() as Promise<any>).then((u) => setIsPro(u?.plan === "PRO")).catch(() => {});
+  }, []);
 
   // A small thumbnail for the project list. Capped hard — this rides along
   // with every autosave, so it must stay far below the payload limit.
@@ -475,21 +480,20 @@ export default function StoryStudioPage() {
       <div className="flex-1 flex min-h-0">
         {/* Desktop: left tool rail */}
         <aside className="hidden lg:flex flex-col gap-1 p-2 border-l border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.02] shrink-0">
-          <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} />
+          <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} locked={!isPro} />
           <ToolButton icon={LayoutTemplate} label="قالب" onClick={() => setSheet(sheet === "templates" ? null : "templates")} active={sheet === "templates"} />
           <ToolButton icon={Type} label="متن" onClick={addTextObject} />
           <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
           <ToolButton icon={Shapes} label="شکل" onClick={() => setSheet(sheet === "shapes" ? null : "shapes")} active={sheet === "shapes"} />
           <ToolButton icon={Sticker} label="عناصر" onClick={() => setSheet("elements")} active={sheet === "elements"} />
-        <ToolButton icon={Clapperboard} label="انیمیشن" onClick={() => setSheet("animate")} active={sheet === "animate"} />
-          <ToolButton icon={BadgeCheck} label="برند" onClick={() => setSheet("brand")} active={sheet === "brand"} />
-          <ToolButton icon={Clapperboard} label="انیمیشن" onClick={() => setSheet("animate")} active={sheet === "animate"} />
+          <ToolButton icon={Clapperboard} label="انیمیشن" onClick={() => setSheet("animate")} active={sheet === "animate"} locked={!isPro} />
+          <ToolButton icon={BadgeCheck} label="برند" onClick={() => setSheet("brand")} active={sheet === "brand"} locked={!isPro} />
         </aside>
 
         {/* Desktop templates flyout */}
         {sheet === "templates" && (
           <div className="hidden lg:block absolute right-16 top-16 z-20 w-[340px] max-h-[70vh] overflow-y-auto p-3 rounded-2xl glass-chrome shadow-xl">
-            <TemplatePicker onApply={applyTemplate} />
+            <TemplatePicker onApply={applyTemplate} isPro={isPro} />
           </div>
         )}
 
@@ -513,6 +517,7 @@ export default function StoryStudioPage() {
                 exporting={!!exportMode}
                 transparentBg={!!exportMode?.transparent}
                 playbackTime={playbackTime}
+                watermark={!isPro}
               />
             </div>
           </div>
@@ -530,7 +535,7 @@ export default function StoryStudioPage() {
 
           {/* Page navigator sits under the canvas on both breakpoints */}
           <div className="border-t border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.02] shrink-0">
-            <PageStrip />
+            <PageStrip isPro={isPro} />
           </div>
         </div>
 
@@ -547,7 +552,7 @@ export default function StoryStudioPage() {
 
       {/* ── Mobile: bottom toolbar ── */}
       <nav className="lg:hidden flex items-center justify-around gap-1 px-2 py-2 border-t border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.03] shrink-0">
-        <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} />
+        <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} locked={!isPro} />
         <ToolButton icon={LayoutTemplate} label="قالب" onClick={() => setSheet("templates")} active={sheet === "templates"} />
         <ToolButton icon={Type} label="متن" onClick={addTextObject} />
         <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
@@ -610,8 +615,8 @@ export default function StoryStudioPage() {
 
             {sheet === "layers" && <LayersPanel />}
             {sheet === "properties" && <PropertiesPanel />}
-            {sheet === "templates" && <TemplatePicker onApply={applyTemplate} />}
-            {sheet === "export" && <ExportPanel busy={exporting} onExport={runExport} />}
+            {sheet === "templates" && <TemplatePicker onApply={applyTemplate} isPro={isPro} />}
+            {sheet === "export" && <ExportPanel busy={exporting} onExport={runExport} isPro={isPro} />}
             {sheet === "elements" && (
               <ElementsPicker onAdd={(objs) => { addObjects(objs); setSheet(null); }} />
             )}
@@ -622,6 +627,7 @@ export default function StoryStudioPage() {
                 onExportVideo={exportVideo}
                 recording={recording}
                 progress={recordProgress}
+                isPro={isPro}
               />
             )}
             {sheet === "brand" && (
@@ -629,10 +635,12 @@ export default function StoryStudioPage() {
                 onAdd={(objs) => { addObjects(objs); setSheet(null); }}
                 onApplyFont={(f) => patchAllText({ fontFamily: f } as any)}
                 onKitLoaded={(kit) => setBrandColors(kit.colors ?? [])}
+                isPro={isPro}
               />
             )}
             {sheet === "product" && (
               <ProductStoryWizard
+                isPro={isPro}
                 onPick={(project) => {
                   startNew(project);
                   setSheet(null);

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 import { CreateStoryProjectDto, UpdateStoryProjectDto } from "./dto/story-project.dto";
 
 /** Autosave posts the whole document, so an upper bound matters. */
@@ -7,14 +8,35 @@ const MAX_DOC_BYTES = 2 * 1024 * 1024; // 2MB
 const MAX_THUMBNAIL_BYTES = 400 * 1024;
 const MAX_PROJECTS = 100;
 
+/** Multi-page/carousel stories are a Pro feature — free stays single-page. */
+const FREE_PAGE_LIMIT = 1;
+
 @Injectable()
 export class StoryProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  private async getShopId(userId: string): Promise<string> {
-    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+  private async getShop(userId: string) {
+    const shop = await this.prisma.shop.findUnique({
+      where: { userId },
+      select: { id: true, user: { select: { plan: true } } },
+    });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
-    return shop.id;
+    return shop;
+  }
+
+  /**
+   * Blocks GROWING a story past the free page limit — not editing one that's
+   * already over it. Without `previousCount`, a free user who owns an old
+   * multi-page project (saved before this gate existed, or from a Pro plan
+   * that later lapsed) would get every autosave rejected just for editing
+   * existing pages, which would look like the editor silently broke.
+   */
+  private assertPageLimit(doc: unknown, plan: string, previousCount = 0) {
+    const pages = (doc as any)?.pages;
+    const count = Array.isArray(pages) ? pages.length : 0;
+    if (count > FREE_PAGE_LIMIT && count > previousCount && plan !== "PRO") {
+      throw new ProRequiredException("چندصفحه‌ای بودن استوری فقط در پلن Pro در دسترس است");
+    }
   }
 
   private assertDocSize(doc: unknown) {
@@ -33,7 +55,7 @@ export class StoryProjectsService {
   /** List is intentionally without `doc` — the payloads are large and the
    *  gallery only needs name/thumbnail/date. */
   async findAll(userId: string) {
-    const shopId = await this.getShopId(userId);
+    const { id: shopId } = await this.getShop(userId);
     return this.prisma.storyProject.findMany({
       where: { shopId },
       orderBy: { updatedAt: "desc" },
@@ -42,7 +64,7 @@ export class StoryProjectsService {
   }
 
   async findOne(userId: string, id: string) {
-    const shopId = await this.getShopId(userId);
+    const { id: shopId } = await this.getShop(userId);
     // shopId is part of the lookup, so another shop's id simply 404s rather
     // than leaking existence.
     const project = await this.prisma.storyProject.findFirst({ where: { id, shopId } });
@@ -51,18 +73,19 @@ export class StoryProjectsService {
   }
 
   async create(userId: string, dto: CreateStoryProjectDto) {
-    const shopId = await this.getShopId(userId);
+    const shop = await this.getShop(userId);
     this.assertDocSize(dto.doc);
     this.assertThumbSize(dto.thumbnail);
+    this.assertPageLimit(dto.doc, (shop as any).user.plan);
 
-    const count = await this.prisma.storyProject.count({ where: { shopId } });
+    const count = await this.prisma.storyProject.count({ where: { shopId: shop.id } });
     if (count >= MAX_PROJECTS) {
       throw new BadRequestException(`حداکثر ${MAX_PROJECTS} پروژه می‌توانید ذخیره کنید`);
     }
 
     return this.prisma.storyProject.create({
       data: {
-        shopId,
+        shopId: shop.id,
         name: dto.name?.trim() || "استوری بدون عنوان",
         doc: dto.doc as any,
         thumbnail: dto.thumbnail,
@@ -71,11 +94,16 @@ export class StoryProjectsService {
   }
 
   async update(userId: string, id: string, dto: UpdateStoryProjectDto) {
-    const shopId = await this.getShopId(userId);
-    const existing = await this.prisma.storyProject.findFirst({ where: { id, shopId } });
+    const shop = await this.getShop(userId);
+    const existing = await this.prisma.storyProject.findFirst({ where: { id, shopId: shop.id } });
     if (!existing) throw new NotFoundException("پروژه یافت نشد");
 
-    if (dto.doc !== undefined) this.assertDocSize(dto.doc);
+    if (dto.doc !== undefined) {
+      this.assertDocSize(dto.doc);
+      const previousPages = (existing.doc as any)?.pages;
+      const previousCount = Array.isArray(previousPages) ? previousPages.length : 0;
+      this.assertPageLimit(dto.doc, (shop as any).user.plan, previousCount);
+    }
     this.assertThumbSize(dto.thumbnail);
 
     return this.prisma.storyProject.update({
@@ -89,7 +117,7 @@ export class StoryProjectsService {
   }
 
   async remove(userId: string, id: string) {
-    const shopId = await this.getShopId(userId);
+    const { id: shopId } = await this.getShop(userId);
     const existing = await this.prisma.storyProject.findFirst({ where: { id, shopId } });
     if (!existing) throw new NotFoundException("پروژه یافت نشد");
     await this.prisma.storyProject.delete({ where: { id } });

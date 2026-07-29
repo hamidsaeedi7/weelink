@@ -7,6 +7,7 @@ import { STORY_STYLES, buildProductStory, discountOf, type ProductStoryInput } f
 import type { Project } from "@/lib/editor/types";
 import { PagePreview } from "../PagePreview";
 import { toast } from "sonner";
+import { ProLock } from "../ui";
 
 /**
  * Uploads are stored as site-relative paths like /uploads/images/x.png.
@@ -28,7 +29,7 @@ interface Product {
 
 const OCCASIONS = ["", "فروش ویژه", "تازه رسید", "پیشنهاد شگفت‌انگیز", "حراج پایان فصل", "شب یلدا", "عید نوروز"];
 
-export function ProductStoryWizard({ onPick }: { onPick: (project: Project) => void }) {
+export function ProductStoryWizard({ onPick, isPro }: { onPick: (project: Project) => void; isPro: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -42,12 +43,13 @@ export function ProductStoryWizard({ onPick }: { onPick: (project: Project) => v
   const [occasion, setOccasion] = useState("فروش ویژه");
 
   useEffect(() => {
+    if (!isPro) { setLoadingProducts(false); return; }
     productsApi
       .getAll()
       .then((p: any) => setProducts(Array.isArray(p) ? p : []))
       .catch(() => {})
       .finally(() => setLoadingProducts(false));
-  }, []);
+  }, [isPro]);
 
   /** Prefills from an existing product — the seller already typed this once. */
   const useProduct = (p: Product) => {
@@ -90,6 +92,8 @@ export function ProductStoryWizard({ onPick }: { onPick: (project: Project) => v
   );
 
   const discount = discountOf(input);
+
+  if (!isPro) return <ProLock feature="استوری‌ساز خودکار محصول" />;
 
   return (
     <div className="space-y-4">

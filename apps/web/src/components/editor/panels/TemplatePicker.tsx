@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Crown } from "lucide-react";
+import { toast } from "sonner";
 import { TEMPLATES, TEMPLATE_CATEGORIES, type StoryTemplate } from "@/lib/editor/templates";
 import { uid } from "@/lib/editor/presets";
 import { PagePreview } from "../PagePreview";
@@ -15,7 +17,7 @@ function TemplateThumb({ tpl }: { tpl: StoryTemplate }) {
   return <PagePreview page={page} />;
 }
 
-export function TemplatePicker({ onApply }: { onApply: (tpl: StoryTemplate) => void }) {
+export function TemplatePicker({ onApply, isPro }: { onApply: (tpl: StoryTemplate) => void; isPro: boolean }) {
   const [category, setCategory] = useState("all");
   const list = category === "all" ? TEMPLATES : TEMPLATES.filter((t) => t.category === category);
 
@@ -38,20 +40,33 @@ export function TemplatePicker({ onApply }: { onApply: (tpl: StoryTemplate) => v
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-        {list.map((tpl) => (
-          <button
-            key={tpl.key}
-            onClick={() => onApply(tpl)}
-            title={tpl.label}
-            className="relative rounded-xl overflow-hidden border-2 border-transparent hover:border-accent-500 hover:scale-[1.02] transition-all"
-            style={{ aspectRatio: "9/16" }}
-          >
-            <TemplateThumb tpl={tpl} />
-            <span className="absolute bottom-0 inset-x-0 py-1 bg-black/65 text-[9px] font-bold text-white text-center truncate px-1">
-              {tpl.label}
-            </span>
-          </button>
-        ))}
+        {list.map((tpl) => {
+          const locked = tpl.pro && !isPro;
+          return (
+            <button
+              key={tpl.key}
+              onClick={() => {
+                if (locked) { toast.error("این قالب فقط برای پلن Pro است"); return; }
+                onApply(tpl);
+              }}
+              title={tpl.label}
+              className="relative rounded-xl overflow-hidden border-2 border-transparent hover:border-accent-500 hover:scale-[1.02] transition-all"
+              style={{ aspectRatio: "9/16" }}
+            >
+              <TemplateThumb tpl={tpl} />
+              {locked && (
+                <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                  <span className="w-7 h-7 rounded-full bg-accent-500 flex items-center justify-center">
+                    <Crown className="w-3.5 h-3.5 text-white" />
+                  </span>
+                </div>
+              )}
+              <span className="absolute bottom-0 inset-x-0 py-1 bg-black/65 text-[9px] font-bold text-white text-center truncate px-1">
+                {tpl.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

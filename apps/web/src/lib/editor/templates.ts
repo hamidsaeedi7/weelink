@@ -7,6 +7,8 @@ export interface StoryTemplate {
   category: string;
   background: Background;
   build: () => EditorObject[];
+  /** Locked behind the Pro plan — every category keeps at least one free option. */
+  pro?: boolean;
 }
 
 export const TEMPLATE_CATEGORIES = [
@@ -68,6 +70,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "discount",
     label: "کد تخفیف",
     category: "sale",
+    pro: true,
     background: { type: "gradient", from: "#0F172A", to: "#14C7A5", angle: 135 },
     build: () => [
       headline("۳۰٪ تخفیف", { y: 700, fontSize: 130 }),
@@ -91,6 +94,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "product-price",
     label: "معرفی با قیمت",
     category: "product",
+    pro: true,
     background: { type: "gradient", from: "#1E293B", to: "#F97316", angle: 140 },
     build: () => [
       headline("نام محصول", { y: 700 }),
@@ -112,6 +116,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "yalda",
     label: "شب یلدا",
     category: "occasion",
+    pro: true,
     background: { type: "gradient", from: "#3B0764", to: "#7C2D12", angle: 155 },
     build: () => [
       headline("شب یلدا مبارک", { y: 740, fontFamily: "Lalezar", fontSize: 112 }),
@@ -122,6 +127,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "ramadan",
     label: "ماه رمضان",
     category: "occasion",
+    pro: true,
     background: { type: "gradient", from: "#1E1B4B", to: "#7C3AED", angle: 150 },
     build: () => [
       headline("رمضان کریم", { y: 740, fontFamily: "Lalezar", fontSize: 118 }),
@@ -132,6 +138,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "blackfriday",
     label: "بلک فرایدی",
     category: "sale",
+    pro: true,
     background: { type: "solid", color: "#0A0A0A" },
     build: () => [
       createText({ name: "عنوان", text: "BLACK FRIDAY", x: 60, y: 720, width: 960, height: 160, fontSize: 128, fontWeight: 700, align: "center", direction: "ltr", fontFamily: "BebasNeue" }),
@@ -143,6 +150,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "course",
     label: "دوره آموزشی",
     category: "content",
+    pro: true,
     background: { type: "gradient", from: "#0F172A", to: "#3B82F6", angle: 140 },
     build: () => [
       badge("ثبت‌نام باز است", "#93C5FD", { y: 580 }),
@@ -164,6 +172,7 @@ export const TEMPLATES: StoryTemplate[] = [
     key: "announcement",
     label: "اطلاعیه",
     category: "content",
+    pro: true,
     background: { type: "gradient", from: "#7C2D12", to: "#F97316", angle: 150 },
     build: () => [
       badge("اطلاعیه", "#FED7AA", { y: 620 }),

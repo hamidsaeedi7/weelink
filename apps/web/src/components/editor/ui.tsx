@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Crown } from "lucide-react";
 import { useSyncExternalStore, type ReactNode } from "react";
 
 /** Preset palette — brand green first, then neutrals and common story colours. */
@@ -157,7 +159,7 @@ export function SegmentedControl<T extends string>({
 }
 
 export function ToolButton({
-  icon: Icon, label, onClick, active, disabled, title,
+  icon: Icon, label, onClick, active, disabled, title, locked,
 }: {
   icon: any;
   label?: string;
@@ -165,6 +167,9 @@ export function ToolButton({
   active?: boolean;
   disabled?: boolean;
   title?: string;
+  /** Shows a small crown badge — the tool itself still opens, so a free user
+   *  can discover what Pro unlocks instead of hitting a dead end. */
+  locked?: boolean;
 }) {
   return (
     <button
@@ -174,15 +179,40 @@ export function ToolButton({
       title={title ?? label}
       aria-label={title ?? label}
       // 44px min touch target per accessibility requirement.
-      className={`flex flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] px-2.5 rounded-xl text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+      className={`relative flex flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] px-2.5 rounded-xl text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
         active
           ? "bg-accent-500/10 text-accent-600 dark:text-accent-400"
           : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-gray-200"
       }`}
     >
+      {locked && (
+        <span className="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-accent-500 flex items-center justify-center">
+          <Crown className="w-2 h-2 text-white" />
+        </span>
+      )}
       <Icon className="w-[18px] h-[18px]" />
       {label && <span className="leading-none">{label}</span>}
     </button>
+  );
+}
+
+/** Inline upsell shown in place of a whole panel's content for free-plan users. */
+export function ProLock({ feature }: { feature: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-10 px-4 text-center">
+      <span className="w-12 h-12 rounded-2xl bg-accent-500/10 flex items-center justify-center">
+        <Crown className="w-6 h-6 text-accent-500" />
+      </span>
+      <div className="space-y-1">
+        <p className="text-sm font-bold text-gray-900 dark:text-white">{feature} فقط برای پلن Pro</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 max-w-[240px] leading-relaxed">
+          با ارتقا به Pro این قابلیت را باز کن.
+        </p>
+      </div>
+      <Link href="/dashboard/plans" className="btn-primary text-xs px-5 py-2.5">
+        ارتقا به Pro
+      </Link>
+    </div>
   );
 }
 

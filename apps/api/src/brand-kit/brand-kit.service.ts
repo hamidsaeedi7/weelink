@@ -1,14 +1,19 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ProRequiredException } from "../common/exceptions/pro-required.exception";
 import { UpdateBrandKitDto } from "./dto/brand-kit.dto";
 
 @Injectable()
 export class BrandKitService {
   constructor(private prisma: PrismaService) {}
 
-  private async getShop(userId: string) {
-    const shop = await this.prisma.shop.findUnique({ where: { userId } });
+  private async getShop(userId: string, requirePro = false) {
+    const shop = await this.prisma.shop.findUnique({
+      where: { userId },
+      include: { user: { select: { plan: true } } },
+    });
     if (!shop) throw new NotFoundException("فروشگاه یافت نشد");
+    if (requirePro && (shop as any).user.plan !== "PRO") throw new ProRequiredException();
     return shop;
   }
 
@@ -37,7 +42,7 @@ export class BrandKitService {
   }
 
   async upsert(userId: string, dto: UpdateBrandKitDto) {
-    const shop = await this.getShop(userId);
+    const shop = await this.getShop(userId, true);
     const data = {
       logoUrl: dto.logoUrl,
       colors: dto.colors ?? [],

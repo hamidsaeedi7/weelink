@@ -6,7 +6,7 @@ import { useEditor } from "@/lib/editor/store";
 import { ANIMATION_OPTIONS, pageDuration, staggerAnimation, totalDuration } from "@/lib/editor/animation";
 import { DEFAULT_PAGE_DURATION, type AnimationType } from "@/lib/editor/types";
 import { detectVideoSupport } from "@/lib/editor/video";
-import { LabeledSlider, PanelSection } from "../ui";
+import { LabeledSlider, PanelSection, ProLock } from "../ui";
 
 export interface VideoExportSettings {
   fps: number;
@@ -18,11 +18,13 @@ export function AnimationPanel({
   onExportVideo,
   recording,
   progress,
+  isPro,
 }: {
   onPreview: () => void;
   onExportVideo: (s: VideoExportSettings) => void;
   recording: boolean;
   progress: number;
+  isPro: boolean;
 }) {
   const doc = useEditor((s) => s.doc);
   const activePageId = useEditor((s) => s.activePageId);
@@ -44,6 +46,8 @@ export function AnimationPanel({
 
   const seconds = allPages ? totalDuration(doc.pages) : pageDuration(page);
   const animatedCount = page.objects.filter((o) => o.animation && o.animation.type !== "none").length;
+
+  if (!isPro) return <ProLock feature="انیمیشن و خروجی ویدیو" />;
 
   return (
     <div className="space-y-4">
