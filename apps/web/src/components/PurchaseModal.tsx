@@ -15,10 +15,12 @@ interface Props {
   onClose: () => void;
   /** نوع آیتم — تعیین‌کنندهٔ endpoint خرید و اعتبارسنجی کد تخفیف */
   kind?: "DIGITAL_FILE" | "COURSE";
+  /** رنگ برند فروشگاه — جایگزین نارنجی قدیمی؛ اگر داده نشود همان پیش‌فرض قبلی است. */
+  primary?: string;
 }
 
 // مودال خرید: فقط درگاه پرداخت ویلینک (کارت‌به‌کارت غیرفعال) + نام/موبایل الزامی + کد تخفیف
-export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE" }: Props) {
+export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE", primary = "#F97316" }: Props) {
   const router = useRouter();
   const basePrice = item.isFree ? 0 : Number(item.price);
   const [buyerName, setBuyerName] = useState("");
@@ -95,13 +97,15 @@ export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE" }: Pr
             <label className="text-xs text-white/50">نام و نام خانوادگی</label>
             <input value={buyerName} onChange={(e) => setBuyerName(e.target.value)}
               placeholder="مثال: علی رضایی"
-              className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-orange-500/50" />
+              className="w-full px-3 py-2.5 rounded-xl bg-white/5 border text-white text-sm focus:outline-none"
+              style={{ borderColor: `${primary}40` }} />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs text-white/50">شماره موبایل</label>
             <input value={buyerPhone} onChange={(e) => setBuyerPhone(e.target.value.replace(/\D/g, ""))}
               placeholder="09xxxxxxxxx" dir="ltr" inputMode="numeric" maxLength={11}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-left focus:outline-none focus:border-orange-500/50" />
+              className="w-full px-3 py-2.5 rounded-xl bg-white/5 border text-white text-sm text-left focus:outline-none"
+              style={{ borderColor: `${primary}40` }} />
           </div>
 
           {!item.isFree && (
@@ -111,7 +115,8 @@ export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE" }: Pr
                   <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
                   <input value={coupon} onChange={(e) => setCoupon(e.target.value)} disabled={!!couponResult}
                     placeholder="کد تخفیف" dir="ltr"
-                    className="w-full pr-8 pl-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm text-left focus:outline-none focus:border-orange-500/50" />
+                    className="w-full pr-8 pl-3 py-2 rounded-xl bg-white/5 border text-white text-sm text-left focus:outline-none"
+                    style={{ borderColor: `${primary}40` }} />
                 </div>
                 {couponResult ? (
                   <button onClick={() => { setCouponResult(null); setCoupon(""); }}
@@ -133,13 +138,14 @@ export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE" }: Pr
           {!item.isFree && (
             <div className="flex items-center justify-between px-1">
               {couponResult && <span className="text-white/30 line-through text-xs">{formatPrice(basePrice)}</span>}
-              <span className="font-black text-orange-500 text-lg mr-auto">{formatPrice(amount)}</span>
+              <span className="font-black text-lg mr-auto" style={{ color: primary }}>{formatPrice(amount)}</span>
             </div>
           )}
 
           <button onClick={submit} disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500 hover:bg-orange-400
-                       text-white font-bold text-sm transition-all disabled:opacity-60">
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
+                       text-white font-bold text-sm transition-all disabled:opacity-60"
+            style={{ background: primary }}>
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
             {item.isFree || amount <= 0 ? "دریافت" : "پرداخت از درگاه"}
           </button>
