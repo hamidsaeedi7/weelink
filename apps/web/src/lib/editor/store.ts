@@ -44,6 +44,10 @@ interface EditorState {
 
   // objects
   addObject: (o: EditorObject) => void;
+  /** Adds several objects as ONE undo step — used by the elements picker. */
+  addObjects: (list: EditorObject[]) => void;
+  /** Applies a patch to every text object on the active page. */
+  patchAllText: (patch: Partial<EditorObject>) => void;
   patchObject: (id: string, patch: Partial<EditorObject>) => void;
   removeObjects: (ids: string[]) => void;
   duplicateObjects: (ids: string[]) => void;
@@ -148,6 +152,22 @@ export const useEditor = create<EditorState>((set, get) => {
       get().beginTransaction();
       mutatePage((page) => { page.objects.push(o); });
       set({ selectedIds: [o.id] });
+    },
+
+    addObjects: (list) => {
+      if (!list.length) return;
+      get().beginTransaction();
+      mutatePage((page) => { page.objects.push(...list); });
+      set({ selectedIds: list.map((o) => o.id) });
+    },
+
+    patchAllText: (patch) => {
+      get().beginTransaction();
+      mutatePage((page) => {
+        page.objects = page.objects.map((o) =>
+          o.type === "text" ? ({ ...o, ...patch } as EditorObject) : o,
+        );
+      });
     },
 
     patchObject: (id, patch) =>

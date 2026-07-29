@@ -26,6 +26,7 @@ import { AbTestsModule } from "./ab-tests/ab-tests.module";
 import { ShippingModule } from "./shipping/shipping.module";
 import { ContentPlansModule } from "./content-plans/content-plans.module";
 import { StoryProjectsModule } from "./story-projects/story-projects.module";
+import { BrandKitModule } from "./brand-kit/brand-kit.module";
 import { DigitalFilesModule } from "./digital-files/digital-files.module";
 import { CoursesModule } from "./courses/courses.module";
 import { AppointmentsModule } from "./appointments/appointments.module";
@@ -78,6 +79,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
     ShippingModule,
     ContentPlansModule,
     StoryProjectsModule,
+    BrandKitModule,
     DigitalFilesModule,
     CoursesModule,
     AppointmentsModule,

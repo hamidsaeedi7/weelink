@@ -169,6 +169,12 @@ export const storyProjectsApi = {
   remove: (id: string) => api.delete(`/story-projects/${id}`),
 };
 
+// ─── Brand kit (هویت برند استوری‌ساز) ────────────────────────────────────────
+export const brandKitApi = {
+  get: () => api.get("/brand-kit"),
+  save: (data: Record<string, any>) => api.put("/brand-kit", data),
+};
+
 // ─── Analytics ───────────────────────────────────────────────────────────────
 export const analyticsApi = {
   getDashboard: (days = 30) => api.get(`/analytics/dashboard?days=${days}`),

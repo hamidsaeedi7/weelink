@@ -6,7 +6,7 @@ import type Konva from "konva";
 import {
   Type, ImagePlus, Shapes, Layers, Download, Undo2, Redo2, X,
   Square, Circle, Triangle, Star as StarIcon, Minus, Loader2,
-  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2,
+  ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2, Sticker, BadgeCheck,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
 import { CANVAS_PRESETS, createImage, createShape, createText } from "@/lib/editor/presets";
@@ -17,6 +17,9 @@ import { exportImages } from "@/lib/editor/export";
 import { ExportPanel, type ExportSettings } from "@/components/editor/panels/ExportPanel";
 import { ProjectsGallery } from "@/components/editor/panels/ProjectsGallery";
 import { ProductStoryWizard } from "@/components/editor/panels/ProductStoryWizard";
+import { ElementsPicker } from "@/components/editor/panels/ElementsPicker";
+import { BrandKitPanel } from "@/components/editor/panels/BrandKitPanel";
+import { setBrandColors } from "@/components/editor/ui";
 import { PropertiesPanel } from "@/components/editor/panels/PropertiesPanel";
 import { LayersPanel } from "@/components/editor/panels/LayersPanel";
 import { TemplatePicker } from "@/components/editor/panels/TemplatePicker";
@@ -54,7 +57,7 @@ const SHAPES: { kind: ShapeKind; icon: any; label: string }[] = [
   { kind: "line", icon: Minus, label: "خط" },
 ];
 
-type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | null;
+type MobileSheet = "properties" | "layers" | "shapes" | "templates" | "export" | "projects" | "product" | "elements" | "brand" | null;
 
 export default function StoryStudioPage() {
   const doc = useEditor((s) => s.doc);
@@ -72,6 +75,8 @@ export default function StoryStudioPage() {
   const patchObject = useEditor((s) => s.patchObject);
   const beginTransaction = useEditor((s) => s.beginTransaction);
   const renameProject = useEditor((s) => s.renameProject);
+  const addObjects = useEditor((s) => s.addObjects);
+  const patchAllText = useEditor((s) => s.patchAllText);
 
   const stageRef = useRef<Konva.Stage | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -330,6 +335,8 @@ export default function StoryStudioPage() {
           <ToolButton icon={Type} label="متن" onClick={addTextObject} />
           <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
           <ToolButton icon={Shapes} label="شکل" onClick={() => setSheet(sheet === "shapes" ? null : "shapes")} active={sheet === "shapes"} />
+          <ToolButton icon={Sticker} label="عناصر" onClick={() => setSheet("elements")} active={sheet === "elements"} />
+          <ToolButton icon={BadgeCheck} label="برند" onClick={() => setSheet("brand")} active={sheet === "brand"} />
         </aside>
 
         {/* Desktop templates flyout */}
@@ -385,6 +392,7 @@ export default function StoryStudioPage() {
         <ToolButton icon={Type} label="متن" onClick={addTextObject} />
         <ToolButton icon={ImagePlus} label="تصویر" onClick={() => fileRef.current?.click()} disabled={uploading} />
         <ToolButton icon={Shapes} label="شکل" onClick={() => setSheet("shapes")} />
+        <ToolButton icon={Sticker} label="عناصر" onClick={() => setSheet("elements")} active={sheet === "elements"} />
         <ToolButton icon={selectedIds.length ? SlidersHorizontal : Palette} label={selectedIds.length ? "تنظیمات" : "پس‌زمینه"} onClick={() => setSheet("properties")} active={sheet === "properties"} />
         <ToolButton icon={Layers} label="لایه‌ها" onClick={() => setSheet("layers")} active={sheet === "layers"} />
       </nav>
@@ -394,7 +402,7 @@ export default function StoryStudioPage() {
       {sheet && (
         <div
           className={`fixed inset-0 z-30 flex flex-col justify-end ${
-            sheet === "export" || sheet === "projects" || sheet === "product" ? "" : "lg:hidden"
+            ["export", "projects", "product", "elements", "brand"].includes(sheet) ? "" : "lg:hidden"
           }`}
           role="dialog"
           aria-modal="true"
@@ -409,6 +417,8 @@ export default function StoryStudioPage() {
                   : sheet === "export" ? "خروجی گرفتن"
                   : sheet === "projects" ? "پروژه‌های من"
                   : sheet === "product" ? "ساخت سریع استوری محصول"
+                  : sheet === "elements" ? "عناصر آماده"
+                  : sheet === "brand" ? "هویت برند"
                   : selectedIds.length ? "تنظیمات عنصر" : "پس‌زمینه"}
               </span>
               <button onClick={() => setSheet(null)} aria-label="بستن" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5">
@@ -420,6 +430,16 @@ export default function StoryStudioPage() {
             {sheet === "properties" && <PropertiesPanel />}
             {sheet === "templates" && <TemplatePicker onApply={applyTemplate} />}
             {sheet === "export" && <ExportPanel busy={exporting} onExport={runExport} />}
+            {sheet === "elements" && (
+              <ElementsPicker onAdd={(objs) => { addObjects(objs); setSheet(null); }} />
+            )}
+            {sheet === "brand" && (
+              <BrandKitPanel
+                onAdd={(objs) => { addObjects(objs); setSheet(null); }}
+                onApplyFont={(f) => patchAllText({ fontFamily: f } as any)}
+                onKitLoaded={(kit) => setBrandColors(kit.colors ?? [])}
+              />
+            )}
             {sheet === "product" && (
               <ProductStoryWizard
                 onPick={(project) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 
 /** Preset palette — brand green first, then neutrals and common story colours. */
 export const SWATCHES = [
@@ -8,6 +8,38 @@ export const SWATCHES = [
   "#F97316", "#EF4444", "#EC4899", "#8B5CF6", "#3B82F6",
   "#FACC15", "#22C55E", "#64748B", "rgba(0,0,0,0.35)",
 ];
+
+/**
+ * The seller's own brand colours, shown ahead of the presets in every colour
+ * picker once the brand kit loads.
+ *
+ * Deliberately a tiny module-level store rather than context: ColorField is
+ * used deep inside several panels, and threading a provider through all of
+ * them just to share one array would be far more plumbing than the feature
+ * is worth.
+ */
+let brandColors: string[] = [];
+const brandListeners = new Set<() => void>();
+
+export function setBrandColors(colors: string[]) {
+  const next = colors.filter(Boolean);
+  if (next.join() === brandColors.join()) return;
+  brandColors = next;
+  brandListeners.forEach((l) => l());
+}
+
+function subscribeBrand(cb: () => void) {
+  brandListeners.add(cb);
+  return () => brandListeners.delete(cb);
+}
+
+function useBrandColors() {
+  return useSyncExternalStore(
+    subscribeBrand,
+    () => brandColors,
+    () => brandColors,
+  );
+}
 
 export function PanelSection({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
   return (
@@ -63,6 +95,9 @@ export function ColorField({
   onChange: (v: string) => void;
   onCommit?: () => void;
 }) {
+  const brand = useBrandColors();
+  // Brand colours first, then presets, without duplicates.
+  const swatches = [...brand, ...SWATCHES.filter((c) => !brand.includes(c))];
   return (
     <div>
       <span className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1.5">{label}</span>
@@ -76,7 +111,7 @@ export function ColorField({
           className="w-9 h-9 rounded-lg border border-black/10 dark:border-white/10 bg-transparent cursor-pointer shrink-0"
           aria-label={label}
         />
-        {SWATCHES.map((c) => (
+        {swatches.map((c) => (
           <button
             key={c}
             type="button"

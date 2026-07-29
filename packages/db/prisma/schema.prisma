@@ -165,6 +165,7 @@ model Shop {
   abTests          ABTest[]
   contentPlans     ContentPlan[]
   storyProjects    StoryProject[]
+  brandKit         BrandKit?
   digitalFiles     DigitalFile[]
   courses          Course[]
   appointmentSvcs  AppointmentService[]
@@ -539,6 +540,27 @@ model ABTest {
 }
 
 // ─── Content Plan (تقویم محتوایی) ────────────────────────────────────────────
+
+/// هویت برند برای استوری‌ساز.
+/// عمداً فقط override نگه می‌دارد: لوگو و رنگ و فونت از قبل روی Shop هستند،
+/// پس اینجا فقط وقتی مقدار دارد که کاربر صراحتاً برای استوری چیز دیگری خواسته
+/// باشد. اگر null باشد، به مقدار Shop برمی‌گردیم — یک منبع حقیقت.
+model BrandKit {
+  id         String   @id @default(uuid())
+  shopId     String   @unique
+  logoUrl    String?
+  /// پالت رنگ برند؛ در انتخابگر رنگ ویرایشگر نمایش داده می‌شود
+  colors     String[] @default([])
+  fontFamily String?
+  handle     String?
+  website    String?
+  phone      String?
+  defaultCta String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
 
 /// پروژه‌های استوری‌ساز. کل سند ویرایشگر به‌صورت JSON در `doc` ذخیره می‌شود
 /// (نسخه‌دار است، پس تغییر ساختار بعدی migration دیتابیس نمی‌خواهد).
