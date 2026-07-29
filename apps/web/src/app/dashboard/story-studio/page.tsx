@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import type Konva from "konva";
 import {
   Type, ImagePlus, Shapes, Layers, Download, Undo2, Redo2, X,
-  Square, Circle, Triangle, Star as StarIcon, Minus, Loader2,
+  Square, Circle, Triangle, Star as StarIcon, Minus, Loader2, ArrowRight,
   ZoomIn, ZoomOut, Maximize, SlidersHorizontal, Palette, Sparkles, LayoutTemplate, FolderOpen, Wand2, Sticker, BadgeCheck, Clapperboard, Keyboard, Home,
 } from "lucide-react";
 import { useEditor } from "@/lib/editor/store";
@@ -378,7 +379,17 @@ export default function StoryStudioPage() {
     <div className="fixed inset-0 lg:relative lg:inset-auto flex flex-col h-[100dvh] lg:h-[calc(100vh-2rem)] bg-gray-50 dark:bg-[#0B0B0F] lg:rounded-2xl overflow-hidden">
       {/* ── Top bar ── */}
       <header className="flex items-center gap-2 px-3 py-2 border-b border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.02] shrink-0">
-        <Sparkles className="w-4 h-4 text-accent-500 shrink-0" />
+        {/* The editor is fixed inset-0 on mobile, which covers the dashboard's
+            own navigation — without this there is no way back out. */}
+        <Link
+          href="/dashboard"
+          aria-label="بازگشت به داشبورد"
+          title="بازگشت به داشبورد"
+          className="lg:hidden shrink-0 p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"
+        >
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+        <Sparkles className="hidden lg:block w-4 h-4 text-accent-500 shrink-0" />
 
         <input
           value={doc.name}
@@ -510,8 +521,14 @@ export default function StoryStudioPage() {
 
         {/* Canvas viewport */}
         <div className="flex-1 min-w-0 flex flex-col relative">
-          <div ref={viewportRef} className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-gray-100 dark:bg-black/40 relative">
-            <div className="shadow-2xl rounded-lg overflow-hidden" style={{ lineHeight: 0 }}>
+          {/* overflow-auto + m-auto: centred while it fits, scrollable once
+              pinch-zoom makes the canvas bigger than the viewport. */}
+          <div
+            ref={viewportRef}
+            data-canvas-viewport
+            className="flex-1 min-h-0 flex overflow-auto bg-gray-100 dark:bg-black/40 relative"
+          >
+            <div className="m-auto shadow-2xl rounded-lg overflow-hidden" style={{ lineHeight: 0 }}>
               <EditorCanvas
                 stageRef={stageRef}
                 exporting={!!exportMode}
@@ -520,6 +537,20 @@ export default function StoryStudioPage() {
                 watermark={!isPro}
               />
             </div>
+          </div>
+
+          {/* Zoom is desktop-only in the top bar, so phones get a floating
+              control here — pinch works too, but discoverability matters. */}
+          <div className="lg:hidden absolute bottom-3 left-3 z-10 flex items-center gap-0.5 p-1 rounded-full glass-chrome shadow-lg">
+            <button onClick={() => setZoom(zoom - 0.1)} aria-label="کوچک‌نمایی" className="p-2 rounded-full text-gray-600 dark:text-gray-300 active:bg-black/10 dark:active:bg-white/10">
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <button onClick={fitZoom} aria-label="جا دادن در صفحه" className="px-2 text-[10px] font-bold tabular-nums text-gray-600 dark:text-gray-300">
+              {Math.round(zoom * 100)}%
+            </button>
+            <button onClick={() => setZoom(zoom + 0.1)} aria-label="بزرگ‌نمایی" className="p-2 rounded-full text-gray-600 dark:text-gray-300 active:bg-black/10 dark:active:bg-white/10">
+              <ZoomIn className="w-4 h-4" />
+            </button>
           </div>
           {playbackTime != null && !recording && (
             <button
@@ -551,7 +582,9 @@ export default function StoryStudioPage() {
       </div>
 
       {/* ── Mobile: bottom toolbar ── */}
-      <nav className="lg:hidden flex items-center justify-around gap-1 px-2 py-2 border-t border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.03] shrink-0">
+      {/* Scrolls horizontally: eight 44px tools + gaps need ~396px, so on a
+          375px phone the last tool used to be clipped and unreachable. */}
+      <nav className="lg:hidden flex items-center gap-1 px-2 py-2 overflow-x-auto scrollbar-hide border-t border-black/5 dark:border-white/5 bg-white dark:bg-white/[0.03] shrink-0">
         <ToolButton icon={Wand2} label="محصول" onClick={() => setSheet("product")} active={sheet === "product"} locked={!isPro} />
         <ToolButton icon={LayoutTemplate} label="قالب" onClick={() => setSheet("templates")} active={sheet === "templates"} />
         <ToolButton icon={Type} label="متن" onClick={addTextObject} />

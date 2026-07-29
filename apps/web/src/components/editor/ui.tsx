@@ -179,7 +179,7 @@ export function ToolButton({
       title={title ?? label}
       aria-label={title ?? label}
       // 44px min touch target per accessibility requirement.
-      className={`relative flex flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] px-2.5 rounded-xl text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+      className={`relative shrink-0 flex flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] px-2.5 rounded-xl text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
         active
           ? "bg-accent-500/10 text-accent-600 dark:text-accent-400"
           : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-gray-200"

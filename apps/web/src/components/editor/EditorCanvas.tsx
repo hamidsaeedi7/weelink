@@ -280,10 +280,17 @@ export function EditorCanvas({
   const activePageId = useEditor((s) => s.activePageId);
   const selectedIds = useEditor((s) => s.selectedIds);
   const zoom = useEditor((s) => s.zoom);
+  const setZoom = useEditor((s) => s.setZoom);
   const select = useEditor((s) => s.select);
   const clearSelection = useEditor((s) => s.clearSelection);
   const patchObject = useEditor((s) => s.patchObject);
   const beginTransaction = useEditor((s) => s.beginTransaction);
+
+  // Finger or mouse? Decides how big the selection handles need to be.
+  const isTouch = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true,
+    [],
+  );
 
   const page = doc.pages.find((p) => p.id === activePageId) ?? doc.pages[0];
   const { width: CW, height: CH } = doc.canvas;
@@ -344,6 +351,48 @@ export function EditorCanvas({
   const stageW = CW * zoom;
   const stageH = CH * zoom;
 
+  /**
+   * Editing chrome lives inside the scaled layer, so Konva multiplies every
+   * size by `zoom`. A phone fits a 1080×1920 story at ~0.32, which turned the
+   * 14px resize handles into 4px on screen — selectable but impossible to
+   * grab with a finger. Dividing by zoom keeps the chrome a constant size on
+   * screen no matter how far the canvas is zoomed out.
+   */
+  const k = 1 / Math.max(zoom, 0.01);
+  const anchor = (isTouch ? 24 : 12) * k;
+
+  /**
+   * Two fingers = pinch to zoom + pan. One finger stays object manipulation,
+   * so this can't interfere with dragging. Without it a phone was stuck at
+   * fit-zoom (the zoom buttons are desktop-only), which is exactly the zoom
+   * level where everything is hardest to touch.
+   */
+  const pinchRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+
+  const handleTouchMove = (e: any) => {
+    const touches = e.evt?.touches;
+    if (!touches || touches.length !== 2) return;
+    e.evt.preventDefault();
+    const [t1, t2] = [touches[0], touches[1]];
+    const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const cx = (t1.clientX + t2.clientX) / 2;
+    const cy = (t1.clientY + t2.clientY) / 2;
+    const prev = pinchRef.current;
+    pinchRef.current = { dist, cx, cy };
+    if (!prev || prev.dist <= 0) return;
+
+    const ratio = dist / prev.dist;
+    if (Math.abs(1 - ratio) > 0.005) setZoom(zoom * ratio);
+
+    // Pan by moving the scroll container, so a zoomed-in canvas stays reachable.
+    const viewport = (e.target?.getStage?.()?.container() as HTMLElement | undefined)
+      ?.closest("[data-canvas-viewport]") as HTMLElement | null;
+    if (viewport) {
+      viewport.scrollLeft -= cx - prev.cx;
+      viewport.scrollTop -= cy - prev.cy;
+    }
+  };
+
   return (
     <Stage
       ref={(node) => {
@@ -355,7 +404,18 @@ export function EditorCanvas({
       scaleX={zoom}
       scaleY={zoom}
       onMouseDown={(e) => { if (e.target === e.target.getStage()) clearSelection(); }}
-      onTouchStart={(e) => { if (e.target === e.target.getStage()) clearSelection(); }}
+      onTouchStart={(e) => {
+        // A second finger means the user is pinching, not dragging an object.
+        if ((e.evt as TouchEvent)?.touches?.length === 2) {
+          pinchRef.current = null;
+          e.target.getStage()?.stopDrag?.();
+          (e.target as any)?.stopDrag?.();
+          return;
+        }
+        if (e.target === e.target.getStage()) clearSelection();
+      }}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={() => { pinchRef.current = null; }}
       style={{ touchAction: "none" }}
     >
       <Layer ref={layerRef}>
@@ -448,8 +508,8 @@ export function EditorCanvas({
           <Group listening={false}>
             <Rect x={0} y={0} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
             <Rect x={0} y={CH - SAFE_INSET_Y} width={CW} height={SAFE_INSET_Y} fill="rgba(255,0,80,0.06)" />
-            <Line points={[0, SAFE_INSET_Y, CW, SAFE_INSET_Y]} stroke="rgba(255,0,80,0.35)" strokeWidth={2} dash={[12, 12]} />
-            <Line points={[0, CH - SAFE_INSET_Y, CW, CH - SAFE_INSET_Y]} stroke="rgba(255,0,80,0.35)" strokeWidth={2} dash={[12, 12]} />
+            <Line points={[0, SAFE_INSET_Y, CW, SAFE_INSET_Y]} stroke="rgba(255,0,80,0.35)" strokeWidth={2 * k} dash={[12 * k, 12 * k]} />
+            <Line points={[0, CH - SAFE_INSET_Y, CW, CH - SAFE_INSET_Y]} stroke="rgba(255,0,80,0.35)" strokeWidth={2 * k} dash={[12 * k, 12 * k]} />
           </Group>
         )}
 
@@ -468,9 +528,9 @@ export function EditorCanvas({
         {/* Snap guides */}
         {!exporting && guides.map((g, i) =>
           g.axis === "x" ? (
-            <Line key={`gx${i}`} points={[g.pos, 0, g.pos, CH]} stroke="#14C7A5" strokeWidth={2} listening={false} />
+            <Line key={`gx${i}`} points={[g.pos, 0, g.pos, CH]} stroke="#14C7A5" strokeWidth={2 * k} listening={false} />
           ) : (
-            <Line key={`gy${i}`} points={[0, g.pos, CW, g.pos]} stroke="#14C7A5" strokeWidth={2} listening={false} />
+            <Line key={`gy${i}`} points={[0, g.pos, CW, g.pos]} stroke="#14C7A5" strokeWidth={2 * k} listening={false} />
           ),
         )}
 
@@ -479,8 +539,11 @@ export function EditorCanvas({
           visible={!exporting && playbackTime == null}
           rotateEnabled
           keepRatio={false}
-          anchorSize={14}
-          anchorCornerRadius={7}
+          anchorSize={anchor}
+          anchorCornerRadius={anchor / 2}
+          rotateAnchorOffset={(isTouch ? 36 : 24) * k}
+          borderStrokeWidth={1.5 * k}
+          anchorStrokeWidth={1.5 * k}
           borderStroke="#14C7A5"
           anchorStroke="#14C7A5"
           anchorFill="#ffffff"
