@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Phone, Lock, ArrowLeft, Eye, EyeOff, KeyRound, MessageSquare } from "lucide-react";
+import { Phone, Lock, ArrowLeft, Eye, EyeOff, KeyRound, MessageSquare, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -10,21 +10,28 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState("");
+  // Field-level errors sit under the input they belong to; `formError` is
+  // only for failures that aren't about a single field (bad credentials,
+  // network). Previously every error landed in one box at the bottom, so the
+  // user had to work out which input to fix.
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const validPhone = /^09[0-9]{9}$/.test(phone);
+  const clearErrors = () => { setPhoneError(""); setPasswordError(""); setFormError(""); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    clearErrors();
 
     if (!validPhone) {
-      setError("شماره موبایل معتبر وارد کنید (مثال: ۰۹۱۲۳۴۵۶۷۸۹)");
+      setPhoneError("شماره موبایل معتبر وارد کنید (مثال: ۰۹۱۲۳۴۵۶۷۸۹)");
       return;
     }
     if (mode === "password" && !password.trim()) {
-      setError("رمز عبور را وارد کنید");
+      setPasswordError("رمز عبور را وارد کنید");
       return;
     }
 
@@ -55,7 +62,7 @@ export default function LoginPage() {
       }
     } catch (e: any) {
       const msg = e.message || "خطا در ورود";
-      setError(msg);
+      setFormError(msg);
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -78,104 +85,129 @@ export default function LoginPage() {
             </span>
           </Link>
           <h1 className="mt-6 text-2xl font-black text-gray-900 dark:text-white">ورود به حساب</h1>
-          <p className="mt-2 text-sm text-gray-500">خوش برگشتی!</p>
+          <p className="mt-2 text-base text-gray-700 dark:text-gray-300">خوش برگشتی!</p>
         </div>
 
         <div className="glass-card p-8 space-y-6">
           {/* روش ورود */}
-          <div className="flex p-1 gap-1 bg-gray-100 dark:bg-white/5 rounded-xl">
+          <div role="tablist" aria-label="روش ورود" className="flex p-1 gap-1 bg-gray-100 dark:bg-white/5 rounded-xl">
             {[
               { id: "password", label: "رمز عبور", icon: KeyRound },
               { id: "otp", label: "کد یک‌بار مصرف", icon: MessageSquare },
             ].map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button"
-                onClick={() => { setMode(id as "password" | "otp"); setError(""); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm rounded-lg
+              <button key={id} type="button" role="tab" aria-selected={mode === id}
+                onClick={() => { setMode(id as "password" | "otp"); clearErrors(); }}
+                className={`flex-1 flex items-center justify-center gap-2 min-h-[var(--tap-target)] px-2 text-sm rounded-lg
                             transition-all font-medium
                             ${mode === id
                               ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
-                              : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}>
-                <Icon className="w-4 h-4" />
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"}`}>
+                <Icon aria-hidden="true" className="icon-sm" />
                 {label}
               </button>
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="phone" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">
                 شماره موبایل
               </label>
               <div className="relative">
-                <Phone className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Phone aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 icon-sm text-gray-500 dark:text-gray-400" />
                 <input
+                  id="phone"
+                  name="phone"
                   type="tel"
+                  autoComplete="tel"
                   value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setError(""); }}
+                  onChange={(e) => { setPhone(e.target.value); clearErrors(); }}
                   placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-                  className="input-base pr-10 text-left"
+                  className={`input-base pr-10 text-left text-base ${phoneError ? "!border-red-500 focus:!border-red-500" : ""}`}
                   dir="ltr"
                   inputMode="numeric"
                   autoFocus
+                  aria-invalid={!!phoneError}
+                  aria-describedby={phoneError ? "phone-error" : undefined}
                 />
               </div>
+              {phoneError && (
+                <p id="phone-error" role="alert" className="flex items-center gap-1.5 mt-2 text-sm text-red-600 dark:text-red-400">
+                  <AlertCircle aria-hidden="true" className="icon-sm shrink-0" />
+                  {phoneError}
+                </p>
+              )}
             </div>
 
             {mode === "password" ? (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">رمز عبور</label>
-                  <Link href="/forgot-password" className="text-xs text-accent hover:opacity-80 transition-opacity">
+                  <label htmlFor="password" className="text-sm font-bold text-gray-800 dark:text-gray-200">رمز عبور</label>
+                  <Link href="/forgot-password" className="text-sm text-accent hover:opacity-80 transition-opacity">
                     فراموشی رمز؟
                   </Link>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 icon-sm text-gray-500 dark:text-gray-400" />
                   <input
+                    id="password"
+                    name="password"
                     type={showPass ? "text" : "password"}
+                    autoComplete="current-password"
                     value={password}
-                    onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                    onChange={(e) => { setPassword(e.target.value); clearErrors(); }}
                     placeholder="رمز عبور"
-                    className="input-base pr-10 pl-10 text-left"
+                    className={`input-base pr-10 pl-12 text-left text-base ${passwordError ? "!border-red-500 focus:!border-red-500" : ""}`}
                     dir="ltr"
+                    aria-invalid={!!passwordError}
+                    aria-describedby={passwordError ? "password-error" : undefined}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    aria-label={showPass ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
+                    aria-pressed={showPass}
+                    className="absolute left-1 top-1/2 -translate-y-1/2 tap-target inline-flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100">
+                    {showPass ? <EyeOff aria-hidden="true" className="icon-sm" /> : <Eye aria-hidden="true" className="icon-sm" />}
                   </button>
                 </div>
+                {passwordError && (
+                  <p id="password-error" role="alert" className="flex items-center gap-1.5 mt-2 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle aria-hidden="true" className="icon-sm shrink-0" />
+                    {passwordError}
+                  </p>
+                )}
               </div>
             ) : (
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-muted">
                 کد یک‌بار مصرف به این شماره پیامک می‌شود
               </p>
             )}
 
-            {error && (
-              <p className="text-sm text-red-500 bg-red-500/5 border border-red-500/20 px-3 py-2 rounded-lg">
-                {error}
+            {formError && (
+              <p role="alert" className="flex items-center gap-2 text-sm text-red-700 dark:text-red-300 bg-red-500/5 border border-red-500/30 px-3 py-2.5 rounded-lg">
+                <AlertCircle aria-hidden="true" className="icon-sm shrink-0" />
+                {formError}
               </p>
             )}
 
             <button type="submit" disabled={loading}
-              className="btn-primary w-full py-3.5 disabled:opacity-60">
+              className="btn-primary w-full py-3.5">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                   {mode === "password" ? "در حال ورود..." : "در حال ارسال..."}
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   {mode === "password" ? "ورود" : "ارسال کد"}
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft aria-hidden="true" className="icon-sm" />
                 </span>
               )}
             </button>
           </form>
 
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-gray-700 dark:text-gray-300">
             حساب ندارید؟{" "}
-            <Link href="/register" className="text-accent hover:opacity-80 font-medium transition-opacity">
+            <Link href="/register" className="text-accent hover:opacity-80 font-bold transition-opacity">
               ثبت‌نام رایگان
             </Link>
           </div>

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { X, Download, Share, PlusSquare } from "lucide-react";
+
+/** Sign-in and sign-up are single-goal pages — an install prompt competing
+ *  with the form is a distraction at exactly the wrong moment. */
+const NO_BANNER_ROUTES = ["/login", "/register", "/verify", "/forgot-password", "/set-password"];
 
 function isStandalone() {
   return (
@@ -15,10 +20,13 @@ function isIos() {
 }
 
 export function PwaRegister() {
+  const pathname = usePathname();
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [bannerVisible, setBannerVisible] = useState(false);
   const [iosGuideVisible, setIosGuideVisible] = useState(false);
   const [installing, setInstalling] = useState(false);
+
+  const bannerAllowed = !NO_BANNER_ROUTES.some((r) => pathname?.startsWith(r));
 
   useEffect(() => {
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
@@ -85,7 +93,8 @@ export function PwaRegister() {
     sessionStorage.setItem("pwa-banner-dismissed", "1");
   };
 
-  if (!bannerVisible) return null;
+  // The service worker still registers above; only the banner is suppressed.
+  if (!bannerVisible || !bannerAllowed) return null;
 
   return (
     <>
