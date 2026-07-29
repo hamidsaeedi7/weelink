@@ -100,16 +100,75 @@
 @tailwind utilities;
 
 @layer base {
+  /* ─── Shape, space and type tokens ─────────────────────────────────────────
+     Theme-independent: only colour changes between light and dark, so these
+     live once at :root. Every component should reach for these instead of
+     re-deciding a padding or a radius locally. */
+  :root {
+    /* 4/8px spacing scale */
+    --space-1: 0.25rem;  /*  4px */
+    --space-2: 0.5rem;   /*  8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.5rem;   /* 24px */
+    --space-6: 2rem;     /* 32px */
+    --space-7: 3rem;     /* 48px */
+    --space-8: 4rem;     /* 64px */
+
+    /* Radius */
+    --radius-sm: 0.5rem;   /*  8px — chips, badges */
+    --radius-md: 0.75rem;  /* 12px — inputs, small buttons */
+    --radius-lg: 1rem;     /* 16px — buttons, tiles */
+    --radius-xl: 1.5rem;   /* 24px — cards, sheets */
+    --radius-full: 9999px;
+
+    /* Icon sizes — only three, so icon scale stays consistent product-wide */
+    --icon-sm: 1rem;      /* 16px — inline with body text */
+    --icon-md: 1.25rem;   /* 20px — default UI icon */
+    --icon-lg: 1.5rem;    /* 24px — feature/empty-state icons */
+
+    /* Elevation */
+    --shadow-sm: 0 1px 2px rgba(20, 20, 35, 0.06);
+    --shadow-md: 0 4px 12px rgba(20, 20, 35, 0.08);
+    --shadow-lg: 0 12px 32px rgba(20, 20, 35, 0.12);
+
+    /* Minimum comfortable touch target (WCAG 2.5.5 / iOS HIG) */
+    --tap-target: 2.75rem; /* 44px */
+  }
+  .dark {
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  }
+
   :root {
     --bg-primary: #ffffff;
     --bg-secondary: #F2F2F6;
     --bg-card: #ffffff;
     --border: rgba(28, 27, 41, 0.08);
     --text-primary: #1C1B29;
-    --text-secondary: #67667C;
-    --accent: #059669;
+    /* Was #67667C (4.0:1 on white) — nudged darker to clear AA for body text. */
+    --text-secondary: #5C5B70;
+    /* Muted/meta text: captions, footer, table headers. Still AA at 4.5:1. */
+    --text-muted: #63627A;
+    /* #059669 measured 3.77:1 as text on white — below AA. Darkened one step
+       so the accent is safe as a text/icon colour too, not just a fill. */
+    --accent: #047857;
     --accent-glow: rgba(5, 150, 105, 0.24);
-    --accent-500-rgb: 5 150 105;
+    --accent-500-rgb: 4 120 87;
+
+    /* Accent used as a *fill* behind text (buttons, badges). Darker than the
+       brand accent so white text on it clears 4.5:1 — the brand green itself
+       is reserved for text/icons/borders on neutral backgrounds. */
+    --accent-solid: #047857;         /* white text → 5.48:1 */
+    --accent-solid-hover: #036B4D;
+    --accent-on-solid: #ffffff;
+
+    /* Semantic status colours, AA against their own tinted surfaces. */
+    --success: #047857;
+    --warning: #92400E;
+    --danger: #B42318;
+    --info: #1D4ED8;
   }
 
   .dark {
@@ -118,10 +177,22 @@
     --bg-card: #121216;
     --border: rgba(255, 255, 255, 0.08);
     --text-primary: #EEECF6;
-    --text-secondary: #9A97B3;
+    --text-secondary: #A9A6C0;
+    --text-muted: #9C99B4;
     --accent: #3CE0BE;
     --accent-glow: rgba(60, 224, 190, 0.22);
     --accent-500-rgb: 60 224 190;
+
+    /* Dark theme keeps the bright brand green as the fill and flips the text
+       to near-black instead — 9.75:1, and the brand colour stays vivid. */
+    --accent-solid: #3CE0BE;
+    --accent-solid-hover: #5FE9CC;
+    --accent-on-solid: #06251F;      /* dark text → 9.75:1 */
+
+    --success: #5FE9CC;
+    --warning: #FBBF24;
+    --danger: #FF9A8F;
+    --info: #93B4FF;
   }
 
   /* ─── Dashboard accent scale ───────────────────────────────────────────────
@@ -209,34 +280,52 @@
     @apply bg-white/70 dark:bg-white/[0.05] backdrop-blur-xl backdrop-saturate-150 border border-gray-200/60 dark:border-white/[0.08];
   }
 
-  /* ─── Accent Button ─── */
+  /* ─── Accent Button ───────────────────────────────────────────────────────
+     Text colour comes from --accent-on-solid rather than a hardcoded white:
+     white on the light-mode green was 3.77:1 and on the dark-mode green only
+     1.67:1, both failing AA. Light theme darkens the fill and keeps white
+     (5.48:1); dark theme keeps the vivid brand green and flips the text to
+     near-black (9.75:1). */
   .btn-primary {
     @apply relative inline-flex items-center justify-center gap-2 px-6 py-3
-           text-white font-semibold rounded-xl
+           font-semibold rounded-xl
            transition-all duration-200 active:scale-95;
-    background-color: var(--accent);
+    min-height: var(--tap-target);
+    background-color: var(--accent-solid);
+    color: var(--accent-on-solid);
     box-shadow: 0 0 20px var(--accent-glow);
   }
   .btn-primary:hover {
-    filter: brightness(1.1);
+    background-color: var(--accent-solid-hover);
     box-shadow: 0 0 30px var(--accent-glow);
+  }
+  .btn-primary:disabled,
+  .btn-primary[aria-disabled="true"] {
+    @apply opacity-60 cursor-not-allowed;
+    box-shadow: none;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3
-           bg-transparent border border-gray-300 dark:border-white/10
-           text-gray-700 dark:text-gray-200 font-medium rounded-xl
+           bg-transparent border border-gray-400 dark:border-white/20
+           text-gray-800 dark:text-gray-100 font-medium rounded-xl
            transition-all duration-200 active:scale-95;
+    min-height: var(--tap-target);
   }
   .btn-secondary:hover {
     border-color: var(--accent);
     color: var(--accent);
   }
+  .btn-secondary:disabled,
+  .btn-secondary[aria-disabled="true"] {
+    @apply opacity-60 cursor-not-allowed;
+  }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2
-           text-gray-600 dark:text-gray-400
+           text-gray-700 dark:text-gray-300
            rounded-lg transition-all duration-200;
+    min-height: var(--tap-target);
   }
   .btn-ghost:hover {
     color: var(--accent);
@@ -261,6 +350,24 @@
   .section-padding {
     @apply px-4 sm:px-6 lg:px-8 py-16 sm:py-24;
   }
+
+  /* ─── Typography scale ────────────────────────────────────────────────────
+     Five roles with fixed responsibilities, so a heading is never faked with
+     an ad-hoc font-size. Body starts at 16px on mobile (never smaller) with
+     a 1.6 line-height, which sits in the 1.5–1.75 range Persian text needs
+     to stay comfortable. */
+  .t-display { @apply text-3xl sm:text-5xl font-black leading-tight text-balance; }
+  .t-title   { @apply text-xl sm:text-2xl font-black leading-snug; }
+  .t-body    { @apply text-base leading-[1.6]; }
+  .t-label   { @apply text-sm font-bold leading-snug; }
+  .t-caption { @apply text-xs leading-normal; color: var(--text-muted); }
+
+  /* Financial figures and dashboard metrics: fixed-width digits so columns
+     line up and a changing number doesn't shift its neighbours. */
+  .t-numeric { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+  /* Caps running text at a comfortable measure on wide screens. */
+  .t-measure { max-width: 68ch; }
 
   /* ─── Gradient Text — jade → teal, one hue family for both themes ─── */
   .gradient-text {
@@ -306,6 +413,22 @@
   .text-accent { color: var(--accent); }
   .bg-accent { background-color: var(--accent); }
   .border-accent { border-color: var(--accent); }
+
+  /* Muted/meta text — replaces scattered text-gray-400/500 on captions,
+     footers and table headers, all of which measured below 4.5:1. */
+  .text-muted { color: var(--text-muted); }
+
+  /* Guarantees the 44×44 minimum for icon-only controls. */
+  .tap-target { min-width: var(--tap-target); min-height: var(--tap-target); }
+
+  /* Icon sizing — the only three sizes components should use. */
+  .icon-sm { width: var(--icon-sm); height: var(--icon-sm); }
+  .icon-md { width: var(--icon-md); height: var(--icon-md); }
+  .icon-lg { width: var(--icon-lg); height: var(--icon-lg); }
+
+  /* Respects the iOS/Android home indicator and notch. */
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
 }
 
 /* ─── Scrollbar ─── */

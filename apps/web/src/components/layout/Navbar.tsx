@@ -36,11 +36,11 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden lg:flex items-center gap-5">
+          <div className="hidden lg:flex items-center gap-2">
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href}
-                className="text-sm text-gray-600 dark:text-gray-400
-                           hover:text-accent transition-colors whitespace-nowrap">
+                className="inline-flex items-center min-h-[var(--tap-target)] px-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300
+                           hover:text-accent hover:bg-gray-100 dark:hover:bg-white/5 transition-colors whitespace-nowrap">
                 {l.label}
               </Link>
             ))}
@@ -50,16 +50,16 @@ export function Navbar() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-lg text-gray-500 hover:text-accent
-                         hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+              className="tap-target inline-flex items-center justify-center rounded-lg text-gray-600 dark:text-gray-300
+                         hover:text-accent hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
               aria-label="تغییر تم">
               {mounted
-                ? (theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)
-                : <Moon className="w-4 h-4" />}
+                ? (theme === "dark" ? <Sun className="icon-sm" /> : <Moon className="icon-sm" />)
+                : <Moon className="icon-sm" />}
             </button>
             <Link href="/login"
-              className="hidden md:inline-flex text-sm text-gray-600 dark:text-gray-400
-                         hover:text-accent transition-colors px-3 py-1.5 rounded-lg
+              className="tap-target hidden md:inline-flex items-center justify-center text-sm text-gray-700 dark:text-gray-300
+                         hover:text-accent transition-colors px-3 rounded-lg
                          hover:bg-gray-100 dark:hover:bg-white/5">
               ورود
             </Link>
@@ -67,10 +67,11 @@ export function Navbar() {
               شروع رایگان
             </Link>
             <button
-              className="lg:hidden p-2 text-gray-500 hover:text-accent transition-colors"
+              className="tap-target lg:hidden inline-flex items-center justify-center rounded-lg text-gray-600 dark:text-gray-300 hover:text-accent transition-colors"
               onClick={() => setOpen(!open)}
-              aria-label="منو">
-              {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              aria-expanded={open}
+              aria-label={open ? "بستن منو" : "منو"}>
+              {open ? <X className="icon-md" /> : <Menu className="icon-md" />}
             </button>
           </div>
         </nav>
@@ -81,14 +82,14 @@ export function Navbar() {
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href}
                 onClick={() => setOpen(false)}
-                className="block px-4 py-3 text-sm rounded-xl text-gray-700 dark:text-gray-300
+                className="flex items-center min-h-[var(--tap-target)] px-4 py-3 text-base rounded-xl text-gray-700 dark:text-gray-300
                            hover:bg-gray-100 dark:hover:bg-white/5 hover:text-accent transition-all">
                 {l.label}
               </Link>
             ))}
             <div className="border-t border-gray-200 dark:border-white/5 pt-2 mt-2">
               <Link href="/login" onClick={() => setOpen(false)}
-                className="block px-4 py-3 text-sm rounded-xl text-gray-700 dark:text-gray-300
+                className="flex items-center min-h-[var(--tap-target)] px-4 py-3 text-base rounded-xl text-gray-700 dark:text-gray-300
                            hover:bg-gray-100 dark:hover:bg-white/5 hover:text-accent transition-all">
                 ورود به حساب
               </Link>

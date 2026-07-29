@@ -31,20 +31,20 @@ export function Footer() {
                 وی<span className="text-accent">لینک</span>
               </span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-500 leading-relaxed max-w-xs">
+            <p className="text-sm text-muted leading-relaxed max-w-xs">
               پلتفرم لینک بیو فارسی برای فروشگاه‌های اینستاگرامی و کسب‌وکارهای ایرانی.
               بدون کارمزد، با پشتیبانی پیام‌رسان‌های ایرانی.
             </p>
             <div className="space-y-2.5 pt-1">
               <a href="tel:+989107192646"
-                className="flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-500
+                className="flex items-center gap-2.5 text-sm text-muted
                            hover:text-accent transition-colors w-fit">
                 <Phone className="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-600" />
                 <span dir="ltr">۰۹۱۰۷۱۹۲۶۴۶</span>
               </a>
               <a href="https://maps.google.com/?q=تهران، پیروزی، خیابان اول نیروی هوایی، کوچه کاظمی، پلاک ۱۱"
                 target="_blank" rel="noopener noreferrer"
-                className="flex items-start gap-2.5 text-sm text-gray-500 dark:text-gray-500
+                className="flex items-start gap-2.5 text-sm text-muted
                            hover:text-accent transition-colors max-w-xs">
                 <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-gray-400 dark:text-gray-600" />
                 <span className="leading-relaxed">تهران، پیروزی، خیابان اول نیروی هوایی، کوچه کاظمی، پلاک ۱۱</span>
@@ -59,7 +59,7 @@ export function Footer() {
               {LINKS["محصول"].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href}
-                    className="text-sm text-gray-500 dark:text-gray-500
+                    className="inline-flex items-center min-h-[var(--tap-target)] text-sm text-muted
                                hover:text-accent transition-colors">
                     {l.label}
                   </Link>
@@ -75,7 +75,7 @@ export function Footer() {
               {LINKS["شرکت"].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href}
-                    className="text-sm text-gray-500 dark:text-gray-500
+                    className="inline-flex items-center min-h-[var(--tap-target)] text-sm text-muted
                                hover:text-accent transition-colors">
                     {l.label}
                   </Link>
@@ -114,10 +114,10 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-gray-200 dark:border-white/[0.04]
                         flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-400 dark:text-gray-600">
+          <p className="text-xs text-muted">
             © {new Date().getFullYear()} ویلینک — تمامی حقوق محفوظ است
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-600">
+          <p className="text-xs text-muted">
             ساخته شده توسط{" "}
             <a href="https://saeedii.com" target="_blank" rel="noopener noreferrer"
                className="text-accent hover:opacity-80 transition-colors font-medium">

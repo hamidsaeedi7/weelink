@@ -92,22 +92,22 @@ export function Pricing() {
                     پلن Pro
                     {current.id === "lifetime" && <span className="text-base">∞</span>}
                   </div>
-                  <div className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white">
+                  <div className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white t-numeric">
                     {current.price}
                   </div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-gray-500 text-sm">تومان / {current.period}</span>
                     {current.save && (
                       <span className="text-xs px-2 py-0.5 rounded-full font-bold
-                                       text-green-600 bg-green-100 dark:bg-green-500/10 dark:text-green-400">
+                                       text-green-800 bg-green-100 dark:bg-green-500/10 dark:text-green-300">
                         {current.save}
                       </span>
                     )}
                   </div>
                 </div>
                 {current.popular && (
-                  <div className="px-3 py-1 rounded-full font-bold text-xs text-white shrink-0"
-                       style={{ backgroundColor: "var(--accent)" }}>
+                  <div className="px-3 py-1 rounded-full font-bold text-xs shrink-0"
+                       style={{ backgroundColor: "var(--accent-solid)", color: "var(--accent-on-solid)" }}>
                     محبوب‌ترین
                   </div>
                 )}
@@ -118,9 +118,10 @@ export function Pricing() {
                 {PLANS.map((p) => (
                   <button key={p.id}
                     onClick={() => setActivePlan(p.id)}
-                    className="flex-1 min-w-fit py-1.5 px-2 text-xs rounded-lg transition-all font-medium whitespace-nowrap"
+                    aria-pressed={activePlan === p.id}
+                    className="flex-1 min-w-fit min-h-[var(--tap-target)] py-2 px-3 text-sm rounded-lg transition-all font-medium whitespace-nowrap"
                     style={activePlan === p.id
-                      ? { backgroundColor: "var(--accent)", color: "white" }
+                      ? { backgroundColor: "var(--accent-solid)", color: "var(--accent-on-solid)" }
                       : { color: "var(--text-secondary)" }}>
                     {p.label}
                   </button>
@@ -144,27 +145,35 @@ export function Pricing() {
 
         {/* Comparison table */}
         <div className="max-w-2xl mx-auto mt-10 glass-card overflow-hidden">
-          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 px-4 pt-4">مقایسه کامل امکانات</p>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm mt-2">
+            <table className="w-full text-sm">
+              <caption className="text-xs font-bold text-gray-600 dark:text-gray-300 px-4 pt-4 pb-2 text-right">
+                مقایسه کامل امکانات
+              </caption>
               <thead>
-                <tr className="text-xs text-gray-400 border-b border-gray-200 dark:border-white/[0.06]">
-                  <th className="text-right font-medium py-2 px-4">امکان</th>
-                  <th className="text-center font-medium py-2 px-3 w-20">رایگان</th>
-                  <th className="text-center font-medium py-2 px-3 w-20 text-accent">PRO</th>
+                <tr className="text-xs text-muted border-b border-gray-200 dark:border-white/[0.06]">
+                  <th scope="col" className="text-right font-medium py-2 px-4">امکان</th>
+                  <th scope="col" className="text-center font-medium py-2 px-3 w-20">رایگان</th>
+                  <th scope="col" className="text-center font-medium py-2 px-3 w-20 text-accent">PRO</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON_ROWS.map((row) => (
                   <tr key={row.label} className="border-b border-gray-100 dark:border-white/[0.03] last:border-0">
-                    <td className="py-2.5 px-4 text-gray-700 dark:text-gray-300">{row.label}</td>
+                    <th scope="row" className="text-right font-normal py-2.5 px-4 text-gray-700 dark:text-gray-300">
+                      {row.label}
+                    </th>
+                    {/* Icons alone would carry the meaning by shape only, so each
+                        cell also states it in text for screen readers. */}
                     <td className="text-center py-2.5 px-3">
                       {row.free
-                        ? <Check className="w-4 h-4 text-green-500 inline" />
-                        : <Minus className="w-4 h-4 text-gray-300 dark:text-gray-700 inline" />}
+                        ? <><Check className="w-4 h-4 text-green-600 dark:text-green-400 inline" aria-hidden="true" /><span className="sr-only">دارد</span></>
+                        : <><Minus className="w-4 h-4 text-gray-400 dark:text-gray-600 inline" aria-hidden="true" /><span className="sr-only">ندارد</span></>}
                     </td>
                     <td className="text-center py-2.5 px-3">
-                      {row.pro && <Check className="w-4 h-4 text-accent inline" />}
+                      {row.pro
+                        ? <><Check className="w-4 h-4 text-accent inline" aria-hidden="true" /><span className="sr-only">دارد</span></>
+                        : <><Minus className="w-4 h-4 text-gray-400 dark:text-gray-600 inline" aria-hidden="true" /><span className="sr-only">ندارد</span></>}
                     </td>
                   </tr>
                 ))}
