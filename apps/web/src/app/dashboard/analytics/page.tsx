@@ -5,6 +5,7 @@ import { Eye, MousePointerClick, ShoppingBag, TrendingUp, Loader2, Link2, BarCha
 import { analyticsApi } from "@/lib/api";
 import { formatPrice, toPersianNumber } from "@/lib/utils";
 import { BarChart, MiniChart } from "@/components/ui/MiniChart";
+import { PageHeader, PageTabs } from "@/components/dashboard/PageHeader";
 import { toast } from "sonner";
 
 const PERIODS = [
@@ -64,25 +65,18 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">آنالیتیکس</h1>
-          <p className="text-sm text-gray-500">مجموع بازدید: {toPersianNumber(data?.allTimeViews || 0)}</p>
-        </div>
-        <div className="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1">
-          {PERIODS.map((p) => (
-            <button key={p.days} onClick={() => setPeriod(p.days)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${
-                period === p.days
-                  ? "bg-gray-100 dark:bg-white/10 text-accent-500 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHeader
+        title="آنالیتیکس"
+        description={`مجموع بازدید: ${toPersianNumber(data?.allTimeViews || 0)}`}
+        actions={
+          <PageTabs
+            label="بازهٔ زمانی"
+            value={period}
+            onChange={setPeriod}
+            options={PERIODS.map((p) => ({ value: p.days, label: p.label }))}
+          />
+        }
+      />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

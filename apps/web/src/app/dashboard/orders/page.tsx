@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { formatPrice, toPersianNumber, timeAgo } from "@/lib/utils";
 import ShippingModal from "./ShippingModal";
+import { PageHeader, PageTabs } from "@/components/dashboard/PageHeader";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -444,22 +445,14 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-black text-gray-900 dark:text-white">سفارش‌ها</h1>
-      </div>
-
-      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl w-fit">
-        {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === t.id
-                ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <PageHeader title="سفارش‌ها">
+        <PageTabs
+          label="نوع سفارش"
+          value={tab}
+          onChange={(v) => setTab(v)}
+          options={TABS.map((t) => ({ value: t.id, label: t.label }))}
+        />
+      </PageHeader>
 
       {tab === "physical" && <PhysicalOrdersTab />}
       {tab === "digital" && <DigitalPurchasesTab />}

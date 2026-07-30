@@ -8,6 +8,7 @@ import axios from "axios";
 import { formatPrice } from "@/lib/utils";
 import { uploadApi } from "@/lib/api";
 import { ShareBar } from "@/components/ShareBar";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -139,22 +140,19 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      {/* موبایل: عنوان وسط بالا، زیرش توضیح، بعد سه دکمه هم‌تراز در یک ردیف.
-          دسکتاپ: عنوان سمت راست، دکمه‌ها سمت چپ. */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-3">
-        <div className="text-center sm:text-right">
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">محصولات فیزیکی</h1>
-          <p className="text-sm text-gray-500">لینک فروشگاه را برای مشتری بفرستید — {products.length} محصول</p>
-        </div>
-        <div className="w-full sm:w-auto flex items-center justify-center sm:justify-end gap-2">
-          {slug && <ShareBar url={`https://weeelink.ir/${slug}/shop`} text="فروشگاه من" />}
-          <button onClick={openNew}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
-            <Plus className="w-4 h-4" />
-            محصول جدید
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="محصولات فیزیکی"
+        description={`لینک فروشگاه را برای مشتری بفرستید — ${products.length} محصول`}
+        actions={
+          <>
+            {slug && <ShareBar url={`https://weeelink.ir/${slug}/shop`} text="فروشگاه من" />}
+            <button onClick={openNew} className="btn-primary py-2 px-4 text-sm">
+              <Plus aria-hidden="true" className="icon-sm" />
+              محصول جدید
+            </button>
+          </>
+        }
+      />
 
       {/* Product list */}
       {products.length === 0 ? (

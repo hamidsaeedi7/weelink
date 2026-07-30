@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { toPersianNumber } from "@/lib/utils";
 import { JalaliDatePicker } from "@/components/JalaliDatePicker";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { PRODUCT_CATEGORIES } from "@/lib/product-categories";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -144,17 +145,18 @@ export default function CouponsPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">کدهای تخفیف</h1>
-          <p className="text-sm text-gray-500">{toPersianNumber(coupons.length)} کد</p>
-        </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500 text-white font-bold text-sm hover:bg-accent-400 transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
-          <Plus className="w-4 h-4" />
-          کد جدید
-        </button>
-      </div>
+      <PageHeader
+        title="کدهای تخفیف"
+        description={`${toPersianNumber(coupons.length)} کد`}
+        actions={
+          <button onClick={() => setShowForm(!showForm)}
+            aria-expanded={showForm}
+            className="btn-primary py-2 px-4 text-sm">
+            <Plus aria-hidden="true" className="icon-sm" />
+            کد جدید
+          </button>
+        }
+      />
 
       {/* Create Form */}
       {showForm && (

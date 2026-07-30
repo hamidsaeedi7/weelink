@@ -441,6 +441,22 @@
 /* ─── Selection ─── */
 ::selection { background: var(--accent-glow); color: inherit; }
 
+/* ─── Filled-accent foreground invariant ──────────────────────────────────
+   54 call sites across the app pair `bg-accent-500` with `text-white`. In
+   light mode that is fine, but the dark-theme accent is a bright mint, so
+   white text on it measures 1.67:1 — the same failure fixed on .btn-primary.
+   Rather than hand-editing every call site (and re-introducing the bug on
+   the next one written), the pairing is corrected once here: any element
+   that fills with the accent takes the accent's paired foreground.
+
+   Deliberately unlayered — Tailwind's utilities live in @layer utilities, and
+   unlayered rules win over layered ones, so this beats .text-white without
+   needing !important. Light mode is unaffected (--accent-on-solid is #fff). */
+.bg-accent-500.text-white,
+.bg-accent-600.text-white {
+  color: var(--accent-on-solid);
+}
+
 /* ─── Accessibility ───────────────────────────────────────────────────────
    A visible focus ring for keyboard users only. :focus-visible (rather than
    :focus) means mouse clicks don't leave rings behind, so this costs the

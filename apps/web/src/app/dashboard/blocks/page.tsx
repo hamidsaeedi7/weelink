@@ -24,6 +24,7 @@ import { AddBlockModal } from "@/components/blocks/AddBlockModal";
 import { BlockEditPanel } from "@/components/blocks/BlockEditPanel";
 import { ThemePicker } from "@/components/blocks/ThemePicker";
 import { ShareBar } from "@/components/ShareBar";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import type { BlockType } from "@/components/blocks/block-types";
 
 export default function BlocksPage() {
@@ -155,43 +156,39 @@ export default function BlocksPage() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">ویرایش لینک‌ها</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+      <PageHeader
+        title="ویرایش لینک‌ها"
+        description={
+          <>
             {blocks.length} بلوک
-            {saving && <span className="text-accent-400 mr-2">• در حال ذخیره...</span>}
-          </p>
-        </div>
-        {/* موبایل: پیش‌نمایش/کپی/اشتراک در یک ردیف تراز‌شده، «بلوک جدید» تمام‌عرض زیرشان — دسکتاپ: همه در یک خط */}
-        <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
-          {slug && (
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <a
-                href={`/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm
-                           border border-gray-200 dark:border-white/10
-                           text-gray-600 dark:text-gray-400 hover:border-accent-500/50
-                           hover:text-accent-500 transition-all">
-                <Eye className="w-4 h-4" />
-                پیش‌نمایش
-              </a>
-              <ShareBar url={`https://weeelink.ir/${slug}`} className="flex-1 sm:flex-none" />
-            </div>
-          )}
-          <button
-            onClick={() => setShowAdd(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm
-                       bg-accent-500 hover:bg-accent-400 text-white font-bold
-                       transition-all shadow-[0_0_15px_rgb(var(--accent-500-rgb) / 0.25)]">
-            <Plus className="w-4 h-4" />
-            بلوک جدید
-          </button>
-        </div>
-      </div>
+            {saving && <span className="text-accent mr-2">• در حال ذخیره...</span>}
+          </>
+        }
+        actions={
+          <>
+            {slug && (
+              <>
+                <a
+                  href={`/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 min-h-[var(--tap-target)] px-3 rounded-xl text-sm
+                             border border-gray-300 dark:border-white/15
+                             text-gray-700 dark:text-gray-300 hover:border-accent-500/50
+                             hover:text-accent transition-all">
+                  <Eye aria-hidden="true" className="icon-sm" />
+                  پیش‌نمایش
+                </a>
+                <ShareBar url={`https://weeelink.ir/${slug}`} className="flex-1 sm:flex-none" />
+              </>
+            )}
+            <button onClick={() => setShowAdd(true)} className="btn-primary py-2 px-4 text-sm">
+              <Plus aria-hidden="true" className="icon-sm" />
+              بلوک جدید
+            </button>
+          </>
+        }
+      />
 
       {/* Bio page theme */}
       <ThemePicker
