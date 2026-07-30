@@ -35,27 +35,30 @@ function NavLink({ item, active, onClick, isNew }: { item: NavItem; active: bool
       <div
         aria-disabled="true"
         title="این بخش هنوز آماده نیست"
-        className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60"
+        className="flex items-center gap-2.5 min-h-[var(--tap-target)] px-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 cursor-not-allowed"
       >
-        <item.icon className="w-3.5 h-3.5 shrink-0" />
+        <item.icon aria-hidden="true" className="icon-sm shrink-0" />
         <span className="truncate">{item.label}</span>
-        <span className="mr-auto text-[9px] bg-gray-400/15 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-md shrink-0">به‌زودی</span>
+        <span className="mr-auto text-[10px] bg-gray-500/15 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-md shrink-0">به‌زودی</span>
       </div>
     );
   }
   return (
     <Link href={item.href} onClick={onClick}
-      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all duration-150
+      aria-current={active ? "page" : undefined}
+      className={`flex items-center gap-2.5 min-h-[var(--tap-target)] px-2.5 rounded-xl text-sm font-medium transition-all duration-150
                   ${active
                     ? "bg-accent-500/15 text-accent-500 border border-accent-500/20"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"}`}>
-      <item.icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-accent-500" : ""}`} />
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"}`}>
+      <item.icon aria-hidden="true" className={`icon-sm shrink-0 ${active ? "text-accent-500" : ""}`} />
       <span className="truncate">{item.label}</span>
       {isNew && (
-        <span className="mr-auto text-[9px] bg-emerald-500/20 text-emerald-500 px-1.5 py-0.5 rounded-md shrink-0">جدید</span>
+        <span className="mr-auto text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-md shrink-0">جدید</span>
       )}
+      {/* accent-700 needs no dark: variant — the accent scale is inverted per
+          theme, so 700 is already the high-contrast tone in both. */}
       {!isNew && item.pro && (
-        <span className="mr-auto text-[9px] bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded-md shrink-0">Pro</span>
+        <span className="mr-auto text-[10px] bg-accent-500/20 text-accent-700 px-1.5 py-0.5 rounded-md shrink-0">Pro</span>
       )}
     </Link>
   );
@@ -88,11 +91,12 @@ function SidebarContent({
             <div key={group.label}>
               <button
                 onClick={() => onToggleGroup(group.label)}
-                className="flex items-center justify-between w-full px-2 mb-1">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                aria-expanded={!isCollapsed}
+                className="flex items-center justify-between w-full min-h-[var(--tap-target)] px-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <span className="text-[11px] font-bold text-muted uppercase tracking-widest">
                   {group.label}
                 </span>
-                <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
+                <ChevronDown aria-hidden="true" className={`w-3 h-3 text-muted transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
               </button>
               {!isCollapsed && (
                 <div className="space-y-0.5">
@@ -129,9 +133,9 @@ function SidebarContent({
         )}
         <button
           onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
-          className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-xs
-                     text-red-500 hover:bg-red-500/5 transition-all">
-          <LogOut className="w-3.5 h-3.5" />
+          className="flex items-center gap-2.5 w-full min-h-[var(--tap-target)] px-2.5 rounded-xl text-sm
+                     text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-all">
+          <LogOut aria-hidden="true" className="icon-sm" />
           خروج
         </button>
       </div>
@@ -146,11 +150,11 @@ function AnimatedThemeToggle({ mounted, theme, onToggle }: { mounted: boolean; t
       onClick={onToggle}
       suppressHydrationWarning
       aria-label="تغییر تم"
-      className="relative w-8 h-8 rounded-full flex items-center justify-center glass-chrome
-                 text-gray-500 dark:text-gray-400 overflow-hidden shrink-0">
-      <Sun className={`w-4 h-4 absolute transition-all duration-500 ease-out
+      className="tap-target relative rounded-full flex items-center justify-center glass-chrome
+                 text-gray-600 dark:text-gray-300 overflow-hidden shrink-0">
+      <Sun aria-hidden="true" className={`icon-sm absolute transition-all duration-500 ease-out
                        ${isDark ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-50"}`} />
-      <Moon className={`w-4 h-4 absolute transition-all duration-500 ease-out
+      <Moon aria-hidden="true" className={`icon-sm absolute transition-all duration-500 ease-out
                         ${isDark ? "opacity-0 -rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"}`} />
     </button>
   );
@@ -184,10 +188,12 @@ function NotificationBell() {
   return (
     <div className="relative">
       <button onClick={() => setOpen((o) => !o)}
-        className="relative w-8 h-8 rounded-full flex items-center justify-center glass-chrome text-gray-500 dark:text-gray-400">
-        <Bell className="w-4 h-4" />
+        aria-label={unreadCount > 0 ? `اعلان‌ها — ${unreadCount} خوانده‌نشده` : "اعلان‌ها"}
+        aria-expanded={open}
+        className="tap-target relative rounded-full flex items-center justify-center glass-chrome text-gray-600 dark:text-gray-300">
+        <Bell aria-hidden="true" className="icon-sm" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-bold">
+          <span aria-hidden="true" className="absolute top-1 left-1 min-w-4 h-4 px-1 rounded-full bg-red-600 text-white text-[9px] flex items-center justify-center font-bold">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -296,28 +302,31 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <header className="h-14 flex items-center justify-between px-4 sm:px-6
                            border-b border-gray-200 dark:border-white/[0.06]
                            glass-chrome shrink-0">
-          <button className="md:hidden p-2 text-gray-500" onClick={() => setOpen(true)}>
-            <Menu className="w-5 h-5" />
+          <button className="md:hidden tap-target inline-flex items-center justify-center rounded-lg text-gray-700 dark:text-gray-300"
+            onClick={() => setOpen(true)} aria-label="منو" aria-expanded={open}>
+            <Menu aria-hidden="true" className="icon-md" />
           </button>
           <div className="flex items-center gap-2 sm:gap-3 mr-auto">
             <CommandPalette />
             <Link href={slug ? `/${slug}` : "/dashboard/shop"} target="_blank"
-              className="md:hidden w-8 h-8 rounded-full flex items-center justify-center glass-chrome
-                         text-gray-500 dark:text-gray-400 shrink-0" aria-label="مشاهده صفحه بیو">
-              <Smartphone className="w-4 h-4" />
+              className="md:hidden tap-target rounded-full flex items-center justify-center glass-chrome
+                         text-gray-700 dark:text-gray-300 shrink-0" aria-label="مشاهده صفحه بیو">
+              <Smartphone aria-hidden="true" className="icon-sm" />
             </Link>
             <div className="md:hidden">
               <AnimatedThemeToggle mounted={mounted} theme={theme} onToggle={toggleTheme} />
             </div>
             <NotificationBell />
             <Link href={slug ? `/${slug}` : "/dashboard/shop"} target="_blank"
-              className="hidden md:inline text-xs text-gray-500 hover:text-accent-500 transition-colors">
+              className="hidden md:inline-flex items-center min-h-[var(--tap-target)] px-2 text-sm text-gray-700 dark:text-gray-300 hover:text-accent transition-colors">
               مشاهده صفحه بیو ↗
             </Link>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 md:pb-6">
+        {/* Bottom padding clears the fixed tab bar *plus* the home indicator —
+            a flat 6rem left content under the nav on notched devices. */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6">
           {children}
         </main>
       </div>

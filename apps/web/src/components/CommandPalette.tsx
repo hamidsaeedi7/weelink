@@ -71,7 +71,7 @@ export function CommandPalette() {
       {/* Trigger — desktop hint + mobile floating button */}
       <button
         onClick={() => setOpen(true)}
-        className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-gray-400
+        className="hidden md:flex items-center gap-2 px-3 min-h-[var(--tap-target)] rounded-lg text-sm text-muted
                    glass-chrome hover:border-accent-500/30 transition-colors"
         aria-label="جست‌وجوی سریع"
       >
@@ -83,10 +83,13 @@ export function CommandPalette() {
       </button>
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden fixed bottom-20 left-4 z-40 w-12 h-12 rounded-full btn-primary shadow-lg flex items-center justify-center"
+        // Sits above the tab bar and the home indicator; a flat bottom-20 put
+        // it behind the nav on notched devices.
+        className="md:hidden fixed left-4 z-40 w-12 h-12 rounded-full btn-primary shadow-lg flex items-center justify-center !px-0 !py-0"
+        style={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }}
         aria-label="جست‌وجوی سریع"
       >
-        <Search className="w-5 h-5" />
+        <Search aria-hidden="true" className="icon-md" />
       </button>
 
       {open && (

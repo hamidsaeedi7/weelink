@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3, Eye, MousePointer, ShoppingBag, TrendingUp, Link2, Settings,
-  Check, Circle, Clock, Crown, Tag, Loader2,
+  Check, Circle, Clock, Crown, Tag, Loader2, AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { analyticsApi, ordersApi, accountApi, couponsApi, shopsApi } from "@/lib/api";
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{ allTimeViews: number; blockClicks: number; orders: { count: number; revenue: number } } | null>(null);
   const [shop, setShop] = useState<any>(null);
+  const [statsFailed, setStatsFailed] = useState(false);
   const [insights, setInsights] = useState<Insight[]>([]);
 
   useEffect(() => {
@@ -36,6 +37,9 @@ export default function DashboardPage() {
       accountApi.getMe().catch(() => null),
       couponsApi.getAll().catch(() => null),
     ]).then(([statsRes, shopRes, ordersRes, meRes, couponsRes]) => {
+      // A failed stats call used to fall through to `?? 0`, so an outage
+      // looked identical to a genuinely empty shop. Track it separately.
+      if (statsRes === null) setStatsFailed(true);
       setStats((statsRes as any)?.data ?? statsRes ?? null);
       const shopData = (shopRes as any)?.data ?? shopRes ?? null;
       setShop(shopData);
@@ -92,17 +96,21 @@ export default function DashboardPage() {
   const checklistDone = checklist.filter((c) => c.done).length;
   const checklistComplete = checklist.length > 0 && checklistDone === checklist.length;
 
+  // Icon colours are theme-split: the 400-weights were chosen for the dark
+  // surface and dropped below 3:1 on the light tint behind them.
   const STATS = [
-    { label: "بازدید کل", value: toPersianNumber(String(stats?.allTimeViews ?? 0)), icon: Eye, color: "text-cyan-400", bg: "bg-cyan-500/10" },
-    { label: "کلیک لینک‌ها", value: toPersianNumber(String(stats?.blockClicks ?? 0)), icon: MousePointer, color: "text-accent-400", bg: "bg-accent-500/10" },
-    { label: "سفارش‌های جدید", value: toPersianNumber(String(stats?.orders?.count ?? 0)), icon: ShoppingBag, color: "text-green-400", bg: "bg-green-500/10" },
-    { label: "درآمد ماه", value: fmtMoney(stats?.orders?.revenue ?? 0), icon: TrendingUp, color: "text-purple-400", bg: "bg-purple-500/10" },
+    { label: "بازدید کل", value: toPersianNumber(String(stats?.allTimeViews ?? 0)), icon: Eye, color: "text-cyan-700 dark:text-cyan-300", bg: "bg-cyan-500/10" },
+    { label: "کلیک لینک‌ها", value: toPersianNumber(String(stats?.blockClicks ?? 0)), icon: MousePointer, color: "text-accent-700", bg: "bg-accent-500/10" },
+    { label: "سفارش‌های جدید", value: toPersianNumber(String(stats?.orders?.count ?? 0)), icon: ShoppingBag, color: "text-green-700 dark:text-green-300", bg: "bg-green-500/10" },
+    { label: "درآمد ماه", value: fmtMoney(stats?.orders?.revenue ?? 0), icon: TrendingUp, color: "text-purple-700 dark:text-purple-300", bg: "bg-purple-500/10" },
   ];
 
+  // Tones are theme-split: the 500-weights read fine on the dark surface but
+  // dropped to ~3.6:1 against the light tint behind them.
   const toneStyles: Record<Insight["tone"], { bg: string; icon: string; iconBg: string }> = {
-    warning: { bg: "bg-amber-500/5 border-amber-500/20", icon: "text-amber-500", iconBg: "bg-amber-500/10" },
-    danger: { bg: "bg-red-500/5 border-red-500/20", icon: "text-red-500", iconBg: "bg-red-500/10" },
-    info: { bg: "bg-accent-500/5 border-accent-500/20", icon: "text-accent-500", iconBg: "bg-accent-500/10" },
+    warning: { bg: "bg-amber-500/5 border-amber-500/30", icon: "text-amber-700 dark:text-amber-400", iconBg: "bg-amber-500/10" },
+    danger: { bg: "bg-red-500/5 border-red-500/30", icon: "text-red-700 dark:text-red-400", iconBg: "bg-red-500/10" },
+    info: { bg: "bg-accent-500/5 border-accent-500/30", icon: "text-accent-700", iconBg: "bg-accent-500/10" },
   };
 
   return (
@@ -173,19 +181,40 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Stats */}
+      {/* KPI cards — label above the figure so the number is the last thing
+          read and stays the visual anchor; tabular digits stop the row from
+          reflowing as values change. */}
+      {!loading && statsFailed && (
+        <div role="alert" className="flex items-center gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/30">
+          <AlertTriangle aria-hidden="true" className="icon-md text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="flex-1 text-sm text-gray-800 dark:text-gray-200">
+            آمار در دسترس نیست. اعداد زیر ممکن است به‌روز نباشند.
+          </span>
+          <button onClick={() => window.location.reload()}
+            className="shrink-0 text-sm font-bold text-amber-700 dark:text-amber-300 hover:underline">
+            تلاش دوباره
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map((s, i) => (
-          <div key={i} className="glass-card p-5">
-            <div className="flex items-start justify-between mb-3">
-              <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center`}>
-                <s.icon className={`w-4.5 h-4.5 ${s.color}`} />
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="glass-card p-5" aria-hidden="true">
+                <div className="w-9 h-9 rounded-xl bg-gray-200 dark:bg-white/10 animate-pulse" />
+                <div className="h-3 w-20 mt-4 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+                <div className="h-7 w-24 mt-2 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
               </div>
-            </div>
-            <div className="text-2xl font-black text-gray-900 dark:text-white">{s.value}</div>
-            <div className="text-xs text-gray-500 mt-1">{s.label}</div>
-          </div>
-        ))}
+            ))
+          : STATS.map((s) => (
+              <div key={s.label} className="glass-card p-5">
+                <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
+                  <s.icon aria-hidden="true" className={`icon-md ${s.color}`} />
+                </div>
+                <div className="text-sm text-muted">{s.label}</div>
+                <div className="text-2xl font-black text-gray-900 dark:text-white t-numeric mt-1">{s.value}</div>
+              </div>
+            ))}
       </div>
 
       {/* Quick Actions */}
@@ -198,7 +227,7 @@ export default function DashboardPage() {
                          hover:-translate-y-0.5 group">
               <a.icon className="w-6 h-6 text-accent-500 mb-3 group-hover:scale-110 transition-transform" />
               <div className="font-bold text-sm text-gray-900 dark:text-white">{a.label}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{a.desc}</div>
+              <div className="text-sm text-muted mt-0.5">{a.desc}</div>
             </Link>
           ))}
         </div>

@@ -32,12 +32,15 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
   const MenuButton = (
     <button
       onClick={onOpenMore}
-      className="flex-1 flex flex-col items-center justify-center gap-1 py-2"
+      aria-label="منوی کامل"
+      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[var(--tap-target)]"
     >
       <Bubble active={Boolean(contextual)}>
-        {contextual ? <contextual.icon className="w-[18px] h-[18px] text-white" /> : <LayoutGrid className="w-[18px] h-[18px] text-gray-500 dark:text-gray-400" />}
+        {contextual
+          ? <contextual.icon aria-hidden="true" className="w-[18px] h-[18px]" style={{ color: "var(--accent-on-solid)" }} />
+          : <LayoutGrid aria-hidden="true" className="w-[18px] h-[18px] text-gray-700 dark:text-gray-300" />}
       </Bubble>
-      <span className={`text-[10px] font-medium transition-colors duration-300 ${contextual ? "text-accent-500 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
+      <span className={`text-[11px] font-medium transition-colors duration-300 ${contextual ? "text-accent font-bold" : "text-gray-700 dark:text-gray-300"}`}>
         {contextual ? contextual.label : "منو"}
       </span>
     </button>
@@ -63,10 +66,11 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
 function Bubble({ active, children }: { active: boolean; children: React.ReactNode }) {
   return (
     <span
-      className={`flex items-center justify-center rounded-full transition-all duration-300 ease-out
-                  ${active
-                    ? "w-9 h-9 bg-accent-500 -translate-y-1 shadow-lg shadow-accent-500/30 scale-100"
-                    : "w-9 h-9 scale-90"}`}
+      // Filled with --accent-solid (not bg-accent-500) so the icon inside can
+      // use --accent-on-solid: plain white on the dark-theme green was 1.67:1.
+      style={active ? { backgroundColor: "var(--accent-solid)" } : undefined}
+      className={`flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 ease-out
+                  ${active ? "-translate-y-1 shadow-lg shadow-accent-500/30 scale-100" : "scale-90"}`}
     >
       {children}
     </span>
@@ -75,11 +79,13 @@ function Bubble({ active, children }: { active: boolean; children: React.ReactNo
 
 function TabButton({ href, icon: Icon, label, active }: { href: string; icon: NavItem["icon"]; label: string; active: boolean }) {
   return (
-    <Link href={href} className="flex-1 flex flex-col items-center justify-center gap-1 py-2">
+    <Link href={href} aria-current={active ? "page" : undefined}
+      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[var(--tap-target)]">
       <Bubble active={active}>
-        <Icon className={`w-[18px] h-[18px] transition-colors duration-300 ${active ? "text-white" : "text-gray-500 dark:text-gray-400"}`} />
+        <Icon aria-hidden="true" className="w-[18px] h-[18px] transition-colors duration-300"
+          style={{ color: active ? "var(--accent-on-solid)" : undefined }} />
       </Bubble>
-      <span className={`text-[10px] font-medium transition-colors duration-300 ${active ? "text-accent-500 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
+      <span className={`text-[11px] font-medium transition-colors duration-300 ${active ? "text-accent font-bold" : "text-gray-700 dark:text-gray-300"}`}>
         {label}
       </span>
     </Link>
