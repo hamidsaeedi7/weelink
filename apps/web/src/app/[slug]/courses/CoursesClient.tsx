@@ -13,7 +13,7 @@ const textStyle = { color: "var(--bio-text)" };
 const secondaryStyle = { color: "var(--bio-text-secondary)" };
 
 export default function CoursesClient({ slug, courses, shop }: { slug: string; courses: Course[]; shop: any }) {
-  const primary = shop?.primaryColor || "#F97316";
+  const primary = shop?.primaryColor || "#0EA88A";
   const theme = shop?.bioTheme || "modern";
   const mode = shop?.bioMode || "dark";
   const background = resolveBioBackground(shop, theme);

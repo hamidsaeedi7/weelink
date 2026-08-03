@@ -64,9 +64,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/**
+ * PRODUCT_GRID blocks in `auto` mode render the shop's real catalogue. Fetch
+ * it here rather than client-side so the products are in the HTML (SEO, no
+ * layout shift), and only when a block actually asks for it — most pages have
+ * no auto grid and should not pay for the extra request.
+ */
+async function getProducts(slug: string) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1/shops/${slug}/products`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    const list = json?.data ?? json;
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function BioPage({ params }: Props) {
   const shop = await getShop(params.slug);
   if (!shop) notFound();
+
+  const needsProducts = (shop.blocks || []).some(
+    (b: any) => b.type === "PRODUCT_GRID" && (b.data?.source ?? "auto") === "auto",
+  );
+  if (needsProducts) shop.products = await getProducts(params.slug);
 
   const url = `${SITE_URL}/${params.slug}`;
   const jsonLd = {

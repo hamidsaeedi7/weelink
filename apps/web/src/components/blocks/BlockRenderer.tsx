@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { ExternalLink, Phone, MapPin, ChevronDown, Mail } from "lucide-react";
-import { blocksApi } from "@/lib/api";
+import { blocksApi, audienceApi } from "@/lib/api";
 import { MESSENGER_META } from "./block-types";
 import { BrandLogo, PLATFORM_META } from "./brand-icons";
+import {
+  HeroBlock, TrustBarBlock, CategoryChipsBlock, ProductGridBlock, GalleryBlock,
+  TestimonialBlock, StatsBlock, SocialRowBlock, HoursBlock, PriceListBlock,
+  ButtonRowBlock, BottomNavBlock, useBioContext,
+} from "./SiteBlocks";
 
 interface Block {
   id: string;
@@ -29,7 +34,7 @@ const radiusStyle = { borderRadius: "var(--bio-radius)" };
 // instead, so a light bio page opened in a dark browser theme got dark chips.
 const chipStyle = { background: "var(--bio-card-hover-bg)" };
 
-export function BlockRenderer({ block, primaryColor = "#F97316" }: Props) {
+export function BlockRenderer({ block, primaryColor = "#0EA88A" }: Props) {
   const handleClick = () => {
     blocksApi.click(block.id).catch(() => {});
   };
@@ -52,7 +57,7 @@ export function BlockRenderer({ block, primaryColor = "#F97316" }: Props) {
     case "MAP":
       return <MapBlock block={block} onClick={handleClick} />;
     case "EMAIL_CAPTURE":
-      return <EmailCaptureBlock block={block} />;
+      return <EmailCaptureBlock block={block} color={primaryColor} />;
     case "FAQ":
       return <FaqBlock block={block} />;
     case "DIVIDER":
@@ -65,6 +70,33 @@ export function BlockRenderer({ block, primaryColor = "#F97316" }: Props) {
       return <FlashSaleBlock block={block} color={primaryColor} />;
     case "WHATSAPP":
       return <WhatsAppBlock block={block} onClick={handleClick} />;
+
+    // ─ mini-site blocks (see SiteBlocks.tsx) ─
+    case "HERO":
+      return <HeroBlock block={block} onClick={handleClick} />;
+    case "TRUST_BAR":
+      return <TrustBarBlock block={block} />;
+    case "CATEGORY_CHIPS":
+      return <CategoryChipsBlock block={block} onClick={handleClick} />;
+    case "PRODUCT_GRID":
+      return <ProductGridBlock block={block} onClick={handleClick} />;
+    case "GALLERY":
+      return <GalleryBlock block={block} />;
+    case "TESTIMONIAL":
+      return <TestimonialBlock block={block} />;
+    case "STATS":
+      return <StatsBlock block={block} />;
+    case "SOCIAL_ROW":
+      return <SocialRowBlock block={block} onClick={handleClick} />;
+    case "HOURS":
+      return <HoursBlock block={block} onClick={handleClick} />;
+    case "PRICE_LIST":
+      return <PriceListBlock block={block} />;
+    case "BUTTON_ROW":
+      return <ButtonRowBlock block={block} onClick={handleClick} />;
+    case "BOTTOM_NAV":
+      return <BottomNavBlock block={block} onClick={handleClick} />;
+
     default:
       return null;
   }
@@ -237,37 +269,58 @@ function MapBlock({ block, onClick }: { block: Block; onClick: () => void }) {
 
 // ─── Email Capture ────────────────────────────────────────────────────────────
 
-function EmailCaptureBlock({ block }: { block: Block }) {
+function EmailCaptureBlock({ block, color }: { block: Block; color: string }) {
+  const { slug } = useBioContext();
   const [email, setEmail] = useState("");
-  const [done, setDone] = useState(false);
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+
+  // This used to just flip a boolean and throw the address away, so every
+  // newsletter signup on every seller page was silently lost. It now posts to
+  // the same audience endpoint the dashboard's "مخاطبان" list reads.
+  const submit = async () => {
+    if (!email.trim() || state === "sending") return;
+    setState("sending");
+    try {
+      await audienceApi.subscribe(slug, { email: email.trim(), source: "BIO_PAGE" });
+      setState("done");
+    } catch {
+      setState("error");
+    }
+  };
 
   return (
     <div className="bio-card w-full p-4 space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium" style={textStyle}>
-        <Mail className="w-4 h-4 text-orange-400" />
+        <Mail aria-hidden="true" className="w-4 h-4" style={{ color }} />
         {block.label || "عضویت در خبرنامه"}
       </div>
-      {done ? (
-        <p className="text-xs text-green-400 text-center py-2">ثبت شد! ممنون 🎉</p>
+      {state === "done" ? (
+        <p className="text-xs text-center py-2" style={{ color }} role="status">ثبت شد! ممنون 🎉</p>
       ) : (
-        <div className="flex gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={block.data?.placeholder || "ایمیل شما"}
-            style={{ ...textStyle, ...chipStyle, borderRadius: "calc(var(--bio-radius) * 0.7)" }}
-            className="flex-1 px-3 py-2 border border-current/10
-                       text-sm placeholder:opacity-40 focus:outline-none
-                       focus:border-orange-500/50 text-left"
-            dir="ltr"
-          />
-          <button onClick={() => email && setDone(true)}
-            style={{ borderRadius: "calc(var(--bio-radius) * 0.7)" }}
-            className="px-4 py-2 bg-orange-500 text-white text-sm hover:bg-orange-400 transition-colors">
-            ثبت
-          </button>
-        </div>
+        <>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              placeholder={block.data?.placeholder || "ایمیل شما"}
+              aria-label={block.label || "ایمیل شما"}
+              style={{ ...textStyle, ...chipStyle, borderRadius: "calc(var(--bio-radius) * 0.7)" }}
+              className="flex-1 px-3 py-2 border border-current/10
+                         text-sm placeholder:opacity-40 focus:outline-none text-left"
+              dir="ltr"
+            />
+            <button onClick={submit} disabled={state === "sending"}
+              style={{ borderRadius: "calc(var(--bio-radius) * 0.7)", background: color }}
+              className="px-4 min-h-[2.75rem] text-white text-sm font-bold disabled:opacity-60 transition-opacity">
+              {state === "sending" ? "..." : "ثبت"}
+            </button>
+          </div>
+          {state === "error" && (
+            <p className="text-xs text-red-400" role="alert">ثبت نشد — ایمیل را بررسی کن و دوباره تلاش کن.</p>
+          )}
+        </>
       )}
     </div>
   );
@@ -347,7 +400,10 @@ function GroupBlock({ block }: { block: Block }) {
 
 function OrderFormBlock({ block, color, onClick }: { block: Block; color: string; onClick: () => void }) {
   // Destination link is set by the user; fall back to the built-in order page.
-  const slug = typeof window !== "undefined" ? window.location.pathname.split("/")[1] : "";
+  // The slug comes from context rather than window.location — the latter was
+  // empty during SSR (so the fallback rendered as "//order") and pointed at
+  // the wrong path entirely on a custom domain or inside the editor preview.
+  const { slug } = useBioContext();
   const href = block.url && block.url.trim() !== "" ? block.url : `/${slug}/order`;
   const external = /^https?:\/\//.test(href);
   return (
@@ -417,7 +473,10 @@ function FlashSaleBlock({ block, color }: { block: Block; color: string }) {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+    // Re-arm when the seller edits the end date — without this the countdown
+    // kept ticking against the value captured on first mount, which made the
+    // live editor show a stale timer.
+  }, [block.data?.endDate]);
 
   if (timeLeft.expired) return null;
 

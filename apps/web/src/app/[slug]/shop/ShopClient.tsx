@@ -34,7 +34,7 @@ export default function ShopClient({
   const { add, items, update, remove, count, total } = useCart();
   const [selected, setSelected] = useState<Product | null>(null);
 
-  const primary = shop.primaryColor || "#F97316";
+  const primary = shop.primaryColor || "#0EA88A";
   const theme = shop.bioTheme || "modern";
   const mode = shop.bioMode || "dark";
   const background = resolveBioBackground(shop, theme);

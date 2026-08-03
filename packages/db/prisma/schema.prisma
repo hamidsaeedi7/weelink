@@ -61,6 +61,19 @@ enum BlockType {
   ORDER_FORM
   FLASH_SALE
   WHATSAPP
+  // ─ بلوک‌های مینی‌سایت (فاز قالب‌های آماده) ─
+  HERO          // هدر تمام‌عرض: تصویر/گرادیان + عنوان + زیرعنوان + دکمه
+  TRUST_BAR     // نوار اعتماد: ۲ تا ۴ آیتم آیکون + متن (ارسال سریع، ضمانت اصالت…)
+  CATEGORY_CHIPS// ردیف دسته‌بندی با آیکون یا تصویر
+  PRODUCT_GRID  // گرید محصول — حالت auto (محصولات واقعی) یا manual (آیتم‌های دستی)
+  GALLERY       // گرید تصاویر
+  TESTIMONIAL   // نظر مشتری با امتیاز ستاره
+  STATS         // ۲ تا ۴ عدد + برچسب
+  SOCIAL_ROW    // ردیف آیکون شبکه‌های اجتماعی
+  HOURS         // ساعت کاری و آدرس
+  PRICE_LIST    // جدول خدمات و قیمت
+  BUTTON_ROW    // دو دکمه کنار هم (اصلی/فرعی)
+  BOTTOM_NAV    // نوار ناوبری چسبان پایین صفحه
 }
 
 enum TicketStatus {
@@ -128,7 +141,7 @@ model Shop {
   bioTheme     String   @default("modern") // سبک UI صفحه بیو: modern | glass | neo | clay | bento | minimal
   bioMode      String   @default("dark")   // حالت روشن/تیره صفحه بیو: light | dark
   themeId         String   @default("default")
-  primaryColor    String   @default("#F97316")
+  primaryColor    String   @default("#0EA88A") // سبز برند ویلینک — پیش‌فرض فروشگاه‌های جدید (قبلاً نارنجی #F97316 بود)
   secondaryColor  String   @default("#ffffff")
   fontFamily      String   @default("Vazirmatn")
   customDomain        String?  @unique

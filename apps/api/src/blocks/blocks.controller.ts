@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nes
 import { BlocksService } from "./blocks.service";
 import { CreateBlockDto } from "./dto/create-block.dto";
 import { ReorderBlocksDto } from "./dto/reorder-blocks.dto";
+import { ApplyTemplateDto, RestoreBlocksDto } from "./dto/apply-template.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 
@@ -23,6 +24,18 @@ export class BlocksController {
   @Put("reorder")
   reorder(@CurrentUser() user: { id: string }, @Body() dto: ReorderBlocksDto) {
     return this.blocks.reorder(user.id, dto);
+  }
+
+  // Declared before the ":id" routes so "apply-template" is never swallowed
+  // by the wildcard param.
+  @Post("apply-template")
+  applyTemplate(@CurrentUser() user: { id: string }, @Body() dto: ApplyTemplateDto) {
+    return this.blocks.applyTemplate(user.id, dto);
+  }
+
+  @Post("restore")
+  restore(@CurrentUser() user: { id: string }, @Body() dto: RestoreBlocksDto) {
+    return this.blocks.restore(user.id, dto);
   }
 
   @Put(":id")

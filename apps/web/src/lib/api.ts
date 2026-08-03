@@ -105,6 +105,17 @@ export const blocksApi = {
   remove: (id: string) => api.delete(`/blocks/${id}`),
   reorder: (ids: string[]) => api.put("/blocks/reorder", { ids }),
   click: (id: string) => api.post(`/blocks/${id}/click`),
+  applyTemplate: (data: Record<string, any>) => api.post("/blocks/apply-template", data),
+  restore: (data: Record<string, any>) => api.post("/blocks/restore", data),
+};
+
+// ─── Audience ────────────────────────────────────────────────────────────────
+export const audienceApi = {
+  getAll: () => api.get("/audience"),
+  remove: (id: string) => api.delete(`/audience/${id}`),
+  /** public — used by the EMAIL_CAPTURE block on a seller's bio page */
+  subscribe: (slug: string, data: { email: string; name?: string; source?: string }) =>
+    api.post(`/shops/${slug}/audience/subscribe`, data),
 };
 
 // ─── Upload ──────────────────────────────────────────────────────────────────

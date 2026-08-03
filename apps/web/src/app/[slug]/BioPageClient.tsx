@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { BioContextProvider } from "@/components/blocks/SiteBlocks";
 import { ExternalLink, ShoppingBag, FileDown, BookOpen, Zap, CalendarCheck } from "lucide-react";
 import { resolveBioBackground, isAtmospheric } from "@/lib/bio-theme";
 
@@ -91,6 +92,11 @@ function FlashCard({ sale, primary }: { sale: any; primary: string }) {
 const BENTO_WIDE_TYPES = new Set([
   "FEATURED", "IMAGE", "VIDEO", "MAP", "EMAIL_CAPTURE", "FAQ",
   "ORDER_FORM", "FLASH_SALE", "TEXT", "DIVIDER", "GROUP",
+  // Mini-site blocks manage their own internal grid, so squeezing them into
+  // one bento column would break their layouts.
+  "HERO", "TRUST_BAR", "CATEGORY_CHIPS", "PRODUCT_GRID", "GALLERY",
+  "TESTIMONIAL", "STATS", "SOCIAL_ROW", "HOURS", "PRICE_LIST",
+  "BUTTON_ROW", "BOTTOM_NAV",
 ]);
 function bentoSpanClass(block: { type: string }) {
   return BENTO_WIDE_TYPES.has(block.type) ? "col-span-2" : "col-span-1";
@@ -114,10 +120,12 @@ interface Shop {
   ownerPlan?: string;
   storefrontCounts?: { products: number; files: number; courses: number; services: number };
   activeFlashSales?: any[];
+  /** fetched server-side only when a PRODUCT_GRID block runs in `auto` mode */
+  products?: any[];
 }
 
 export function BioPageClient({ shop }: { shop: Shop }) {
-  const primary = shop.primaryColor || "#F97316";
+  const primary = shop.primaryColor || "#0EA88A";
   const theme = shop.bioTheme || "modern";
   const mode = shop.bioMode || "dark";
   const isBento = theme === "bento";
@@ -179,13 +187,15 @@ export function BioPageClient({ shop }: { shop: Shop }) {
         <StorefrontLinks slug={shop.slug} primary={primary} counts={shop.storefrontCounts || { products: 0, files: 0, courses: 0, services: 0 }} />
 
         {/* Blocks */}
-        <div className={isBento ? "grid grid-cols-2 gap-2.5" : "space-y-2.5"}>
-          {shop.blocks.map((block: any) => (
-            <div key={block.id} className={isBento ? bentoSpanClass(block) : undefined}>
-              <BlockRenderer block={block} primaryColor={primary} />
-            </div>
-          ))}
-        </div>
+        <BioContextProvider value={{ primaryColor: primary, slug: shop.slug, products: shop.products || [] }}>
+          <div className={isBento ? "grid grid-cols-2 gap-2.5" : "space-y-2.5"}>
+            {shop.blocks.map((block: any) => (
+              <div key={block.id} className={isBento ? bentoSpanClass(block) : undefined}>
+                <BlockRenderer block={block} primaryColor={primary} />
+              </div>
+            ))}
+          </div>
+        </BioContextProvider>
 
         {/* "Made with Weelink" badge — free pages only (PRO removes branding) */}
         {shop.ownerPlan !== "PRO" && (

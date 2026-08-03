@@ -20,7 +20,7 @@ interface Props {
 }
 
 // مودال خرید: فقط درگاه پرداخت ویلینک (کارت‌به‌کارت غیرفعال) + نام/موبایل الزامی + کد تخفیف
-export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE", primary = "#F97316" }: Props) {
+export function PurchaseModal({ item, shop, onClose, kind = "DIGITAL_FILE", primary = "#0EA88A" }: Props) {
   const router = useRouter();
   const basePrice = item.isFree ? 0 : Number(item.price);
   const [buyerName, setBuyerName] = useState("");

@@ -9,7 +9,7 @@ import { BIO_THEMES, BIO_MODES, resolveBioBackground, isAtmospheric } from "@/li
 // a genuine live preview, not a screenshot. The background comes from the
 // shared resolveBioBackground() so the preview cannot drift from the page.
 function MiniPreview({ themeId, mode, shop }: { themeId: string; mode: string; shop: any }) {
-  const primary = shop?.primaryColor || "#F97316";
+  const primary = shop?.primaryColor || "#0EA88A";
   const background = resolveBioBackground(shop, themeId);
   const initial = (shop?.name || "و")[0];
   const isBento = themeId === "bento";
