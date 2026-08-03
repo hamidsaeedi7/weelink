@@ -49,7 +49,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const post = await getPost(params.id);
   return {
-    title: post ? `${post.title} | وبلاگ ویلینک` : "مطلب | وبلاگ ویلینک",
+    // "وبلاگ" not "وبلاگ ویلینک" — the root layout's title template already
+    // appends the brand, so the longer form doubled it.
+    title: post ? `${post.title} | وبلاگ` : "مطلب | وبلاگ",
     description: post
       ? post.content.replace(/<[^>]+>/g, "").slice(0, 160)
       : undefined,

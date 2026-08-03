@@ -4,7 +4,8 @@ import { Footer } from "@/components/layout/Footer";
 import { Heart, Zap, Shield, Users } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "درباره ما | ویلینک",
+  // The root layout appends "| ویلینک" via its title template.
+  title: "درباره ما",
   description: "ویلینک پلتفرم لینک بیو فارسی برای کسب‌وکارهای ایرانی است.",
 };
 

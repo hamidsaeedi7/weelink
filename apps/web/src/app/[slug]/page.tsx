@@ -38,7 +38,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!shop) return { title: "صفحه یافت نشد" };
 
   const url = `${SITE_URL}/${params.slug}`;
-  const title = `${shop.name} | ویلینک`;
+  // Just the shop name — the root layout's `template: "%s | ویلینک"` appends
+  // the brand. Adding it here too produced "مداد پلاس | ویلینک | ویلینک" in
+  // the browser tab and in search results on every seller's page.
+  const title = shop.name;
   const description = shop.bio || `صفحه بیو ${shop.name} در ویلینک`;
   const images = shop.avatarUrl ? [{ url: shop.avatarUrl }] : [];
 
