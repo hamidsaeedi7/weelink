@@ -106,6 +106,10 @@ services:
     image: nginx:alpine
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Server blocks for non-weelink sites on this host (مداد+). Absolute host
+      # path on purpose: anything under ./nginx is fair game for a weelink
+      # deploy to overwrite, and that is how medadplus.net was lost once.
+      - /etc/nginx/extra-sites:/etc/nginx/conf.d:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /etc/nginx/ssl-madad:/etc/nginx/ssl-madad:ro
